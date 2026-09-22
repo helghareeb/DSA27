@@ -16,27 +16,164 @@ Every fact below carries its **file and page number**. Go and check them.
 
 ## Which document applies to you?
 
-| Document | Year | Covers | Status |
+**Find your program. That is the only bylaw that governs you.**
+
+| Your program | Your bylaw | Year | Your course |
 |---|---|---|---|
-| [`FCIS-Bylaw-2026.pdf`](FCIS-Bylaw-2026.pdf) | **2026** | **All seven programs** | **Authoritative** |
-| [`Program-ArtificialIntelligence-2020.pdf`](Program-ArtificialIntelligence-2020.pdf) | 2020 | AI only | Superseded |
-| [`Program-MedicalInformatics-2014.pdf`](Program-MedicalInformatics-2014.pdf) | 2014 | Medical Informatics only | Superseded |
-| [`Program-SoftwareEngineering-2013.pdf`](Program-SoftwareEngineering-2013.pdf) | 2013 | Software Engineering only | Superseded |
+| **Artificial Intelligence** | [`Program-ArtificialIntelligence-2020.pdf`](Program-ArtificialIntelligence-2020.pdf) | 2020 | **CS2101** |
+| **Bioinformatics / Medical Informatics** | [`Program-MedicalInformatics-2014.pdf`](Program-MedicalInformatics-2014.pdf) | 2014 | **IS122** |
+| **Software Engineering** | [`Program-SoftwareEngineering-2013.pdf`](Program-SoftwareEngineering-2013.pdf) | 2013 | **IS122** |
+| *(from next year)* | [`FCIS-Bylaw-2026.pdf`](FCIS-Bylaw-2026.pdf) | 2026 | CS201 |
 
-**If you enrolled under the 2026 bylaw, read the first row and ignore the rest.**
-The older bylaws are kept because students still completing under them need them,
-and because it is useful to see how the course changed.
+The 2026 faculty bylaw covers all seven programs and replaces the three above —
+but **not for you**. Students enrolling under it arrive next year. It is kept
+here for reference, and section 4 below shows what changes when it takes over.
 
-> **A note on the name "Bioinformatics".** There is no Bioinformatics *program* at
-> the faculty. The program often called that is **Medical Informatics —
-> المعلوماتية الطبية (MI)**, one of the seven programs in the 2026 bylaw.
-> Bioinformatics is a *course* inside it: `CS305 Bioinformatics` in the 2026
-> bylaw (p. 39), `MED121` in the 2014 one (p. 27). If you were told you are in
-> "Bioinformatics", the bylaw that governs you is the Medical Informatics one.
+> **A note on the name "Bioinformatics".** There is no Bioinformatics *program*
+> at the faculty. The program usually called that is **Medical Informatics —
+> المعلوماتية الطبية (MI)**. Bioinformatics is a *course* inside it:
+> `MED121` in the 2014 bylaw (p. 45), `CS305` in the 2026 one (p. 39). If you
+> were told you are in "Bioinformatics", the 2014 bylaw is the one that governs
+> you.
 
 ---
 
-## 1. The course today — CS201
+## 1. Your course, under your own bylaw
+
+| | **AI (2020)** | **Bio / Med. Inf. (2014)** | **SWE (2013)** |
+|---|---|---|---|
+| Code | **CS2101** | **IS122** | **IS122** |
+| English name | Data Structure and Algorithms | Data Structures and Algorithms | Data Structures and Algorithms |
+| Arabic name | هياكل البيانات و الخوارزميات | هياكل البيانات وتحليل الخوارزميات | هياكل البيانات وتحليل الخوارزميات |
+| Credit hours | **3** | **3** | **3** |
+| Lecture / Tutorial / Lab | 2 / — / 2 | 2 / — / 2 | 2 / — / 2 |
+| Prerequisite | **CS1002** Object Oriented Programming | **CS012**, **MATH012** | **CS012**, **MATH012** |
+| Level / semester | Level 2, Semester 3 | Level 2 *(see note)* | Sophomore, Semester 1 |
+| Status | إجباري (compulsory) | compulsory faculty requirement | compulsory faculty requirement |
+| Credits to graduate | **138** | **135** | **135** |
+| Specification page | **p. 44** | **p. 35** | **p. 38** |
+| Study-plan page | p. 35 | *(none — see note)* | p. 29 |
+
+> **Note on the 2014 bylaw.** It contains **no semester-by-semester study plan
+> at all** — it goes straight from the requirement tables to the course
+> descriptions. It therefore never states which semester IS122 is taken in.
+> "Level 2" is read off the course-code rule on its own p. 20 (the tens digit is
+> the level), and it agrees with the SWE bylaw's explicit placement.
+
+### What your bylaw says the course contains
+
+The **2013 and 2014** descriptions are **identical, word for word**:
+
+> "Introduce the fundamental concepts of data structures and the algorithms that
+> proceed from them. Topics include recursion, the underlying philosophy of
+> object-oriented programming, fundamental data structures (including stacks,
+> queues, linked lists, hash tables, trees, and graphs), the basics of
+> algorithmic analysis, and an introduction to the principles of language
+> translation."
+
+The **2020 AI** description (p. 44):
+
+> "This course provides fundamental data structures, algorithms, and abstract
+> data types using mix of programming and theory. Main topics include data
+> structures such as arrays, lists, linked lists, stacks, queues, hash tables,
+> heaps, priority queues, graphs, and trees. It introduces algorithms such as
+> those that are used for list manipulation, graph searches, sorting, searching,
+> and tree traversals. Also, it introduces analyzing and managing the complexity
+> associated with data structures and their operations."
+
+This course teaches the **union** of the two. Topic-by-topic proof is in
+[`../02-coverage.md`](../02-coverage.md).
+
+---
+
+## 2. The rules that apply to you
+
+All three bylaws agree on the ones that matter:
+
+| Rule | Value | AI 2020 | Bio 2014 | SWE 2013 |
+|---|---|---|---|---|
+| Final written exam | **60%** | p. 14 | p. 12 | p. 13 |
+| To pass | **≥ 60% total AND ≥ 30% of the final** | p. 15 | p. 12–13 | p. 13 |
+| Attendance to sit the final | **≥ 75%** | p. 15, 19 | p. 12, 18 | p. 13, 18 |
+| Below that | **محروم** — barred, counted as fail | p. 19 | p. 18 | p. 18 |
+| Minimum grade to pass a course | **D** | p. 14 | p. 11 | p. 11 |
+| Minimum CGPA to graduate | **2.00 / 4.00** | p. 14 | p. 11 | p. 11 |
+| Teaching weeks per semester | **15** | — | p. 7 | p. 8 |
+
+They differ only on how the remaining 40% is split:
+
+| | Midterm | Final | Source |
+|---|---|---|---|
+| **SWE 2013** | ≥ 20% | ≤ 60% * | p. 13, p. 11 |
+| **Bio 2014** | ≥ 20% | ≤ 60% | p. 12, p. 11 |
+| **AI 2020** | ≥ 10% | ≥ 50%, ≤ 60%, 2 hours | p. 16, p. 14 |
+
+\* See contradiction 2 in section 7.
+
+**Grade scale** — the same in all three: A+ (≥97%) · A 93–<97 · A− 89–<93 ·
+B+ 84–<89 · B 80–<84 · B− 76–<80 · C+ 73–<76 · C 70–<73 · C− 67–<70 ·
+D+ 64–<67 · D 60–<64 · **F <60%**.
+*(AI 2020 p. 17; Bio 2014 p. 14; SWE 2013 p. 14.)*
+
+### Student levels
+
+| Level | Name | AI 2020 (p. 17) | Bio 2014 / SWE 2013 (p. 15) |
+|---|---|---|---|
+| 000 | Freshman | 0 – 34 | 0 – 36 |
+| **100** | **Sophomore** ← this course | **35 – 67** | **37 – 66** |
+| 200 | Junior | 68 – 100 | 67 – 99 |
+| 300 | Senior | 101 – 137 | 100 – 135 |
+
+---
+
+## 3. What this course unlocks — and what it does not
+
+### Courses that require it as a prerequisite
+
+| Course | AI (2020) | Bio (2014) | SWE (2013) |
+|---|---|---|---|
+| Database Systems | IS2102 (p. 45) | IS123 (p. 35) | IS123 (p. 38) |
+| Computer Networks | — | IT131 (p. 37) | IT131 (p. 40) |
+| Computer Vision | — | IT132 (p. 41) | IT132 (p. 50) |
+| Pattern Recognition | AI3301 (p. 51) | IT137 (p. 27) | — |
+| Computer Graphics and Animation | AI2102 (p. 47) | — | — |
+| **Software Construction** | — | — | **SWE141 (p. 42)** |
+
+**SWE141** matters more than its one line suggests. Its description reads "BNF
+and basic theory of grammars and parsing. Use of parser generators. Basics of
+language and protocol design. Formal languages." — which is exactly where
+IS122's "introduction to the principles of language translation" is heading.
+Week 15 of this course is the foundation of that one.
+
+### The algorithms course that follows — for one program only
+
+| | Follow-on algorithms course |
+|---|---|
+| **AI 2020** | **AI3001 Analysis and Design of AI Algorithms** (p. 48) — divide and conquer, recursion, greedy, **dynamic programming**, recursion trees, master theorem, graph theory, NP-completeness, sorting and searching lower bounds, minimum spanning trees, shortest paths and network flows. Level 3, Semester 5. |
+| **Bio 2014** | **none** |
+| **SWE 2013** | **none** |
+
+This is the single most important structural fact in this document. **If you are
+in Software Engineering or Medical Informatics, this is the only algorithms
+course in your entire degree.** Whatever is not covered here will not be taught
+to you anywhere else — which is why `dsa/dynamic_programming.py` is in the
+repository as enrichment even though no bylaw asks for it.
+
+### What you are assumed to know already
+
+| | Prerequisite | Does it teach OOP? | Does it teach recursion? |
+|---|---|---|---|
+| **AI** | CS1002 Object Oriented Programming (p. 42) | **yes** | no — but MT1001 has "recursive definition and relations" and "asymptotic notations" (p. 40) |
+| **Bio** | CS012 Structure Programming (p. 33) · MATH012 Discrete Structures (p. 30) | **no** | **no** |
+| **SWE** | CS012 Fundamentals of Programming (p. 36) · MATH012 Discrete Structures (p. 33) | mentions the paradigm as a goal | **no** |
+
+For Bio students, **this course is the first exposure to both recursion and
+object orientation** — which is exactly what the IS122 description says it is
+for. Nothing in this course assumes either.
+
+---
+
+## 4. From next year — CS201 under the 2026 bylaw
 
 *Source: FCIS Bylaw 2026, p. 138 (course specification) and p. 36 (study plan).*
 
@@ -97,7 +234,7 @@ material: the bylaw puts it in CS303.**
 
 ---
 
-## 2. Faculty-wide rules that apply to CS201
+## 5. Faculty-wide rules under the 2026 bylaw
 
 *Source: FCIS Bylaw 2026.*
 
@@ -132,9 +269,9 @@ C− 1.7 (67–<70) · D+ 1.3 (64–<67) · D 1.0 (60–<64) · **F 0.0 (<60%)**
 
 ---
 
-## 3. The same course under the older bylaws
+## 6. All four bylaws side by side
 
-Useful if you are completing under a previous bylaw, and interesting either way.
+Your own row is one of the last three. The 2026 column is where the faculty is going.
 
 | | **2026 faculty** | **2020 AI** | **2014 Med. Inf.** | **2013 SW Eng.** |
 |---|---|---|---|---|
@@ -173,7 +310,7 @@ The 2026 description drops "the principles of language translation" and adds
 
 ---
 
-## 4. Known contradictions in the source documents
+## 7. Known contradictions in the source documents
 
 These are real defects in the official PDFs. They are recorded here rather than
 silently resolved. **In every case, the 2026 faculty bylaw governs.**
@@ -204,7 +341,7 @@ silently resolved. **In every case, the 2026 faculty bylaw governs.**
 
 ---
 
-## 5. Where these files came from
+## 8. Where these files came from
 
 Downloaded 22 September 2026 from the faculty website and stored here
 **byte-for-byte unmodified** (SHA-256 verified after copying); only the filenames

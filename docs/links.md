@@ -1,6 +1,6 @@
 # Course Links
 
-Everything for **CS201 — Data Structures and Algorithms**, in one place.
+Everything for **Data Structures and Algorithms** — **CS2101** (AI), **IS122** (Bio, SWE) — in one place.
 
 ---
 
@@ -38,7 +38,8 @@ disagree, the repository is right.
 | | |
 |---|---|
 | Course guide — syllabus, assessment, rules | [`course/00-course-guide.md`](course/00-course-guide.md) |
-| Study plan — 14 weeks | [`course/01-study-plan.md`](course/01-study-plan.md) |
+| Study plan — 15 weeks | [`course/01-study-plan.md`](course/01-study-plan.md) |
+| Coverage matrix | [`course/02-coverage.md`](course/02-coverage.md) |
 | Lecture 01 — Why This Course, and Why Python | [`lectures/01-why-this-course/lecture.md`](lectures/01-why-this-course/lecture.md) |
 | Official regulations | [`course/regulations/`](course/regulations/) |
 
@@ -50,6 +51,7 @@ disagree, the repository is right.
 | Lecture 01 — slides | [`pdf/DSA27-L01-slides.pdf`](pdf/DSA27-L01-slides.pdf) |
 | Course guide | [`pdf/DSA27-Course-Guide.pdf`](pdf/DSA27-Course-Guide.pdf) |
 | Study plan | [`pdf/DSA27-Study-Plan.pdf`](pdf/DSA27-Study-Plan.pdf) |
+| Coverage matrix | [`pdf/DSA27-Coverage.pdf`](pdf/DSA27-Coverage.pdf) |
 | DSA in your program | [`pdf/DSA27-DSA-In-Your-Program.pdf`](pdf/DSA27-DSA-In-Your-Program.pdf) |
 
 ---
@@ -58,6 +60,7 @@ disagree, the repository is right.
 
 - Peter Norvig, *Teach Yourself Programming in Ten Years* — <https://norvig.com/21-days.html>
 - *PEP 20 — The Zen of Python* — <https://peps.python.org/pep-0020/>
+- Kernighan & Ritchie, *The C Programming Language*, 2nd ed. — <https://cs.princeton.edu/~bwk/cbook.html>
 - Python documentation — <https://docs.python.org/3/>
 - Graphviz download (needed for the environment tests) — <https://graphviz.org/download/>
 

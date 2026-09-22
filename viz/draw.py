@@ -131,6 +131,12 @@ def draw_tree(edges, highlight=(), title=None, rankdir="TB"):
 
     >>> draw_tree([("A", "B"), ("A", "C"), ("B", "D")], highlight={"C"})
 
+    Two nodes may need the same label — an expression tree can hold `2` twice.
+    Anything after a `#` disambiguates the node without being displayed, the
+    same `value#index` convention `draw_array_as_tree` uses:
+
+    >>> draw_tree([("+#0", "2#1"), ("+#0", "2#2")])   # two distinct 2s
+
     Save it with `.render("bst", format="png", cleanup=True)`.
     """
     from graphviz import Digraph  # imported lazily: needs the dot binary
@@ -149,7 +155,7 @@ def draw_tree(edges, highlight=(), title=None, rankdir="TB"):
                 continue
             seen.add(node)
             fill, edge = colours(node, highlight)
-            dot.node(str(node), fillcolor=fill, color=edge)
+            dot.node(str(node), label=str(node).split("#", 1)[0], fillcolor=fill, color=edge)
         dot.edge(str(parent), str(child))
     return dot
 

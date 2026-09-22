@@ -20,7 +20,7 @@
 param(
     # Build only one target. Omit to build everything.
     [ValidateSet('lecture01-handout', 'lecture01-slides', 'course-guide',
-                 'study-plan', 'regulations')]
+                 'study-plan', 'coverage', 'regulations')]
     [string]$Only
 )
 
@@ -77,7 +77,7 @@ $SlideOpts = $Common + @(
     '--lua-filter', (Join-Path $PSScriptRoot 'strip-handout-only.lua')
     '--lua-filter', (Join-Path $PSScriptRoot 'unwrap-divs.lua')
     '--include-in-header', (Join-Path $Tmpl 'beamer-header.tex')
-    '--syntax-highlighting=breezedark'   # the slides have a dark background
+    '--syntax-highlighting=tango'
     '-V', 'aspectratio=169'
     '-V', 'fontsize=10pt'
 )
@@ -88,7 +88,10 @@ function Build {
     if ($Only -and $Only -ne $Name) { return }
 
     Write-Host "  $Name " -NoNewline -ForegroundColor Cyan
-    $args = $Options + @('-o', $Output, $Source)
+    # Image paths in the Markdown are relative to the source file, but pandoc
+    # resolves them against the working directory unless told otherwise.
+    $args = $Options + @("--resource-path=$(Split-Path -Parent $Source)",
+                         '-o', $Output, $Source)
     & pandoc @args
     if ($LASTEXITCODE -ne 0) { throw "pandoc failed for $Name (exit $LASTEXITCODE)" }
 
@@ -111,6 +114,9 @@ Build 'course-guide' (Join-Path $Docs 'course\00-course-guide.md') `
 
 Build 'study-plan' (Join-Path $Docs 'course\01-study-plan.md') `
       (Join-Path $Dist 'DSA27-Study-Plan.pdf') $HandoutOpts
+
+Build 'coverage' (Join-Path $Docs 'course\02-coverage.md') `
+      (Join-Path $Dist 'DSA27-Coverage.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
 
 Build 'regulations' (Join-Path $Docs 'course\regulations\dsa-in-your-program.md') `
       (Join-Path $Dist 'DSA27-DSA-In-Your-Program.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))

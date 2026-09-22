@@ -1,24 +1,28 @@
 # Official Regulations
 
-The bylaws (اللوائح) that govern CS201, mirrored here so you can reach them from
-one link instead of hunting the faculty website.
+The bylaws (اللوائح) that govern this course, mirrored here so you can reach them
+from one link instead of hunting the faculty website.
 
 **Start here → [`dsa-in-your-program.md`](dsa-in-your-program.md)** — everything
 these PDFs say about Data Structures and Algorithms, extracted, with page
-numbers. You should not need to open the PDFs at all unless you want to verify
+numbers. You should not need to open a PDF at all unless you want to verify
 something.
 
 ---
 
-| File | Year | Pages | Covers |
-|---|---|---|---|
-| **[`FCIS-Bylaw-2026.pdf`](FCIS-Bylaw-2026.pdf)** | **2026** | 328 | **All seven programs — authoritative** |
-| [`Program-ArtificialIntelligence-2020.pdf`](Program-ArtificialIntelligence-2020.pdf) | 2020 | 69 | Artificial Intelligence — superseded |
-| [`Program-MedicalInformatics-2014.pdf`](Program-MedicalInformatics-2014.pdf) | 2014 | 50 | Medical Informatics — superseded |
-| [`Program-SoftwareEngineering-2013.pdf`](Program-SoftwareEngineering-2013.pdf) | 2013 | 57 | Software Engineering — superseded |
+## Find your bylaw
 
-The 2026 faculty bylaw supersedes the three program bylaws. Those are kept for
-students still completing under them.
+| Your program | Your bylaw | Year | Pages | Your course |
+|---|---|---|---|---|
+| **Artificial Intelligence** | [`Program-ArtificialIntelligence-2020.pdf`](Program-ArtificialIntelligence-2020.pdf) | 2020 | 69 | **CS2101** |
+| **Bioinformatics / Medical Informatics** | [`Program-MedicalInformatics-2014.pdf`](Program-MedicalInformatics-2014.pdf) | 2014 | 50 | **IS122** |
+| **Software Engineering** | [`Program-SoftwareEngineering-2013.pdf`](Program-SoftwareEngineering-2013.pdf) | 2013 | 57 | **IS122** |
+| *(students arriving next year)* | [`FCIS-Bylaw-2026.pdf`](FCIS-Bylaw-2026.pdf) | 2026 | 328 | CS201 |
+
+**The 2026 faculty bylaw does not govern you.** It covers all seven programs and
+replaces the three above, but it applies to students enrolling under it from next
+year. It is kept here for reference and so this material is ready when they
+arrive.
 
 > **"Bioinformatics"** is not a program — it is a course. The program usually
 > meant by that name is **Medical Informatics (المعلوماتية الطبية)**, and its
@@ -29,17 +33,16 @@ students still completing under them.
 
 ## The short version
 
-| | |
-|---|---|
-| Course | **CS201 — Data Structures and Algorithms — هياكل البيانات والخوارزميات** |
-| Credit hours | 3 (Lecture 2 · Lab 2) |
-| Prerequisite | CS101 Introduction to Programming and Problem Solving |
-| Level | Sophomore — Fall |
-| Assessment | SA/PE 20 · Midterm 15 · Oral 5 · Final 60 |
-| To pass | ≥ 60% overall **and** ≥ 30% of the final **and** ≥ 75% attendance |
+| | AI | Bio / Med. Inf. | SWE |
+|---|---|---|---|
+| Code | **CS2101** | **IS122** | **IS122** |
+| Hours | 3 (2 lec + 2 lab) | 3 (2 lec + 2 lab) | 3 (2 lec + 2 lab) |
+| Prerequisite | CS1002 OOP | CS012, MATH012 | CS012, MATH012 |
+| Level | Level 2, Sem. 3 | Level 2 | Sophomore, Sem. 1 |
+| Spec page | p. 44 | p. 35 | p. 38 |
 
-*FCIS Bylaw 2026: course spec p. 138 · study plan p. 36 · pass rule p. 23 ·
-attendance p. 21 · grades p. 22.*
+Identical in all three: final exam **60%**, pass needs **≥ 60% overall and
+≥ 30% of the final**, attendance **≥ 75%** or **محروم**, minimum grade **D**.
 
 ---
 

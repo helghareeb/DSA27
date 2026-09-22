@@ -1,13 +1,16 @@
 # DSA27 — Data Structures & Algorithms
 
-**CS201** · Faculty of Computers and Information Sciences, Mansoura University
+**CS2101** (AI) · **IS122** (Bioinformatics, Software Engineering)
+Faculty of Computers and Information Sciences, Mansoura University
 
 Course repository. We **implement the structures ourselves** rather than reach
 for Python's built-ins — the point is to build the thing, not to call it.
 
-Topics: arrays, linked lists, stacks, queues, searching (basic and advanced),
-sorting (basic and advanced), dynamic programming, algorithm complexity, and
-dictionaries/hash maps.
+Topics: complexity, recursion, arrays and dynamic arrays, linked lists, stacks,
+queues, searching, sorting (basic and advanced), trees and traversals, heaps and
+priority queues, hash maps, graphs and graph searches, and the principles of
+language translation — the union of what all three program bylaws declare.
+Dynamic programming is included as enrichment.
 
 ---
 
@@ -17,7 +20,8 @@ dictionaries/hash maps.
 |---|---|
 | **[Course documentation](docs/)** | Start here — guide, plan, lectures, regulations |
 | [Course guide](docs/course/00-course-guide.md) | What the course is, how you are assessed, what fails you |
-| [Study plan — 14 weeks](docs/course/01-study-plan.md) | Every week, and the file that grades it |
+| [Study plan — 15 weeks](docs/course/01-study-plan.md) | Every week, and the file that grades it |
+| [Coverage matrix](docs/course/02-coverage.md) | Every topic the لائحة declares → module → test |
 | [Lecture 01 — Why This Course, and Why Python](docs/lectures/01-why-this-course/lecture.md) | [handout PDF](docs/pdf/DSA27-L01-handout.pdf) · [slides PDF](docs/pdf/DSA27-L01-slides.pdf) |
 | [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
 | [Links](docs/links.md) | WhatsApp channel, YouTube |
@@ -64,6 +68,7 @@ what is missing — fix that before blaming your own code.
 | Path | What it is |
 |---|---|
 | `dsa/` | The structures and algorithms — **you implement these** |
+| `tools/` | Build the PDFs and figures — not needed for the exercises |
 | `viz/` | Drawing, animation and timing helpers — already written, just use them |
 | `tests/` | The exercises, as tests. Make them pass. |
 | `notebooks/` | One notebook per lecture topic |

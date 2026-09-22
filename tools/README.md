@@ -1,13 +1,21 @@
 # Build tooling
 
-Markdown in `docs/` is the source of truth. Everything in `docs/pdf/` is generated
-from it. Students never need any of this — it is for editing the course
-material.
+Markdown in `docs/` is the source of truth. Everything in `docs/pdf/` and every
+image in `docs/lectures/*/figures/` is generated from it. Students never need
+any of this — it is for editing the course material.
 
 ```powershell
-pwsh tools/build.ps1                        # everything
-pwsh tools/build.ps1 -Only lecture01-slides # one target
+python tools/figures.py                     # regenerate all figures
+pwsh   tools/build.ps1                      # all PDFs
+pwsh   tools/build.ps1 -Only lecture01-slides   # one target
+python tools/make_notebooks.py              # scaffold any missing week notebook
 ```
+
+| Script | What it does |
+|---|---|
+| `build.ps1` | Markdown → PDF, via pandoc and XeLaTeX |
+| `figures.py` | Ten figures for Lecture 01, drawn with `viz/` and matplotlib |
+| `make_notebooks.py` | One notebook per teaching week. **Never overwrites** an existing one |
 
 ## Requirements
 
@@ -95,7 +103,24 @@ blockquote disappears.
 | `lecture01-slides` | *(same file)* | `docs/pdf/DSA27-L01-slides.pdf` |
 | `course-guide` | `docs/course/00-course-guide.md` | `docs/pdf/DSA27-Course-Guide.pdf` |
 | `study-plan` | `docs/course/01-study-plan.md` | `docs/pdf/DSA27-Study-Plan.pdf` |
+| `coverage` | `docs/course/02-coverage.md` | `docs/pdf/DSA27-Coverage.pdf` |
 | `regulations` | `docs/course/regulations/dsa-in-your-program.md` | `docs/pdf/DSA27-DSA-In-Your-Program.pdf` |
+
+## Figures
+
+`figures.py` writes **PNG at 300 DPI**. SVG renders on GitHub but not in
+XeLaTeX; PDF renders in XeLaTeX but not on GitHub. PNG is the only format both
+read, so the Markdown needs one path and one file.
+
+Nothing is borrowed — no stock photographs, no book covers, no licence to worry
+about. Every figure is drawn from the course's own tooling and the palette in
+`viz/style.py`, so re-running the script reproduces all ten. The
+linear-vs-binary-search figure is **real measured output** from
+`viz.complexity.measure()`, not a sketch of what the curves ought to look like.
+
+Image paths in the Markdown are relative to the source file, so `build.ps1`
+passes `--resource-path` per target; pandoc would otherwise resolve them against
+the working directory and silently drop every image.
 
 `docs/pdf/` is **committed**. The point of the PDFs is that a student can click a
 GitHub link and get one, so they have to be in the repository.

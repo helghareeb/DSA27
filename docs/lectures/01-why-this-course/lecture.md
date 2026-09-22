@@ -1,6 +1,6 @@
 ---
 title: "Why This Course, and Why Python"
-subtitle: "DSA27 — Lecture 01 · CS201 Data Structures and Algorithms"
+subtitle: "DSA27 — Lecture 01 · Data Structures and Algorithms"
 author: "Dr. Haitham A. El-Ghareeb"
 institute: "Faculty of Computers and Information Sciences, Mansoura University"
 date: "22 September 2026"
@@ -135,12 +135,19 @@ explains the code you are looking at.
 
 | Person | Language | The decision, in one line |
 |---|---|---|
-| Guido van Rossum | **Python** | Readability is worth paying for. |
+| **Dennis Ritchie** | **C** | A portable assembler. Trust the programmer. |
 | Bjarne Stroustrup | **C++** | Leave no room for a lower-level language. |
+| Guido van Rossum | **Python** | Readability is worth paying for. |
 | Graydon Hoare | **Rust** | Memory safety without a garbage collector. |
 | Pike, Thompson, Griesemer | **Go** | Fewer features, faster builds, at scale. |
 
+## Fifty years of decisions
+
+![Each language answers a different question, and the answer has an author.](figures/pl-timeline.png)
+
 ::: {.handout-only}
+
+**C.** Its own section follows — it is the one underneath all the others.
 
 **Python.** Van Rossum's priority was that code is read far more often than it is
 written. The consequences are everywhere: significant indentation (you cannot
@@ -166,6 +173,66 @@ benefits more from simplicity and build speed than from expressiveness.
 
 Four different answers. None of them is wrong. They are answers to **different
 questions**.
+
+:::
+
+## Where C came from
+
+- **Dennis Ritchie**, at **Bell Labs**, in the early 1970s.
+- Built out of Ken Thompson's language **B**, for one purpose: to write **Unix**.
+- Unix was rewritten in C in 1973 — the first major operating system not
+  written in assembly.
+- Ritchie and Thompson shared the **1983 Turing Award**. Ritchie died in 2011.
+
+::: {.handout-only}
+
+That origin explains everything about how C looks. It was not designed to be
+pleasant, or safe, or modern. It was designed to *be a portable assembler* —
+something you could write an operating system in, and then move that operating
+system to a different machine. So the language stays small, stays close to the
+hardware, and trusts you completely. Every sharp edge in C is the price of that
+one decision.
+
+**C is still underneath you.** The CPython interpreter running your Python is
+written in C. So are Linux, Windows' kernel, SQLite, git and ffmpeg. When your
+Python `list` grows and quietly doubles its storage — the thing you will
+implement by hand in Week 4 — that doubling is happening in C, a few layers
+below your code.
+
+:::
+
+## The book to own
+
+> **Brian W. Kernighan and Dennis M. Ritchie**\
+> *The C Programming Language*, 2nd edition\
+> Prentice Hall, 1988 · ISBN 0-13-110362-8
+
+Everyone calls it **K&R**. Get the **2nd edition** — it covers ANSI C.
+
+<https://cs.princeton.edu/~bwk/cbook.html>
+
+::: {.handout-only}
+
+The first edition is from 1978; the second, from 1988, is the one to buy. It is
+under 300 pages, and it is still the best book written about the language —
+partly because one of its two authors *created the language*. There is no more
+primary source than that.
+
+Buy it, or read it from the link above, which is Kernighan's own page for the
+book. Do not download the scanned copies that turn up in search results; they
+are pirated, and you can see from the page above where the real thing lives.
+
+**And here is the joke paying off.** This lecture opened with "every language
+can print `Hello, World`". Why *that* program, in every tutorial, in every
+language, for fifty years? Because it is the first program in K&R. One book set
+the opening line for the entire profession.
+
+**Why C matters for this course specifically.** C makes memory visible.
+`malloc`, `free`, pointers, `struct` — nothing is hidden and nothing is
+automatic. Every structure we are about to build is transparent in C and
+invisible in Python, which is exactly the honest drawback of Python that Part 3
+gets to. If you ever want to *really* understand a linked list, write one in C.
+You will never forget what a pointer is again.
 
 :::
 
@@ -225,6 +292,8 @@ total = sum(n * n for n in numbers if n % 2 == 0)
 
 Same output. Same language. **Three different ways of thinking.**
 
+![Almost every language you will use supports more than one style, which is why the choice is yours to make.](figures/paradigms.png)
+
 ::: {.handout-only}
 
 A **paradigm** is not a feature list, it is a way of decomposing a problem. The
@@ -255,10 +324,7 @@ builds no intermediate list.
 
 Students collapse these into one question. They are independent.
 
-|  | **Static** — checked at compile time | **Dynamic** — checked at run time |
-|---|---|---|
-| **Strong** — refuses to guess | Java, C#, Rust, Haskell | **Python**, Ruby |
-| **Weak** — converts silently | C, C++ | JavaScript, PHP |
+![Static versus dynamic is *when*; strong versus weak is *how strictly*. Python sits top-left: dynamic, and strict.](figures/type-systems.png)
 
 ::: {.handout-only}
 
@@ -295,6 +361,8 @@ in `dsa/` use them. Treat them as documentation your editor can check.
   Java, C#, Go. Safe, at the cost of control and some pauses.
 - **Ownership** — the compiler proves at build time that memory is freed exactly
   once. Rust. Safe *and* fast, at the cost of a harder compiler to satisfy.
+
+![Control at one end, safety at the other. C sits on the left; Python sits in the middle and hides the question.](figures/memory-models.png)
 
 ::: {.handout-only}
 
@@ -471,6 +539,8 @@ s = "hello"               # an object of class str
 xs = [42, "hello", 3.14]  # a collection of references
 ```
 
+![Five rungs. This course lives on the last one, but it only makes sense if the first four are solid.](figures/variable-to-structure.png)
+
 In Python a variable is **not a box holding a value**. It is a **name bound to an
 object**.
 
@@ -513,6 +583,8 @@ too — and you will see the machinery that `list` normally hides.
 
 **Data structure** — هيكل البيانات
 : A concrete **arrangement of data in memory** that fulfils the contract.
+
+![One contract, two honest implementations. Choosing between them is the engineering.](figures/adt-vs-structure.png)
 
 ::: {.handout-only}
 
@@ -612,6 +684,8 @@ plot_growth(
 )
 ```
 
+![Real timings on one machine. Linear search climbs; binary search barely moves from 500 items to 32,000.](figures/search-crossover.png)
+
 ::: {.handout-only}
 
 `viz/complexity.py` is already written for you — it is infrastructure, not an
@@ -639,6 +713,8 @@ guess. Measure it, plot it, and look.
 | 1,000 | 10 | 1,000 | 9,966 | 1,000,000 | — |
 | 1,000,000 | 20 | 10⁶ | ~2 × 10⁷ | 10¹² | — |
 
+![The same six curves, drawn. Note the logarithmic vertical axis — without it, everything but 2ⁿ would be flat against the floor.](figures/growth-curves.png)
+
 At n = 1,000,000 the O(log n) algorithm does **20** steps. The O(n²) one does a
 **trillion**.
 
@@ -656,75 +732,101 @@ the entire course, stated in one table.
 
 # The Course Itself
 
-## CS201, officially
+## Your course, officially
 
-| | |
-|---|---|
-| Code | **CS201** |
-| Name | Data Structures and Algorithms — **هياكل البيانات والخوارزميات** |
-| Credit hours | **3** (Lecture 2 · Tutorial — · Laboratory 2) |
-| Prerequisite | Introduction to Programming and Problem Solving (**CS101**) |
-| Level | **Sophomore — Fall** (المستوى الثاني) |
-| Student workload | 155 hours · **5.14 ECTS** |
-| Taught as a major in | IS, CS, IT, **SE**, **MI**, **AI**, NCS |
+Three programs, three bylaws, **one course**.
+
+| | **AI** | **Bio / Medical Informatics** | **Software Engineering** |
+|---|---|---|---|
+| Code | **CS2101** | **IS122** | **IS122** |
+| Hours | 3 (2 lec + 2 lab) | 3 (2 lec + 2 lab) | 3 (2 lec + 2 lab) |
+| Prerequisite | CS1002 OOP | CS012, MATH012 | CS012, MATH012 |
+| Level | Level 2, Sem. 3 | Level 2 | Sophomore, Sem. 1 |
+| Bylaw | 2020, p. 44 | 2014, p. 35 | 2013, p. 38 |
+
+Different codes. Same subject, same hours, same room.
 
 ::: {.handout-only}
 
-Source: *FCIS Internal Bylaw, Credit Hour System, 2026*, p. 138 (course
-specification) and p. 36 (study plan). The bylaw itself is in the repository at
-`docs/course/regulations/FCIS-Bylaw-2026.pdf`.
+The Arabic name differs slightly too: **هياكل البيانات و الخوارزميات** in the AI
+bylaw, **هياكل البيانات وتحليل الخوارزميات** in the other two. All four bylaw
+PDFs are in the repository at `docs/course/regulations/`, and every claim on
+this page carries its page number so you can check it.
 
-Note the last row: CS201 is a **major requirement in all seven programs** of the
-faculty. Whatever you are enrolled in, this course is not optional and not a
-service course — it is core.
+**What the bائحة says this course contains.** The 2013 and 2014 texts are
+identical, word for word:
 
-What it unlocks: **IS202 Introduction to Database Systems** takes CS201 as a
-prerequisite, and so does **CS303 Analysis and Design of Algorithms** in Junior
-Fall, which is where sorting lower bounds, graph algorithms, NP-completeness and
-dynamic programming are treated properly. This course is the foundation that one
-is built on.
+> "Introduce the fundamental concepts of data structures and the algorithms that
+> proceed from them. Topics include **recursion**, the underlying philosophy of
+> **object-oriented programming**, fundamental data structures (including
+> **stacks, queues, linked lists, hash tables, trees, and graphs**), the basics
+> of **algorithmic analysis**, and an introduction to the **principles of
+> language translation**."
+
+The 2020 AI text adds **arrays, heaps, priority queues, sorting, searching,
+graph searches and tree traversals** by name. The 15-week plan covers the union
+of both, and `docs/course/02-coverage.md` maps every declared topic to the
+module and the test that grades it.
+
+**Two things worth knowing about where this course sits.**
+
+*It assumes less than you think.* The bائحة says this course teaches recursion
+and the philosophy of object orientation — it does not assume them. If you are
+in Bio, nothing before this course taught you either. That is expected, and it
+is why Week 3 is recursion.
+
+*For two of the three programs, this is the only algorithms course you will
+ever take.* The AI bائحة has a follow-on, AI3001 *Analysis and Design of AI
+Algorithms*. The 2013 and 2014 bائحة have none at all. So if you are in SWE or
+Bio, what you do not learn here, you will not be taught anywhere.
+
+**What it unlocks**: Database Systems, Computer Networks and Computer Vision all
+take this course as a prerequisite — and for SWE, so does **SWE141 Software
+Construction**, which is where "principles of language translation" grows into
+grammars and parsers. In Week 15 you will build the small version of it: text
+in, a tree out, an answer at the end.
+
+![Week 15. `3 + 4 * 2` after parsing — `*` binds tighter, so it sits deeper in the tree and is evaluated first. Precedence is not a table of numbers; it is a shape.](figures/ast-example.png)
+
+**And from next year**: the 2026 faculty bائحة replaces all three with a single
+**CS201**, 3 credit hours, prerequisite CS101, Sophomore Fall, a major
+requirement in all seven programs. It does not govern you. It is in the
+repository if you want to see where the faculty is going.
 
 :::
 
 ## How you pass
 
-| Component | Weight |
-|---|---|
-| Student Activities / Practical Exam | **20** |
-| Midterm | **15** |
-| Oral | **5** |
-| **Final written exam** | **60** |
+Same three rules in all three لائحة:
 
-Two hard rules from the bylaw:
-
-- **≥ 60%** overall **and ≥ 30%** of the final exam mark — both, or you fail.
-- **≥ 75% attendance** of lectures and labs, or you are **محروم** and cannot sit
-  the final at all.
+- Final written exam is **60%**; coursework is the other **40%**.
+- Pass needs **≥ 60% overall** **and ≥ 30% of the final** — both.
+- **≥ 75% attendance**, or you are **محروم** and cannot sit the final at all.
 
 ::: {.handout-only}
 
-Sources: assessment weights, *FCIS Bylaw 2026*, p. 138 — the CS201 specification
-itself. Pass rule, Article 17, p. 23. Attendance and حرمان, Article 15, p. 21.
-Final exam duration is 2 hours, pp. 23–24.
+Sources: SWE 2013 pp. 11–13 and p. 18; Medical Informatics 2014 pp. 11–13 and
+p. 18; AI 2020 pp. 14–16 and p. 19.
+
+The three bائحة differ only in how the 40% is split — SWE and Bio require the
+midterm to be at least 20%, AI at least 10%, and none of them may let any single
+component exceed 60%. **The exact split for this course will be announced in the
+lecture and on the WhatsApp channel**, and it will be written into
+`docs/course/00-course-guide.md` once it is fixed. Until then, treat the split
+as not yet decided, and the three rules above as binding.
 
 Read the 30% rule again, because students lose years to it: someone who collects
 35 of the 40 coursework marks and then scores 25% on the final has **failed**,
 regardless of the total. Coursework cannot rescue a final exam below 30%.
 
-The attendance rule is not a threat, it is arithmetic. 75% of a 14-week course
+The attendance rule is not a threat, it is arithmetic. 75% of a 15-week course
 means you can miss roughly three sessions. Not five.
 
-**Grade scale** (*FCIS Bylaw 2026*, p. 22): A+ ≥97% (4.0) · A 93–97 (4.0) ·
-A− 89–93 (3.7) · B+ 84–89 (3.3) · B 80–84 (3.0) · B− 76–80 (2.7) · C+ 73–76
-(2.3) · C 70–73 (2.0) · C− 67–70 (1.7) · D+ 64–67 (1.3) · D 60–64 (1.0) ·
-F <60% (0.0).
-
-> **Note on the older bylaws.** The 2013, 2014 and 2020 program bylaws in
-> `docs/course/regulations/` disagree with each other on small points — the value
-> of A+ (4.00 vs 4.33) and the wording of the final-exam weight. **The 2026
-> faculty bylaw governs, and it is the one quoted above.** The discrepancies are
-> documented in `docs/course/regulations/dsa-in-your-program.md` rather than
-> hidden.
+**Grade scale** — A+ (≥97%) through F (<60%), with **D** the minimum pass in any
+course. The three bائحة disagree on whether A+ is worth 4.00 or 4.33 points;
+three of the four documents say **4.00**. That conflict, and two others, are
+documented rather than hidden in
+`docs/course/regulations/dsa-in-your-program.md`.
 
 :::
 
@@ -739,14 +841,16 @@ F <60% (0.0).
   sorts, and plots your measured complexity. It never imports `dsa/`, so it works
   with whatever you write.
 
+![Fifteen weeks. An arrow means the later week genuinely needs the earlier one — which is why recursion comes before trees, and trees before the parser.](figures/course-map.png)
+
 ::: {.handout-only}
 
 They all fail on day one. That is the point, and it is the honest version of a
 course: you are not asked to reproduce my solution, you are asked to satisfy a
 specification.
 
-The full 14-week plan, with the module and test file for each week, is in
-`docs/course/01-study-plan.md`.
+The full 15-week plan, with the module and test file for each week, is in
+`docs/course/01-study-plan.md`, and the course map above is generated from it.
 
 :::
 
@@ -815,17 +919,27 @@ Before then: make `pytest -m "not challenge"` pass.
 
 ## Sources and further reading
 
-**Official**
+**Official — the لائحة that governs you**
 
-- *FCIS Internal Bylaw for the Bachelor Stage, Credit Hour System, 2026* —
-  `docs/course/regulations/FCIS-Bylaw-2026.pdf`. CS201 specification p. 138;
-  Sophomore Fall study plan p. 36; grade scale p. 22; pass rule p. 23;
-  attendance p. 21.
-- Program bylaws for Software Engineering (2013), Medical Informatics (2014) and
-  Artificial Intelligence (2020) — same folder. Superseded; kept for reference.
+- *Software Engineering, 2013* — `Program-SoftwareEngineering-2013.pdf`.
+  IS122 specification p. 38; study plan p. 29; grades p. 14; assessment p. 13;
+  attendance p. 18.
+- *Medical Informatics, 2014* — `Program-MedicalInformatics-2014.pdf`.
+  IS122 specification p. 35; grades p. 14; assessment p. 12; attendance p. 18.
+- *Artificial Intelligence, 2020* — `Program-ArtificialIntelligence-2020.pdf`.
+  CS2101 specification p. 44; study plan p. 35; grades pp. 16–17; attendance p. 19.
+- *FCIS Faculty Bylaw, 2026* — `FCIS-Bylaw-2026.pdf`. **Does not govern you**;
+  it replaces all three above from next year with CS201 (p. 138).
+
+All four are in `docs/course/regulations/`, and
+`dsa-in-your-program.md` beside them extracts everything they say about this
+course, with page numbers.
 
 **Read this term**
 
+- **Brian W. Kernighan and Dennis M. Ritchie, *The C Programming Language*,
+  2nd ed., Prentice Hall, 1988. ISBN 0-13-110362-8** — "K&R", the book written
+  by the man who made C. <https://cs.princeton.edu/~bwk/cbook.html>
 - Peter Norvig, *Teach Yourself Programming in Ten Years* — <https://norvig.com/21-days.html>
 - Tim Peters, *PEP 20 — The Zen of Python* — <https://peps.python.org/pep-0020/>
 - Cormen, Leiserson, Rivest & Stein, *Introduction to Algorithms* (CLRS),

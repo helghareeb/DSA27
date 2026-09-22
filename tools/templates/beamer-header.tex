@@ -1,4 +1,8 @@
-% ---- DSA27 slides: Beamer theme, after the 2019 deck ---------------------
+% ---- DSA27 slides: light theme -------------------------------------------
+%
+% The 2019 deck was a light title bar on a dark body. This inverts it -- a
+% dark slate title bar on a light body -- which keeps the identity, matches
+% the handout, and stays legible on a projector in a bright room.
 
 % Arabic: XeTeX native right-to-left. See handout-header.tex for why not
 % polyglossia. tools/arabic.lua wraps Arabic runs in \textarabic.
@@ -11,32 +15,34 @@
 \newcommand{\textarabic}[1]{{\arabicfont\beginR #1\endR}}
 
 \definecolor{dsaslate}{HTML}{233A3E}
-\definecolor{dsapaper}{HTML}{F8F7F5}
+\definecolor{dsapaper}{HTML}{FAFAF8}
 \definecolor{dsaamber}{HTML}{C8860D}
-\definecolor{dsatext}{HTML}{E9ECEA}
+\definecolor{dsatext}{HTML}{1F2E31}
+\definecolor{dsamuted}{HTML}{5B6B6E}
 
-\setbeamercolor{background canvas}{bg=dsaslate}
+\setbeamercolor{background canvas}{bg=dsapaper}
 \setbeamercolor{normal text}{fg=dsatext}
-\setbeamercolor{frametitle}{bg=dsapaper,fg=dsaslate}
-\setbeamercolor{title}{fg=white}
+\setbeamercolor{frametitle}{bg=dsaslate,fg=white}
+\setbeamercolor{title}{fg=dsaslate}
 \setbeamercolor{subtitle}{fg=dsatext}
 \setbeamercolor{author}{fg=dsatext}
-\setbeamercolor{date}{fg=dsatext}
-\setbeamercolor{institute}{fg=dsatext}
+\setbeamercolor{date}{fg=dsamuted}
+\setbeamercolor{institute}{fg=dsamuted}
 \setbeamercolor{itemize item}{fg=dsaamber}
 \setbeamercolor{itemize subitem}{fg=dsaamber}
 \setbeamercolor{enumerate item}{fg=dsaamber}
 \setbeamercolor{section in toc}{fg=dsatext}
 \setbeamercolor{structure}{fg=dsaamber}
-\setbeamercolor{caption name}{fg=dsaamber}
-\setbeamercolor{block title}{bg=dsaamber,fg=dsaslate}
-\setbeamercolor{block body}{bg=dsaslate!85,fg=dsatext}
+\setbeamercolor{caption name}{fg=dsamuted}
+\setbeamercolor{block title}{bg=dsaslate,fg=white}
+\setbeamercolor{block body}{bg=dsaslate!6,fg=dsatext}
 
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{itemize item}{\textbullet}
 \setbeamertemplate{itemize subitem}{--}
+\setbeamertemplate{caption}{\insertcaption}
 
-% Frame title: light bar, dark text, thin amber rule underneath.
+% Frame title: slate bar, white text, thin amber rule underneath.
 \setbeamertemplate{frametitle}{%
   \nointerlineskip
   \begin{beamercolorbox}[wd=\paperwidth,sep=8pt,leftskip=10pt]{frametitle}
@@ -47,15 +53,15 @@
 
 % Page number, bottom right.
 \setbeamertemplate{footline}{%
-  \hfill\usebeamerfont{footline}\color{dsatext!70}\scriptsize
+  \hfill\usebeamerfont{footline}\color{dsamuted}\scriptsize
   \insertframenumber\hspace{10pt}\vspace{6pt}%
 }
 
-% Section pages, matching the 2019 deck's plain dividers.
+% Section dividers: slate text on light, amber rule.
 \AtBeginSection[]{%
   \begin{frame}[plain,noframenumbering]
     \vfill
-    {\usebeamerfont{title}\color{white}\Large\bfseries\insertsectionhead}\par
+    {\usebeamerfont{title}\color{dsaslate}\Large\bfseries\insertsectionhead}\par
     \vskip6pt
     {\color{dsaamber}\rule{0.55\textwidth}{1.2pt}}
     \vfill
@@ -64,3 +70,10 @@
 
 \setbeamerfont{frametitle}{size=\large,series=\bfseries}
 \setbeamerfont{footline}{size=\scriptsize}
+
+% Figures should never overflow a slide.
+\let\dsaoldincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{%
+  \dsaoldincludegraphics[width=0.96\textwidth,height=0.72\textheight,%
+                         keepaspectratio,#1]{#2}%
+}
