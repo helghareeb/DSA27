@@ -30,3 +30,14 @@ desktop.ini
 build/
 dist/
 *.egg-info/
+
+# LaTeX intermediates from tools/build.ps1
+*.aux
+*.log
+*.out
+*.nav
+*.snm
+*.toc
+*.vrb
+*.fls
+*.fdb_latexmk

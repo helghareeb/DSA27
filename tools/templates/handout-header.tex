@@ -1,0 +1,47 @@
+% ---- DSA27 handout: XeLaTeX preamble -------------------------------------
+
+% Arabic: XeTeX native right-to-left, without polyglossia/bidi.
+% polyglossia pulls in bidi, which patches tabular and breaks pandoc's
+% longtable. XeTeX already provides \beginR/\endR, which is all that short
+% Arabic runs inside English text need. tools/arabic.lua wraps them.
+%
+% Segoe UI carries Arabic in its regular and bold faces only, so the italic
+% slots are mapped back onto them -- otherwise Arabic inside emphasis or a
+% blockquote silently disappears.
+\TeXXeTstate=1
+\newfontfamily\arabicfont[
+  Script=Arabic, Scale=1.12,
+  BoldFont={Segoe UI Bold},
+  ItalicFont={Segoe UI},
+  BoldItalicFont={Segoe UI Bold}]{Segoe UI}
+\newcommand{\textarabic}[1]{{\arabicfont\beginR #1\endR}}
+
+\usepackage{xcolor}
+\definecolor{dsaslate}{HTML}{233A3E}
+\definecolor{dsaamber}{HTML}{C8860D}
+\definecolor{dsarule}{HTML}{D8DCDA}
+\definecolor{dsamuted}{HTML}{5B6B6E}
+
+\usepackage{titlesec}
+\titleformat*{\section}{\Large\bfseries\color{dsaslate}}
+\titleformat*{\subsection}{\large\bfseries\color{dsaslate}}
+\titleformat*{\subsubsection}{\normalsize\bfseries\color{dsaslate}}
+
+\usepackage{booktabs}
+\usepackage{array}
+
+% Quote blocks get an amber left rule instead of plain indentation.
+\usepackage{mdframed}
+\renewenvironment{quote}
+  {\begin{mdframed}[leftline=true,topline=false,bottomline=false,rightline=false,
+     linewidth=2pt,linecolor=dsaamber,backgroundcolor=white,
+     innerleftmargin=10pt,innertopmargin=6pt,innerbottommargin=6pt,
+     skipabove=8pt,skipbelow=8pt]\itshape}
+  {\end{mdframed}}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\small\color{dsamuted}DSA27 \textperiodcentered{} CS201 Data Structures and Algorithms}
+\fancyfoot[C]{\small\color{dsamuted}\thepage}

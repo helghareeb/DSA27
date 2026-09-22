@@ -1,0 +1,118 @@
+<#
+.SYNOPSIS
+    Build the DSA27 course PDFs from their Markdown sources.
+
+.DESCRIPTION
+    Markdown in docs/ is the source of truth; everything in docs/pdf/ is generated.
+
+    Lecture 01 is written once and built twice: a reading handout and a
+    presentation deck. Two Lua filters decide what belongs in which --
+    ::: {.handout-only} blocks are dropped from the slides, and
+    ::: {.slides-only} blocks are dropped from the handout.
+
+    Requires pandoc and a LaTeX installation providing xelatex (MiKTeX).
+
+.EXAMPLE
+    pwsh tools/build.ps1
+    pwsh tools/build.ps1 -Only lecture01-slides
+#>
+[CmdletBinding()]
+param(
+    # Build only one target. Omit to build everything.
+    [ValidateSet('lecture01-handout', 'lecture01-slides', 'course-guide',
+                 'study-plan', 'regulations')]
+    [string]$Only
+)
+
+$ErrorActionPreference = 'Stop'
+
+$Root = Split-Path -Parent $PSScriptRoot
+$Docs = Join-Path $Root 'docs'
+$Dist = Join-Path $Docs 'pdf'
+$Tmpl = Join-Path $PSScriptRoot 'templates'
+
+# winget installs pandoc per-user; a shell opened before the install will not
+# have it on PATH yet.
+if (-not (Get-Command pandoc -ErrorAction SilentlyContinue)) {
+    $local = Join-Path $env:LOCALAPPDATA 'Pandoc'
+    if (Test-Path (Join-Path $local 'pandoc.exe')) {
+        $env:Path = "$env:Path;$local"
+    }
+}
+
+foreach ($exe in 'pandoc', 'xelatex') {
+    if (-not (Get-Command $exe -ErrorAction SilentlyContinue)) {
+        throw "$exe was not found on PATH. See tools/README.md."
+    }
+}
+
+New-Item -ItemType Directory -Force -Path $Dist | Out-Null
+
+$Common = @(
+    '--from=markdown+fenced_divs+definition_lists+pipe_tables+tex_math_dollars'
+    '--pdf-engine=xelatex'
+    '--lua-filter', (Join-Path $PSScriptRoot 'arabic.lua')
+    '-V', 'mainfont=Segoe UI'
+    '-V', 'monofont=Consolas'
+    '-V', 'colorlinks=true'
+    '-V', 'linkcolor=[HTML]{C8860D}'
+    '-V', 'urlcolor=[HTML]{C8860D}'
+    '-V', 'toccolor=[HTML]{233A3E}'
+)
+
+$HandoutOpts = $Common + @(
+    '--lua-filter', (Join-Path $PSScriptRoot 'strip-slides-only.lua')
+    '--lua-filter', (Join-Path $PSScriptRoot 'unwrap-divs.lua')
+    '--include-in-header', (Join-Path $Tmpl 'handout-header.tex')
+    '--syntax-highlighting=tango'
+    '-V', 'documentclass=article'
+    '-V', 'geometry:a4paper,margin=2.4cm'
+    '-V', 'fontsize=11pt'
+    '-V', 'linestretch=1.15'
+)
+
+$SlideOpts = $Common + @(
+    '--to=beamer'
+    '--slide-level=2'
+    '--lua-filter', (Join-Path $PSScriptRoot 'strip-handout-only.lua')
+    '--lua-filter', (Join-Path $PSScriptRoot 'unwrap-divs.lua')
+    '--include-in-header', (Join-Path $Tmpl 'beamer-header.tex')
+    '--syntax-highlighting=breezedark'   # the slides have a dark background
+    '-V', 'aspectratio=169'
+    '-V', 'fontsize=10pt'
+)
+
+function Build {
+    param([string]$Name, [string]$Source, [string]$Output, [string[]]$Options)
+
+    if ($Only -and $Only -ne $Name) { return }
+
+    Write-Host "  $Name " -NoNewline -ForegroundColor Cyan
+    $args = $Options + @('-o', $Output, $Source)
+    & pandoc @args
+    if ($LASTEXITCODE -ne 0) { throw "pandoc failed for $Name (exit $LASTEXITCODE)" }
+
+    $kb = [math]::Round((Get-Item $Output).Length / 1KB)
+    Write-Host "-> $(Split-Path -Leaf $Output)  (${kb} KB)" -ForegroundColor Green
+}
+
+Write-Host "Building DSA27 PDFs" -ForegroundColor White
+
+$lecture01 = Join-Path $Docs 'lectures\01-why-this-course\lecture.md'
+
+Build 'lecture01-handout' $lecture01 `
+      (Join-Path $Dist 'DSA27-L01-handout.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+Build 'lecture01-slides'  $lecture01 `
+      (Join-Path $Dist 'DSA27-L01-slides.pdf')  $SlideOpts
+
+Build 'course-guide' (Join-Path $Docs 'course\00-course-guide.md') `
+      (Join-Path $Dist 'DSA27-Course-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+Build 'study-plan' (Join-Path $Docs 'course\01-study-plan.md') `
+      (Join-Path $Dist 'DSA27-Study-Plan.pdf') $HandoutOpts
+
+Build 'regulations' (Join-Path $Docs 'course\regulations\dsa-in-your-program.md') `
+      (Join-Path $Dist 'DSA27-DSA-In-Your-Program.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+Write-Host "Done. Output in docs/pdf/" -ForegroundColor White

@@ -1,11 +1,29 @@
 # DSA27 — Data Structures & Algorithms
 
+**CS201** · Faculty of Computers and Information Sciences, Mansoura University
+
 Course repository. We **implement the structures ourselves** rather than reach
 for Python's built-ins — the point is to build the thing, not to call it.
 
 Topics: arrays, linked lists, stacks, queues, searching (basic and advanced),
 sorting (basic and advanced), dynamic programming, algorithm complexity, and
 dictionaries/hash maps.
+
+---
+
+## Course material
+
+| | |
+|---|---|
+| **[Course documentation](docs/)** | Start here — guide, plan, lectures, regulations |
+| [Course guide](docs/course/00-course-guide.md) | What the course is, how you are assessed, what fails you |
+| [Study plan — 14 weeks](docs/course/01-study-plan.md) | Every week, and the file that grades it |
+| [Lecture 01 — Why This Course, and Why Python](docs/lectures/01-why-this-course/lecture.md) | [handout PDF](docs/pdf/DSA27-L01-handout.pdf) · [slides PDF](docs/pdf/DSA27-L01-slides.pdf) |
+| [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
+| [Links](docs/links.md) | WhatsApp channel, YouTube |
+
+Announcements: **[WhatsApp channel](https://whatsapp.com/channel/0029Vb8XynEFy72KWbH6vS2V)** ·
+Video: **[youtube.com/@0xHGH](https://www.youtube.com/@0xHGH)**
 
 ---
 

@@ -1,0 +1,66 @@
+% ---- DSA27 slides: Beamer theme, after the 2019 deck ---------------------
+
+% Arabic: XeTeX native right-to-left. See handout-header.tex for why not
+% polyglossia. tools/arabic.lua wraps Arabic runs in \textarabic.
+\TeXXeTstate=1
+\newfontfamily\arabicfont[
+  Script=Arabic, Scale=1.1,
+  BoldFont={Segoe UI Bold},
+  ItalicFont={Segoe UI},
+  BoldItalicFont={Segoe UI Bold}]{Segoe UI}
+\newcommand{\textarabic}[1]{{\arabicfont\beginR #1\endR}}
+
+\definecolor{dsaslate}{HTML}{233A3E}
+\definecolor{dsapaper}{HTML}{F8F7F5}
+\definecolor{dsaamber}{HTML}{C8860D}
+\definecolor{dsatext}{HTML}{E9ECEA}
+
+\setbeamercolor{background canvas}{bg=dsaslate}
+\setbeamercolor{normal text}{fg=dsatext}
+\setbeamercolor{frametitle}{bg=dsapaper,fg=dsaslate}
+\setbeamercolor{title}{fg=white}
+\setbeamercolor{subtitle}{fg=dsatext}
+\setbeamercolor{author}{fg=dsatext}
+\setbeamercolor{date}{fg=dsatext}
+\setbeamercolor{institute}{fg=dsatext}
+\setbeamercolor{itemize item}{fg=dsaamber}
+\setbeamercolor{itemize subitem}{fg=dsaamber}
+\setbeamercolor{enumerate item}{fg=dsaamber}
+\setbeamercolor{section in toc}{fg=dsatext}
+\setbeamercolor{structure}{fg=dsaamber}
+\setbeamercolor{caption name}{fg=dsaamber}
+\setbeamercolor{block title}{bg=dsaamber,fg=dsaslate}
+\setbeamercolor{block body}{bg=dsaslate!85,fg=dsatext}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize item}{\textbullet}
+\setbeamertemplate{itemize subitem}{--}
+
+% Frame title: light bar, dark text, thin amber rule underneath.
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,sep=8pt,leftskip=10pt]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}%
+  \vskip-1pt{\color{dsaamber}\hrule height 1.2pt}%
+}
+
+% Page number, bottom right.
+\setbeamertemplate{footline}{%
+  \hfill\usebeamerfont{footline}\color{dsatext!70}\scriptsize
+  \insertframenumber\hspace{10pt}\vspace{6pt}%
+}
+
+% Section pages, matching the 2019 deck's plain dividers.
+\AtBeginSection[]{%
+  \begin{frame}[plain,noframenumbering]
+    \vfill
+    {\usebeamerfont{title}\color{white}\Large\bfseries\insertsectionhead}\par
+    \vskip6pt
+    {\color{dsaamber}\rule{0.55\textwidth}{1.2pt}}
+    \vfill
+  \end{frame}%
+}
+
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamerfont{footline}{size=\scriptsize}
