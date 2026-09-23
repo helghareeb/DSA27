@@ -1,0 +1,49 @@
+"""Question bank, Week 1 — Python basics. Problems W1-C1 to W1-C4.
+
+Questions:  docs/question-bank/week01-questions.md
+Tests:      tests/test_practice_week01.py
+
+Use strings, lists, slicing, `while`/`for` and `if`. No imports.
+"""
+
+
+def count_vowels(text):
+    """W1-C1. How many of the letters a, e, i, o, u appear in `text`, in
+    either case.
+
+    count_vowels("Data Structures") -> 5
+    count_vowels("rhythm")          -> 0
+    """
+    raise NotImplementedError
+
+
+def second_largest(values):
+    """W1-C2. The largest value that is strictly smaller than the maximum.
+
+    Do it in ONE pass over the list, without sorting.
+    Raise ValueError if there is no such value (fewer than two distinct values).
+
+    second_largest([4, 9, 2, 9, 7]) -> 7
+    second_largest([5, 5])          -> ValueError
+    """
+    raise NotImplementedError
+
+
+def compress(text):
+    """W1-C3. Run-length encoding: each run of a repeated character becomes the
+    character followed by the length of the run.
+
+    compress("aaabcc") -> "a3b1c2"
+    compress("")       -> ""
+    """
+    raise NotImplementedError
+
+
+def is_anagram(first, second):
+    """W1-C4. True if the two strings use exactly the same letters the same
+    number of times, ignoring case and spaces.
+
+    is_anagram("Dormitory", "dirty room") -> True
+    is_anagram("abc", "abcc")             -> False
+    """
+    raise NotImplementedError

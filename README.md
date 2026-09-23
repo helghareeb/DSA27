@@ -31,6 +31,7 @@ Dynamic programming is included as enrichment.
 | [Lecture 01 — Why This Course, and Why Python](docs/lectures/01-why-this-course/lecture.md) | [handout PDF](docs/pdf/DSA27-L01-handout.pdf) · [slides PDF](docs/pdf/DSA27-L01-slides.pdf) |
 | [Lecture 02 — Complexity, and the Array](docs/lectures/02-complexity-and-arrays/lecture.md) | [handout PDF](docs/pdf/DSA27-L02-handout.pdf) · [slides PDF](docs/pdf/DSA27-L02-slides.pdf) |
 | [Lecture 03 — Recursion](docs/lectures/03-recursion/lecture.md) | [handout PDF](docs/pdf/DSA27-L03-handout.pdf) · [slides PDF](docs/pdf/DSA27-L03-slides.pdf) |
+| **[Question bank](docs/question-bank/)** | MCQ, essay, trace, complexity, proofs, bugs and code — with answers, and a mock exam |
 | **[Lab manual — weeks 1–3](docs/labs/)** | Python for this course: [Lab 01](docs/labs/lab01-python-basics.md) · [Lab 02](docs/labs/lab02-control-flow-functions.md) · [Lab 03](docs/labs/lab03-data-structures-classes.md) · [TA notes](docs/labs/ta-guide.md) |
 | [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
 | [Links](docs/links.md) | WhatsApp channel, YouTube |
@@ -80,6 +81,7 @@ what is missing — fix that before blaming your own code.
 | `tools/` | Build the PDFs and figures — not needed for the exercises |
 | `viz/` | Drawing, animation and timing helpers — already written, just use them |
 | `labs/` | Weeks 1–3 Python lab exercises — **you implement these first** |
+| `practice/` | Question-bank coding problems — ungraded, checked by `pytest -m practice` |
 | `tests/` | The exercises, as tests. Make them pass. |
 | `notebooks/` | One notebook per lecture topic |
 
@@ -95,6 +97,7 @@ the complexity target, and the body raises `NotImplementedError`. The tests in
 pytest tests/test_linked_list.py -v     # one topic
 pytest -m challenge                     # every exercise
 pytest -m lab                           # only the weeks 1-3 labs
+pytest -m practice                      # only the question-bank problems
 pytest -x                               # stop at the first failure
 ```
 

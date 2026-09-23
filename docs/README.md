@@ -16,6 +16,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Lecture 01 — Why This Course, and Why Python](lectures/01-why-this-course/lecture.md)** | The opening lecture, in full. |
 | **[Lecture 02 — Complexity, and the Array](lectures/02-complexity-and-arrays/lecture.md)** | Big-O, measuring, the course `Array`, and the no-`list` storage rule. |
 | **[Lecture 03 — Recursion](lectures/03-recursion/lecture.md)** | The call stack, recurrences, recursion trees, and branching recursion. |
+| **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and a mock exam. |
 | **[Lab manual — weeks 1–3](labs/)** | Python for this course, in three labs, with exercises and tests. Everything you need is in the repository. |
 | **[Your program's regulations](course/regulations/)** | The bylaws, and what they say about this course. |
 | **[Links](links.md)** | WhatsApp channel, YouTube, repository. |
@@ -37,6 +38,10 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Lab 02 — control flow, functions, errors, modules | [`DSA27-Lab02.pdf`](pdf/DSA27-Lab02.pdf) |
 | Lab 03 — data structures, classes, generators | [`DSA27-Lab03.pdf`](pdf/DSA27-Lab03.pdf) |
 | Lab manual — notes for TAs | [`DSA27-Lab-TA-Guide.pdf`](pdf/DSA27-Lab-TA-Guide.pdf) |
+| Question bank — week 1 | [questions](pdf/DSA27-QB-Week01-Questions.pdf) · [answers](pdf/DSA27-QB-Week01-Answers.pdf) |
+| Question bank — week 2 | [questions](pdf/DSA27-QB-Week02-Questions.pdf) · [answers](pdf/DSA27-QB-Week02-Answers.pdf) |
+| Question bank — week 3 | [questions](pdf/DSA27-QB-Week03-Questions.pdf) · [answers](pdf/DSA27-QB-Week03-Answers.pdf) |
+| Mock exam — weeks 1–3 | [`DSA27-QB-Mock-Exam-Weeks01-03.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-03.pdf) |
 | DSA in your program | [`DSA27-DSA-In-Your-Program.pdf`](pdf/DSA27-DSA-In-Your-Program.pdf) |
 | **Official bylaws** | [`course/regulations/`](course/regulations/) |
 
@@ -90,6 +95,11 @@ docs/
 │   ├── 01-study-plan.md            15 weeks
 │   ├── 02-coverage.md              declared topic -> module -> test
 │   └── regulations/                official bylaws (PDF) + extract
+├── question-bank/
+│   ├── README.md                   exam format, question types, how to use it
+│   ├── weekNN-questions.md         one pair per week
+│   ├── weekNN-answers.md
+│   └── mock-exam-weeks01-03.md     30 marks MCQ + 30 marks written
 ├── labs/
 │   ├── README.md                   the lab manual: how labs run
 │   ├── lab01-python-basics.md      week 1

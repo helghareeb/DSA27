@@ -23,7 +23,7 @@ param(
                  'lecture02-handout', 'lecture02-slides',
                  'lecture03-handout', 'lecture03-slides', 'course-guide',
                  'study-plan', 'coverage', 'regulations',
-                 'lab01', 'lab02', 'lab03', 'lab-ta-guide')]
+                 'lab01', 'lab02', 'lab03', 'lab-ta-guide', 'question-bank')]
     [string]$Only
 )
 
@@ -153,5 +153,21 @@ Build 'lab03' (Join-Path $Labs 'lab03-data-structures-classes.md') `
 
 Build 'lab-ta-guide' (Join-Path $Labs 'ta-guide.md') `
       (Join-Path $Dist 'DSA27-Lab-TA-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+# Question bank: one PDF per questions file, answers file and mock exam.
+$QB = Join-Path $Docs 'question-bank'
+$QBFiles = [ordered]@{
+    'week01-questions'      = 'DSA27-QB-Week01-Questions.pdf'
+    'week01-answers'        = 'DSA27-QB-Week01-Answers.pdf'
+    'week02-questions'      = 'DSA27-QB-Week02-Questions.pdf'
+    'week02-answers'        = 'DSA27-QB-Week02-Answers.pdf'
+    'week03-questions'      = 'DSA27-QB-Week03-Questions.pdf'
+    'week03-answers'        = 'DSA27-QB-Week03-Answers.pdf'
+    'mock-exam-weeks01-03'  = 'DSA27-QB-Mock-Exam-Weeks01-03.pdf'
+}
+foreach ($entry in $QBFiles.GetEnumerator()) {
+    Build 'question-bank' (Join-Path $QB "$($entry.Key).md") `
+          (Join-Path $Dist $entry.Value) $HandoutOpts
+}
 
 Write-Host "Done. Output in docs/pdf/" -ForegroundColor White

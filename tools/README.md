@@ -115,6 +115,7 @@ blockquote disappears.
 | `lab02` | `docs/labs/lab02-control-flow-functions.md` | `docs/pdf/DSA27-Lab02.pdf` |
 | `lab03` | `docs/labs/lab03-data-structures-classes.md` | `docs/pdf/DSA27-Lab03.pdf` |
 | `lab-ta-guide` | `docs/labs/ta-guide.md` | `docs/pdf/DSA27-Lab-TA-Guide.pdf` |
+| `question-bank` | `docs/question-bank/*.md` (not the README) | `docs/pdf/DSA27-QB-*.pdf` — seven files |
 
 ## Figures
 
