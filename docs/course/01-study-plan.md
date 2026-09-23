@@ -35,9 +35,9 @@ generators). Exercises in `labs/`, graded by `tests/test_lab01.py` to
 | Wk | Topic | Implement | Graded by |
 |---|---|---|---|
 | **1** | Why this course · ADTs · OOP philosophy · Know-How | — | Homework 1 |
-| **2** | **Complexity** — Big-O, and measuring instead of asserting | — | `viz/complexity.py` |
+| **2** | **Complexity, and the Array** — Big-O, measuring, the course `Array` | `dsa/array_ops.py` | `tests/test_array_ops.py` |
 | **3** | **Recursion** — base case, recursive case, the call stack | `dsa/recursion.py` | `tests/test_recursion.py` |
-| **4** | Arrays · dynamic arrays · amortised cost | `dsa/dynamic_array.py` | `tests/test_dynamic_array.py` |
+| **4** | Dynamic arrays · amortised cost | `dsa/dynamic_array.py` | `tests/test_dynamic_array.py` |
 | **5** | Linked lists — insert, remove, reverse | `dsa/linked_list.py` | `tests/test_linked_list.py` |
 | **6** | Stacks — balanced brackets, shunting-yard | `dsa/stack.py` | `tests/test_stack_queue.py` |
 | **7** | Queues — the O(n) vs O(1) demonstration | `dsa/queue.py` | `tests/test_stack_queue.py` |
@@ -62,12 +62,18 @@ Paradigms, type systems, memory models. The ladder from variable to data
 structure. ADT vs implementation. *Know-how.*
 → [Lecture 01](../lectures/01-why-this-course/lecture.md)
 
-**2 — Complexity.**
-Big-O, Θ and Ω; best, average and worst case; space against time. Then the part
-most courses skip: `measure()` and `plot_growth()` from `viz/complexity.py`, so
-you *see* the crossover point and learn what Big-O throws away.
-*Declared as "the basics of algorithmic analysis" (2013/2014) and "analyzing and
-managing the complexity" (2020).*
+**2 — Complexity, and the Array.**
+Big-O, Θ and Ω; best, average and worst case; space against time; the rules for
+reading cost off code — including the O(n) hidden inside one line of Python.
+Then the part most courses skip: `measure()` and `plot_growth()` from
+`viz/complexity.py`, so you *see* what Big-O throws away. The second half is the
+**array**: contiguous memory, O(1) indexing, O(n) insertion, and the course
+`Array` (`dsa/array.py`) — the one storage primitive every structure from here
+on is built on. **From this week, no structure may store its data in a `list`,
+`dict` or `set`.**
+→ [Lecture 02](../lectures/02-complexity-and-arrays/lecture.md)
+*Declared as "the basics of algorithmic analysis" (2013/2014), "analyzing and
+managing the complexity" and "arrays" (2020).*
 
 **3 — Recursion.**
 Base case, recursive case, the call stack, and why Python stops you at about a
@@ -77,9 +83,9 @@ half of merge sort in week 10.
 *Declared first in the 2013/2014 list of topics — and taught nowhere before this
 course in any of the three programs.*
 
-**4 — Arrays and dynamic arrays.**
-Contiguous memory, O(1) indexing, the cost of insertion. You build
-`DynamicArray` on a raw `ctypes` block — not on a `list`. Doubling on resize,
+**4 — Dynamic arrays.**
+An array that grows. You build `DynamicArray` on the course `Array` from
+Week 2 — not on a `list`. Doubling on resize,
 and why that makes `append` **amortised** O(1). Plot `resize_count` and watch
 the argument become a picture.
 
@@ -89,12 +95,13 @@ the exact mirror of an array. Reversal in place. This is the week to use the
 debugger and watch `node.next` move.
 
 **6 — Stacks.**
-LIFO. One ADT, two honest implementations. Then the applications that justify
+LIFO, built on your own `DynamicArray` with the top at the end. Then the
+applications that justify
 it: balanced-bracket checking, and infix → postfix by the shunting-yard
 algorithm — which is the first half of week 15.
 
 **7 — Queues.**
-FIFO. `SlowQueue` (`list.pop(0)`, O(n)) and `CircularQueue` (ring buffer, O(1))
+FIFO. `SlowQueue` (`DynamicArray.pop(0)`, O(n)) and `CircularQueue` (a ring on an `Array`, O(1))
 are deliberately paired in `dsa/queue.py` so you measure the difference rather
 than be told about it. You need a queue again in week 11 for level-order
 traversal.

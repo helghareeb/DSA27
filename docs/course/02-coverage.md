@@ -31,10 +31,10 @@ which bylaw they happen to fall under.
 | # | Declared topic | 2013/14 | 2020 | Module | Test | Week |
 |---|---|---|---|---|---|---|
 | 1 | **Abstract data types** | — | "abstract data types" | *(concept)* `dsa/__init__.py` | — | 1 |
-| 2 | **Algorithmic analysis / complexity** | "the basics of algorithmic analysis" | "analyzing and managing the complexity" | `viz/complexity.py` | `tests/test_environment.py` | 2 |
+| 2 | **Algorithmic analysis / complexity** | "the basics of algorithmic analysis" | "analyzing and managing the complexity" | `viz/complexity.py`, `dsa/array_ops.py` | `tests/test_array_ops.py` | 2 |
 | 3 | **Recursion** | "Topics include recursion" | — | `dsa/recursion.py` | `tests/test_recursion.py` | 3 |
 | 4 | **OOP philosophy** | "the underlying philosophy of object-oriented programming" | — | *(concept)* — every class in `dsa/` | — | 1, 4–14 |
-| 5 | **Arrays** | — | "arrays" | `dsa/dynamic_array.py` | `tests/test_dynamic_array.py` | 4 |
+| 5 | **Arrays** | — | "arrays" | `dsa/array.py` (given), `dsa/array_ops.py`, `dsa/dynamic_array.py` | `tests/test_array.py`, `tests/test_array_ops.py`, `tests/test_dynamic_array.py` | 2, 4 |
 | 6 | **Lists / linked lists** | "linked lists" | "lists, linked lists" | `dsa/linked_list.py` | `tests/test_linked_list.py` | 5 |
 | 7 | **Stacks** | "stacks" | "stacks" | `dsa/stack.py` | `tests/test_stack_queue.py` | 6 |
 | 8 | **Queues** | "queues" | "queues" | `dsa/queue.py` | `tests/test_stack_queue.py` | 7 |

@@ -5,7 +5,8 @@ image in `docs/lectures/*/figures/` is generated from it. Students never need
 any of this — it is for editing the course material.
 
 ```powershell
-python tools/figures.py                     # regenerate all figures
+python tools/figures.py                     # regenerate Lecture 01 figures
+python tools/figures_l02.py                 # regenerate Lecture 02 figures
 pwsh   tools/build.ps1                      # all PDFs
 pwsh   tools/build.ps1 -Only lecture01-slides   # one target
 python tools/make_notebooks.py              # scaffold any missing week notebook
@@ -101,6 +102,8 @@ blockquote disappears.
 |---|---|---|
 | `lecture01-handout` | `docs/lectures/01-why-this-course/lecture.md` | `docs/pdf/DSA27-L01-handout.pdf` |
 | `lecture01-slides` | *(same file)* | `docs/pdf/DSA27-L01-slides.pdf` |
+| `lecture02-handout` | `docs/lectures/02-complexity-and-arrays/lecture.md` | `docs/pdf/DSA27-L02-handout.pdf` |
+| `lecture02-slides` | *(same file)* | `docs/pdf/DSA27-L02-slides.pdf` |
 | `course-guide` | `docs/course/00-course-guide.md` | `docs/pdf/DSA27-Course-Guide.pdf` |
 | `study-plan` | `docs/course/01-study-plan.md` | `docs/pdf/DSA27-Study-Plan.pdf` |
 | `coverage` | `docs/course/02-coverage.md` | `docs/pdf/DSA27-Coverage.pdf` |

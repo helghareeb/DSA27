@@ -19,7 +19,8 @@
 [CmdletBinding()]
 param(
     # Build only one target. Omit to build everything.
-    [ValidateSet('lecture01-handout', 'lecture01-slides', 'course-guide',
+    [ValidateSet('lecture01-handout', 'lecture01-slides',
+                 'lecture02-handout', 'lecture02-slides', 'course-guide',
                  'study-plan', 'coverage', 'regulations',
                  'lab01', 'lab02', 'lab03', 'lab-ta-guide')]
     [string]$Only
@@ -109,6 +110,14 @@ Build 'lecture01-handout' $lecture01 `
 
 Build 'lecture01-slides'  $lecture01 `
       (Join-Path $Dist 'DSA27-L01-slides.pdf')  $SlideOpts
+
+$lecture02 = Join-Path $Docs 'lectures\02-complexity-and-arrays\lecture.md'
+
+Build 'lecture02-handout' $lecture02 `
+      (Join-Path $Dist 'DSA27-L02-handout.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+Build 'lecture02-slides'  $lecture02 `
+      (Join-Path $Dist 'DSA27-L02-slides.pdf')  $SlideOpts
 
 Build 'course-guide' (Join-Path $Docs 'course\00-course-guide.md') `
       (Join-Path $Dist 'DSA27-Course-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))

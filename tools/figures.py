@@ -382,7 +382,7 @@ def figure_ast():
 # -- Part 6: the course ---------------------------------------------------
 
 WEEKS = [
-    (1, "Why this course"), (2, "Complexity"), (3, "Recursion"),
+    (1, "Why this course"), (2, "Complexity & the Array"), (3, "Recursion"),
     (4, "Dynamic arrays"), (5, "Linked lists"), (6, "Stacks"),
     (7, "Queues"), (8, "Searching"), (9, "Basic sorting"),
     (10, "Advanced sorting"), (11, "Trees"), (12, "Heaps"),

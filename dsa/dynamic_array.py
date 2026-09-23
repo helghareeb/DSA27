@@ -1,6 +1,7 @@
 """Dynamic array — what Python's `list` actually is underneath.
 
-Built on a fixed-size block that is reallocated when it fills. The payoff is
+Built on the course `Array` (`dsa/array.py`): a fixed-size block that is
+reallocated when it fills. The payoff is
 `amortised` O(1) append: most appends are cheap, a few are expensive, and the
 average stays constant. Doubling the capacity is what makes that true —
 growing by a constant instead gives O(n) amortised, which is worth measuring
@@ -9,17 +10,17 @@ with `viz.complexity.measure` rather than just asserting.
 
 from __future__ import annotations
 
-import ctypes
+from dsa.array import Array
 
 
 def make_block(capacity):
-    """Allocate a raw fixed-size array of `capacity` slots.
+    """Allocate a fixed-size block of `capacity` slots, every one None.
 
-    This is the one piece we hand you: `ctypes` gives a genuinely fixed-size,
+    This is the one piece we hand you: an `Array` is a genuinely fixed-size,
     C-style array, so the reallocation you write is real rather than simulated
-    on top of another list.
+    on top of another list. Growing means: make a bigger block, copy, switch.
     """
-    return (capacity * ctypes.py_object)()
+    return Array(capacity)
 
 
 class DynamicArray:

@@ -17,6 +17,13 @@ Sparse graph? The list wins, usually by a lot. Dense graph, or you ask
 Declared in the bylaw: "graphs" and "graph searches" (CS2101, AI 2020 p. 44;
 IS122, SWE 2013 p. 38 and Medical Informatics 2014 p. 35).
 
+Neither representation uses Python's `dict`, `list` or `set` for storage: the
+adjacency list is your own `ChainingHashMap` (Week 13) from each node to a
+`DynamicArray` (Week 4) of its neighbours, and the matrix is a `DynamicArray` of
+rows. The searches follow the same rule for their working storage — your
+`CircularQueue` for BFS, your `Stack` for iterative DFS, your hash map for the
+set of visited nodes. Lists are only for handing results back.
+
 Draw one:
 
     from viz.draw import draw_graph
@@ -24,6 +31,9 @@ Draw one:
 """
 
 from __future__ import annotations
+
+from dsa.dynamic_array import DynamicArray
+from dsa.hashmap import ChainingHashMap
 
 
 def to_networkx(graph):
@@ -42,13 +52,13 @@ def to_networkx(graph):
 class Graph:
     """Adjacency list: a mapping from each node to the nodes it reaches.
 
-    Using a dict here is fine — a graph is not a reimplementation of a dict.
-    (`dsa/hashmap.py` is where you build the dict itself.)
+    The mapping is your own `ChainingHashMap`; each value is a `DynamicArray`
+    of neighbours, in the order the edges were added.
     """
 
     def __init__(self, directed=False):
         self.directed = directed
-        self._adjacent = {}
+        self._adjacent = ChainingHashMap()   # node -> DynamicArray of nodes
 
     def add_node(self, node):
         """Add an isolated node. Adding one twice must not wipe its edges.
@@ -112,9 +122,9 @@ class MatrixGraph:
 
     def __init__(self, directed=False):
         self.directed = directed
-        self._index = {}      # node -> row/column number
-        self._order = []      # row/column number -> node
-        self._matrix = []     # list of lists of bool
+        self._index = ChainingHashMap()   # node -> row/column number
+        self._order = DynamicArray()      # row/column number -> node
+        self._matrix = DynamicArray()     # one DynamicArray of bools per row
 
     def add_node(self, node):
         """Add a node, growing the matrix by one row and one column. O(V)."""

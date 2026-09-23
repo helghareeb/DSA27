@@ -6,6 +6,12 @@ Faculty of Computers and Information Sciences, Mansoura University
 Course repository. We **implement the structures ourselves** rather than reach
 for Python's built-ins — the point is to build the thing, not to call it.
 
+**The storage rule.** Every structure in `dsa/` keeps its data only in the course
+`Array` (`dsa/array.py`: fixed size, O(1) indexing, nothing else), in node
+objects, or in another structure you built — never in a Python `list`, `dict` or
+`set`. Lists are for passing data in and out, not for storing it. Why:
+[Lecture 02](docs/lectures/02-complexity-and-arrays/lecture.md).
+
 Topics: complexity, recursion, arrays and dynamic arrays, linked lists, stacks,
 queues, searching, sorting (basic and advanced), trees and traversals, heaps and
 priority queues, hash maps, graphs and graph searches, and the principles of
@@ -23,6 +29,7 @@ Dynamic programming is included as enrichment.
 | [Study plan — 15 weeks](docs/course/01-study-plan.md) | Every week, and the file that grades it |
 | [Coverage matrix](docs/course/02-coverage.md) | Every topic the لائحة declares → module → test |
 | [Lecture 01 — Why This Course, and Why Python](docs/lectures/01-why-this-course/lecture.md) | [handout PDF](docs/pdf/DSA27-L01-handout.pdf) · [slides PDF](docs/pdf/DSA27-L01-slides.pdf) |
+| [Lecture 02 — Complexity, and the Array](docs/lectures/02-complexity-and-arrays/lecture.md) | [handout PDF](docs/pdf/DSA27-L02-handout.pdf) · [slides PDF](docs/pdf/DSA27-L02-slides.pdf) |
 | **[Lab manual — weeks 1–3](docs/labs/)** | Python for this course: [Lab 01](docs/labs/lab01-python-basics.md) · [Lab 02](docs/labs/lab02-control-flow-functions.md) · [Lab 03](docs/labs/lab03-data-structures-classes.md) · [TA notes](docs/labs/ta-guide.md) |
 | [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
 | [Links](docs/links.md) | WhatsApp channel, YouTube |

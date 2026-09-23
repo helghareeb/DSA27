@@ -3,20 +3,23 @@
 Two implementations worth writing side by side, because the naive one hides an
 O(n) cost that only shows up when you measure it:
 
-  * `SlowQueue` dequeues with `list.pop(0)` — O(n) per operation
-  * `CircularQueue` uses head/tail indices in a fixed block — O(1) per operation
+  * `SlowQueue` dequeues with `DynamicArray.pop(0)` — O(n) per operation
+  * `CircularQueue` uses head/tail indices in a fixed `Array` — O(1) per operation
 
 Run both through `viz.complexity.measure` and plot. The gap is the lesson.
 """
 
 from __future__ import annotations
 
+from dsa.array import Array
+from dsa.dynamic_array import DynamicArray
+
 
 class SlowQueue:
-    """FIFO on a plain list. Correct, but dequeue is O(n) — prove it."""
+    """FIFO on a DynamicArray. Correct, but dequeue is O(n) — prove it."""
 
     def __init__(self, values=()):
-        self._items = list(values)
+        self._items = DynamicArray(values)
 
     def enqueue(self, value):
         """Add to the back. O(1)."""
@@ -39,7 +42,7 @@ class CircularQueue:
     """
 
     def __init__(self, capacity=8):
-        self._block = [None] * capacity
+        self._block = Array(capacity)
         self._capacity = capacity
         self._head = 0
         self._size = 0

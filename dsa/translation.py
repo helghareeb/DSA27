@@ -36,6 +36,8 @@ See the tree your parser built:
 
 from __future__ import annotations
 
+from dsa.array import Array
+
 
 # -- the grammar this module implements -----------------------------------
 #
@@ -170,7 +172,7 @@ class Parser:
     """
 
     def __init__(self, tokens):
-        self.tokens = list(tokens)
+        self.tokens = Array.from_values(tokens)
         self.position = 0
 
     # -- helpers, given to you --------------------------------------------

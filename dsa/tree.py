@@ -161,8 +161,8 @@ class BinarySearchTree:
         """Top to bottom, left to right — breadth-first.
 
         The only one of the four that is **not** naturally recursive: it needs
-        a queue, not the call stack. Use your own `dsa.queue.CircularQueue`,
-        or a plain list as a queue if that is not written yet.
+        a queue, not the call stack. Use your own `dsa.queue.CircularQueue` —
+        not a Python list (the course rule since Lecture 02).
         """
         raise NotImplementedError
 

@@ -10,8 +10,9 @@ lang: en
 > **How to use this lab.** Same routine: type every example, predict at each
 > **Checkpoint** (answers at the end), then make `pytest tests/test_lab03.py`
 > pass. This is the longest of the three labs and the most important: from
-> Week 4 on, every structure you build is a **class** that keeps its data in
-> **lists and dictionaries** — the two things this lab is about.
+> Week 4 on, every structure you build is a **class**, and the lists and
+> dictionaries of this lab are exactly what you will learn to build yourself —
+> inside `dsa/` you may not use them for storage (Lecture 02).
 
 | | |
 |---|---|
@@ -143,7 +144,8 @@ push is `append` and pop is `pop()`, both O(1) at the **end**:
 [3, 4, 5]
 ```
 
-You will wrap exactly this in a `Stack` class in Week 6.
+In Week 6 you write a `Stack` class with exactly this behaviour — on top of your
+own `DynamicArray`, not a list.
 
 ## 1.4 Lists as queues — and why not
 
@@ -697,6 +699,11 @@ class Stack:
 Code outside the class should call `push`, never `stack._items.append`. Then
 you can change how the stack is stored — say, to a linked list — without breaking
 anyone. That freedom is the whole point of separating ADT from implementation.
+
+(This example uses a Python list only to show the idea. Inside `dsa/` a list is
+**not allowed** as storage: from Lecture 02, every structure keeps its data in
+the course `Array`, in nodes, or in a structure you built — and `dsa/stack.py`
+is built on your own `DynamicArray`.)
 
 ## 7.4 Special methods — making your class feel built in
 

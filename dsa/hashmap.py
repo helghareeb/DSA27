@@ -7,23 +7,42 @@ slot, or you break the probe chain that runs through it — hence tombstones).
 Watch the load factor: keep it under ~0.7 and lookups stay O(1) on average.
 Let it approach 1.0 and you are doing linear search with extra steps. Measure
 it — `viz.complexity.measure` over rising load factors makes the cliff visible.
+
+Both are built on the course `Array` (`dsa/array.py`): a fixed row of slots,
+reached by index in O(1). Hashing is what turns a key into that index.
 """
 
 from __future__ import annotations
+
+from dsa.array import Array
 
 _MISSING = object()
 #: Marks a slot whose key was deleted but which a probe chain still runs through.
 TOMBSTONE = object()
 
 
+class Entry:
+    """One key/value pair in a chain. Given to you — a linked-list node."""
+
+    __slots__ = ("key", "value", "next")
+
+    def __init__(self, key, value, next=None):
+        self.key = key
+        self.value = value
+        self.next = next
+
+    def __repr__(self):
+        return f"Entry({self.key!r}, {self.value!r})"
+
+
 class ChainingHashMap:
-    """Each bucket holds a list of (key, value) pairs.
+    """Each bucket is a chain: None, or the first `Entry` of a linked list.
 
     Average O(1); worst case O(n) when every key lands in one bucket.
     """
 
     def __init__(self, capacity=8, max_load=0.75):
-        self._buckets = [[] for _ in range(capacity)]
+        self._buckets = Array(capacity)      # every slot starts as None
         self._size = 0
         self.max_load = max_load
 
@@ -63,9 +82,10 @@ class ChainingHashMap:
         return self.get(key, None) is not None
 
     def __iter__(self):
-        for bucket in self._buckets:
-            for key, _ in bucket:
-                yield key
+        for entry in self._buckets:
+            while entry is not None:
+                yield entry.key
+                entry = entry.next
 
 
 class OpenAddressingHashMap:
@@ -76,8 +96,8 @@ class OpenAddressingHashMap:
     """
 
     def __init__(self, capacity=8, max_load=0.66):
-        self._keys = [None] * capacity
-        self._values = [None] * capacity
+        self._keys = Array(capacity)         # None marks a never-used slot
+        self._values = Array(capacity)
         self._size = 0
         self.max_load = max_load
 

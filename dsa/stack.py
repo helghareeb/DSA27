@@ -2,16 +2,22 @@
 
 Deliberately a thin structure: the interesting part is what you *do* with it
 (balanced brackets, infix to postfix, undo history, DFS without recursion).
+
+Built on your own `DynamicArray` (Week 4): the top of the stack is the END of
+the array, where append and pop are O(1). Put the top at index 0 instead and
+every push shifts the whole stack — try it, and measure it.
 """
 
 from __future__ import annotations
+
+from dsa.dynamic_array import DynamicArray
 
 
 class Stack:
     """LIFO. Every operation should be O(1)."""
 
     def __init__(self, values=()):
-        self._items = []
+        self._items = DynamicArray()
         for value in values:
             self.push(value)
 
@@ -34,7 +40,9 @@ class Stack:
         return len(self._items)
 
     def __repr__(self):
-        return f"Stack({self._items!r})  # top = {self._items[-1]!r}" if self._items else "Stack([])"
+        if not len(self._items):
+            return "Stack([])"
+        return f"Stack({list(self._items)!r})  # top = {self._items[len(self._items) - 1]!r}"
 
 
 # -- challenges -----------------------------------------------------------

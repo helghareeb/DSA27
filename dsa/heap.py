@@ -1,7 +1,7 @@
 """Binary heaps and priority queues — where the array *is* the tree.
 
-A heap is a complete binary tree stored in a flat list. No nodes, no pointers:
-the shape is arithmetic.
+A heap is a complete binary tree stored in a flat array — your own
+`DynamicArray` from Week 4. No nodes, no pointers: the shape is arithmetic.
 
     parent(i) = (i - 1) // 2      left(i) = 2*i + 1      right(i) = 2*i + 2
 
@@ -14,19 +14,20 @@ Declared in the bylaw: "heaps, priority queues" (CS2101, AI 2020 p. 44).
 See your heap as a tree — no conversion needed, because it already is one:
 
     from viz.draw import draw_array_as_tree
-    draw_array_as_tree(heap._items)
+    draw_array_as_tree(list(heap._items))
 """
 
 from __future__ import annotations
+
+from dsa.dynamic_array import DynamicArray
 
 
 class MinHeap:
     """Smallest value always at the root. push/pop O(log n), peek O(1)."""
 
     def __init__(self, values=()):
-        self._items = []
-        if values:
-            self._items = list(values)
+        self._items = DynamicArray(values)
+        if len(self._items):
             self.heapify()
 
     # -- the comparison that defines the heap -----------------------------
@@ -104,7 +105,7 @@ class MinHeap:
         return len(self._items)
 
     def __repr__(self):
-        return f"{type(self).__name__}({self._items!r})"
+        return f"{type(self).__name__}({list(self._items)!r})"
 
 
 class MaxHeap(MinHeap):
