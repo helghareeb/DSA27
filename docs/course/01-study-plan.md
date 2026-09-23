@@ -89,6 +89,7 @@ An array that grows. You build `DynamicArray` on the course `Array` from
 Week 2 — not on a `list`. Doubling on resize,
 and why that makes `append` **amortised** O(1). Plot `resize_count` and watch
 the argument become a picture.
+→ [Lecture 04](../lectures/04-dynamic-arrays/lecture.md)
 
 **5 — Linked lists.**
 Nodes and references. Why insertion at the head is O(1) and indexing is O(n) —

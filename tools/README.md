@@ -8,6 +8,7 @@ any of this — it is for editing the course material.
 python tools/figures.py                     # regenerate Lecture 01 figures
 python tools/figures_l02.py                 # regenerate Lecture 02 figures
 python tools/figures_l03.py                 # regenerate Lecture 03 figures
+python tools/figures_l04.py                 # regenerate Lecture 04 figures
 pwsh   tools/build.ps1                      # all PDFs
 pwsh   tools/build.ps1 -Only lecture01-slides   # one target
 python tools/make_notebooks.py              # scaffold any missing week notebook
@@ -107,6 +108,8 @@ blockquote disappears.
 | `lecture02-slides` | *(same file)* | `docs/pdf/DSA27-L02-slides.pdf` |
 | `lecture03-handout` | `docs/lectures/03-recursion/lecture.md` | `docs/pdf/DSA27-L03-handout.pdf` |
 | `lecture03-slides` | *(same file)* | `docs/pdf/DSA27-L03-slides.pdf` |
+| `lecture04-handout` | `docs/lectures/04-dynamic-arrays/lecture.md` | `docs/pdf/DSA27-L04-handout.pdf` |
+| `lecture04-slides` | *(same file)* | `docs/pdf/DSA27-L04-slides.pdf` |
 | `course-guide` | `docs/course/00-course-guide.md` | `docs/pdf/DSA27-Course-Guide.pdf` |
 | `study-plan` | `docs/course/01-study-plan.md` | `docs/pdf/DSA27-Study-Plan.pdf` |
 | `coverage` | `docs/course/02-coverage.md` | `docs/pdf/DSA27-Coverage.pdf` |

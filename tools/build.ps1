@@ -21,7 +21,8 @@ param(
     # Build only one target. Omit to build everything.
     [ValidateSet('lecture01-handout', 'lecture01-slides',
                  'lecture02-handout', 'lecture02-slides',
-                 'lecture03-handout', 'lecture03-slides', 'course-guide',
+                 'lecture03-handout', 'lecture03-slides',
+                 'lecture04-handout', 'lecture04-slides', 'course-guide',
                  'study-plan', 'coverage', 'regulations',
                  'lab01', 'lab02', 'lab03', 'lab-ta-guide', 'question-bank')]
     [string]$Only
@@ -128,6 +129,14 @@ Build 'lecture03-handout' $lecture03 `
 Build 'lecture03-slides'  $lecture03 `
       (Join-Path $Dist 'DSA27-L03-slides.pdf')  $SlideOpts
 
+$lecture04 = Join-Path $Docs 'lectures\04-dynamic-arrays\lecture.md'
+
+Build 'lecture04-handout' $lecture04 `
+      (Join-Path $Dist 'DSA27-L04-handout.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+Build 'lecture04-slides'  $lecture04 `
+      (Join-Path $Dist 'DSA27-L04-slides.pdf')  $SlideOpts
+
 Build 'course-guide' (Join-Path $Docs 'course\00-course-guide.md') `
       (Join-Path $Dist 'DSA27-Course-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
 
@@ -163,6 +172,8 @@ $QBFiles = [ordered]@{
     'week02-answers'        = 'DSA27-QB-Week02-Answers.pdf'
     'week03-questions'      = 'DSA27-QB-Week03-Questions.pdf'
     'week03-answers'        = 'DSA27-QB-Week03-Answers.pdf'
+    'week04-questions'      = 'DSA27-QB-Week04-Questions.pdf'
+    'week04-answers'        = 'DSA27-QB-Week04-Answers.pdf'
     'mock-exam-weeks01-03'  = 'DSA27-QB-Mock-Exam-Weeks01-03.pdf'
 }
 foreach ($entry in $QBFiles.GetEnumerator()) {

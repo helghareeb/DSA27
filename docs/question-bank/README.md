@@ -40,6 +40,7 @@ Every question is tagged **[what]** (recall), **[how]** (apply) or **[why]**
 | **1** | Lecture 01 (why this course) · Lab 01 (Python basics) | [questions](week01-questions.md) | [answers](week01-answers.md) | `practice/week01.py` |
 | **2** | Lecture 02 (complexity, the Array) · Lab 02 (control flow, functions, errors) | [questions](week02-questions.md) | [answers](week02-answers.md) | `practice/week02.py` |
 | **3** | Lecture 03 (recursion) · Lab 03 (data structures, classes) | [questions](week03-questions.md) | [answers](week03-answers.md) | `practice/week03.py` |
+| **4** | Lecture 04 (dynamic arrays, amortised analysis) | [questions](week04-questions.md) | [answers](week04-answers.md) | `practice/week04.py` |
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | |
 
 Printable PDFs of every file are in [`docs/pdf/`](../pdf/) (`DSA27-QB-...`).
