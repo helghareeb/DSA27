@@ -80,6 +80,7 @@ Base case, recursive case, the call stack, and why Python stops you at about a
 thousand frames. Fast exponentiation to show that *how* you recurse decides the
 complexity. Towers of Hanoi for branching recursion. `merge_sorted` here is
 half of merge sort in week 10.
+→ [Lecture 03](../lectures/03-recursion/lecture.md)
 *Declared first in the 2013/2014 list of topics — and taught nowhere before this
 course in any of the three programs.*
 
