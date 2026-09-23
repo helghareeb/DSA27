@@ -95,6 +95,7 @@ the argument become a picture.
 Nodes and references. Why insertion at the head is O(1) and indexing is O(n) —
 the exact mirror of an array. Reversal in place. This is the week to use the
 debugger and watch `node.next` move.
+→ [Lecture 05](../lectures/05-linked-lists/lecture.md)
 
 **6 — Stacks.**
 LIFO, built on your own `DynamicArray` with the top at the end. Then the
