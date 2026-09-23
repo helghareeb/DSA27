@@ -10,6 +10,7 @@ python tools/figures_l02.py                 # regenerate Lecture 02 figures
 python tools/figures_l03.py                 # regenerate Lecture 03 figures
 python tools/figures_l04.py                 # regenerate Lecture 04 figures
 python tools/figures_l05.py                 # regenerate Lecture 05 figures
+python tools/figures_l06.py                 # regenerate Lecture 06 figures
 pwsh   tools/build.ps1                      # all PDFs
 pwsh   tools/build.ps1 -Only lecture01-slides   # one target
 python tools/make_notebooks.py              # scaffold any missing week notebook
@@ -113,6 +114,8 @@ blockquote disappears.
 | `lecture04-slides` | *(same file)* | `docs/pdf/DSA27-L04-slides.pdf` |
 | `lecture05-handout` | `docs/lectures/05-linked-lists/lecture.md` | `docs/pdf/DSA27-L05-handout.pdf` |
 | `lecture05-slides` | *(same file)* | `docs/pdf/DSA27-L05-slides.pdf` |
+| `lecture06-handout` | `docs/lectures/06-stacks/lecture.md` | `docs/pdf/DSA27-L06-handout.pdf` |
+| `lecture06-slides` | *(same file)* | `docs/pdf/DSA27-L06-slides.pdf` |
 | `course-guide` | `docs/course/00-course-guide.md` | `docs/pdf/DSA27-Course-Guide.pdf` |
 | `study-plan` | `docs/course/01-study-plan.md` | `docs/pdf/DSA27-Study-Plan.pdf` |
 | `coverage` | `docs/course/02-coverage.md` | `docs/pdf/DSA27-Coverage.pdf` |

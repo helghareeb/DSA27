@@ -7,6 +7,7 @@ Each file matches one week of the question bank in `docs/question-bank/`:
     practice/week03.py   recursion                tests/test_practice_week03.py
     practice/week04.py   dynamic arrays           tests/test_practice_week04.py
     practice/week05.py   linked lists             tests/test_practice_week05.py
+    practice/week06.py   stacks                   tests/test_practice_week06.py
 
 Not graded. Every function raises `NotImplementedError` until you write it; the
 tests say when you are right, and the week's answers file has a worked solution

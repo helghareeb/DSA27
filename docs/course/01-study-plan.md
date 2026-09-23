@@ -102,6 +102,7 @@ LIFO, built on your own `DynamicArray` with the top at the end. Then the
 applications that justify
 it: balanced-bracket checking, and infix → postfix by the shunting-yard
 algorithm — which is the first half of week 15.
+→ [Lecture 06](../lectures/06-stacks/lecture.md)
 
 **7 — Queues.**
 FIFO. `SlowQueue` (`DynamicArray.pop(0)`, O(n)) and `CircularQueue` (a ring on an `Array`, O(1))
