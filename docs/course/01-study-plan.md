@@ -20,6 +20,14 @@ gets everything their own program promises. Which bylaw asks for what is in
 Every week names the module you implement and the test file that grades it, so
 this plan and the repository cannot quietly drift apart.
 
+**Labs, weeks 1–3.** Alongside the first three lectures, the labs bring everyone
+to the same Python: [Lab 01](../labs/lab01-python-basics.md) (interpreter,
+numbers, strings, lists), [Lab 02](../labs/lab02-control-flow-functions.md)
+(control flow, functions, errors, modules) and
+[Lab 03](../labs/lab03-data-structures-classes.md) (data structures, classes,
+generators). Exercises in `labs/`, graded by `tests/test_lab01.py` to
+`tests/test_lab03.py`. See [the lab manual](../labs/).
+
 ---
 
 ## The plan

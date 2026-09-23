@@ -14,6 +14,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Study Plan — 15 weeks](course/01-study-plan.md)** | Every week, its topic, and the file that grades it. |
 | **[Coverage Matrix](course/02-coverage.md)** | Every topic the لائحة declares, and where this repository implements it. |
 | **[Lecture 01 — Why This Course, and Why Python](lectures/01-why-this-course/lecture.md)** | The opening lecture, in full. |
+| **[Lab manual — weeks 1–3](labs/)** | Python for this course, in three labs, with exercises and tests. Everything you need is in the repository. |
 | **[Your program's regulations](course/regulations/)** | The bylaws, and what they say about this course. |
 | **[Links](links.md)** | WhatsApp channel, YouTube, repository. |
 
@@ -26,6 +27,10 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Course guide | [`DSA27-Course-Guide.pdf`](pdf/DSA27-Course-Guide.pdf) |
 | Study plan | [`DSA27-Study-Plan.pdf`](pdf/DSA27-Study-Plan.pdf) |
 | Coverage matrix | [`DSA27-Coverage.pdf`](pdf/DSA27-Coverage.pdf) |
+| Lab 01 — the interpreter, numbers, strings, lists | [`DSA27-Lab01.pdf`](pdf/DSA27-Lab01.pdf) |
+| Lab 02 — control flow, functions, errors, modules | [`DSA27-Lab02.pdf`](pdf/DSA27-Lab02.pdf) |
+| Lab 03 — data structures, classes, generators | [`DSA27-Lab03.pdf`](pdf/DSA27-Lab03.pdf) |
+| Lab manual — notes for TAs | [`DSA27-Lab-TA-Guide.pdf`](pdf/DSA27-Lab-TA-Guide.pdf) |
 | DSA in your program | [`DSA27-DSA-In-Your-Program.pdf`](pdf/DSA27-DSA-In-Your-Program.pdf) |
 | **Official bylaws** | [`course/regulations/`](course/regulations/) |
 
@@ -79,6 +84,12 @@ docs/
 │   ├── 01-study-plan.md            15 weeks
 │   ├── 02-coverage.md              declared topic -> module -> test
 │   └── regulations/                official bylaws (PDF) + extract
+├── labs/
+│   ├── README.md                   the lab manual: how labs run
+│   ├── lab01-python-basics.md      week 1
+│   ├── lab02-control-flow-functions.md   week 2
+│   ├── lab03-data-structures-classes.md  week 3
+│   └── ta-guide.md                 notes for teaching assistants
 └── lectures/
     └── 01-why-this-course/
         ├── lecture.md              source of both L01 PDFs

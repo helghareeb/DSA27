@@ -23,6 +23,7 @@ Dynamic programming is included as enrichment.
 | [Study plan — 15 weeks](docs/course/01-study-plan.md) | Every week, and the file that grades it |
 | [Coverage matrix](docs/course/02-coverage.md) | Every topic the لائحة declares → module → test |
 | [Lecture 01 — Why This Course, and Why Python](docs/lectures/01-why-this-course/lecture.md) | [handout PDF](docs/pdf/DSA27-L01-handout.pdf) · [slides PDF](docs/pdf/DSA27-L01-slides.pdf) |
+| **[Lab manual — weeks 1–3](docs/labs/)** | Python for this course: [Lab 01](docs/labs/lab01-python-basics.md) · [Lab 02](docs/labs/lab02-control-flow-functions.md) · [Lab 03](docs/labs/lab03-data-structures-classes.md) · [TA notes](docs/labs/ta-guide.md) |
 | [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
 | [Links](docs/links.md) | WhatsApp channel, YouTube |
 
@@ -70,6 +71,7 @@ what is missing — fix that before blaming your own code.
 | `dsa/` | The structures and algorithms — **you implement these** |
 | `tools/` | Build the PDFs and figures — not needed for the exercises |
 | `viz/` | Drawing, animation and timing helpers — already written, just use them |
+| `labs/` | Weeks 1–3 Python lab exercises — **you implement these first** |
 | `tests/` | The exercises, as tests. Make them pass. |
 | `notebooks/` | One notebook per lecture topic |
 
@@ -84,6 +86,7 @@ the complexity target, and the body raises `NotImplementedError`. The tests in
 ```powershell
 pytest tests/test_linked_list.py -v     # one topic
 pytest -m challenge                     # every exercise
+pytest -m lab                           # only the weeks 1-3 labs
 pytest -x                               # stop at the first failure
 ```
 

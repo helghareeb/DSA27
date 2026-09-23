@@ -105,6 +105,10 @@ blockquote disappears.
 | `study-plan` | `docs/course/01-study-plan.md` | `docs/pdf/DSA27-Study-Plan.pdf` |
 | `coverage` | `docs/course/02-coverage.md` | `docs/pdf/DSA27-Coverage.pdf` |
 | `regulations` | `docs/course/regulations/dsa-in-your-program.md` | `docs/pdf/DSA27-DSA-In-Your-Program.pdf` |
+| `lab01` | `docs/labs/lab01-python-basics.md` | `docs/pdf/DSA27-Lab01.pdf` |
+| `lab02` | `docs/labs/lab02-control-flow-functions.md` | `docs/pdf/DSA27-Lab02.pdf` |
+| `lab03` | `docs/labs/lab03-data-structures-classes.md` | `docs/pdf/DSA27-Lab03.pdf` |
+| `lab-ta-guide` | `docs/labs/ta-guide.md` | `docs/pdf/DSA27-Lab-TA-Guide.pdf` |
 
 ## Figures
 

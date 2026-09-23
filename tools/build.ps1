@@ -20,7 +20,8 @@
 param(
     # Build only one target. Omit to build everything.
     [ValidateSet('lecture01-handout', 'lecture01-slides', 'course-guide',
-                 'study-plan', 'coverage', 'regulations')]
+                 'study-plan', 'coverage', 'regulations',
+                 'lab01', 'lab02', 'lab03', 'lab-ta-guide')]
     [string]$Only
 )
 
@@ -120,5 +121,19 @@ Build 'coverage' (Join-Path $Docs 'course\02-coverage.md') `
 
 Build 'regulations' (Join-Path $Docs 'course\regulations\dsa-in-your-program.md') `
       (Join-Path $Dist 'DSA27-DSA-In-Your-Program.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+$Labs = Join-Path $Docs 'labs'
+
+Build 'lab01' (Join-Path $Labs 'lab01-python-basics.md') `
+      (Join-Path $Dist 'DSA27-Lab01.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab02' (Join-Path $Labs 'lab02-control-flow-functions.md') `
+      (Join-Path $Dist 'DSA27-Lab02.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab03' (Join-Path $Labs 'lab03-data-structures-classes.md') `
+      (Join-Path $Dist 'DSA27-Lab03.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab-ta-guide' (Join-Path $Labs 'ta-guide.md') `
+      (Join-Path $Dist 'DSA27-Lab-TA-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
 
 Write-Host "Done. Output in docs/pdf/" -ForegroundColor White
