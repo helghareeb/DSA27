@@ -56,8 +56,10 @@ def test_insert_at_shifts_right():
 def test_insert_at_out_of_range_raises(index):
     """Five values in eight slots: indices 6 and 7 exist in the block but are
     past the end, so only your own check can reject them."""
+    arr = DynamicArray([1, 2, 3, 4, 5])
     with pytest.raises(IndexError):
-        DynamicArray([1, 2, 3, 4, 5]).insert_at(index, 99)
+        arr.insert_at(index, 99)
+    assert list(arr) == [1, 2, 3, 4, 5], "check the index BEFORE shifting anything"
 
 
 def test_insert_at_grows_when_full():

@@ -28,7 +28,8 @@ param(
                  'lecture07-handout', 'lecture07-slides',
                  'lecture08-handout', 'lecture08-slides', 'course-guide',
                  'study-plan', 'coverage', 'regulations',
-                 'lab01', 'lab02', 'lab03', 'lab-ta-guide', 'question-bank')]
+                 'lab01', 'lab02', 'lab03', 'lab04', 'lab05', 'lab06', 'lab07',
+                 'lab08', 'lab-ta-guide', 'question-bank')]
     [string]$Only
 )
 
@@ -195,6 +196,21 @@ Build 'lab02' (Join-Path $Labs 'lab02-control-flow-functions.md') `
 
 Build 'lab03' (Join-Path $Labs 'lab03-data-structures-classes.md') `
       (Join-Path $Dist 'DSA27-Lab03.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab04' (Join-Path $Labs 'lab04-dynamic-arrays.md') `
+      (Join-Path $Dist 'DSA27-Lab04.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab05' (Join-Path $Labs 'lab05-linked-lists.md') `
+      (Join-Path $Dist 'DSA27-Lab05.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab06' (Join-Path $Labs 'lab06-stacks.md') `
+      (Join-Path $Dist 'DSA27-Lab06.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab07' (Join-Path $Labs 'lab07-queues.md') `
+      (Join-Path $Dist 'DSA27-Lab07.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
+
+Build 'lab08' (Join-Path $Labs 'lab08-searching.md') `
+      (Join-Path $Dist 'DSA27-Lab08.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))
 
 Build 'lab-ta-guide' (Join-Path $Labs 'ta-guide.md') `
       (Join-Path $Dist 'DSA27-Lab-TA-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=1'))

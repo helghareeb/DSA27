@@ -130,6 +130,11 @@ blockquote disappears.
 | `lab01` | `docs/labs/lab01-python-basics.md` | `docs/pdf/DSA27-Lab01.pdf` |
 | `lab02` | `docs/labs/lab02-control-flow-functions.md` | `docs/pdf/DSA27-Lab02.pdf` |
 | `lab03` | `docs/labs/lab03-data-structures-classes.md` | `docs/pdf/DSA27-Lab03.pdf` |
+| `lab04` | `docs/labs/lab04-dynamic-arrays.md` | `docs/pdf/DSA27-Lab04.pdf` |
+| `lab05` | `docs/labs/lab05-linked-lists.md` | `docs/pdf/DSA27-Lab05.pdf` |
+| `lab06` | `docs/labs/lab06-stacks.md` | `docs/pdf/DSA27-Lab06.pdf` |
+| `lab07` | `docs/labs/lab07-queues.md` | `docs/pdf/DSA27-Lab07.pdf` |
+| `lab08` | `docs/labs/lab08-searching.md` | `docs/pdf/DSA27-Lab08.pdf` |
 | `lab-ta-guide` | `docs/labs/ta-guide.md` | `docs/pdf/DSA27-Lab-TA-Guide.pdf` |
 | `question-bank` | `docs/question-bank/*.md` (not the README) | `docs/pdf/DSA27-QB-*.pdf` — seven files |
 
