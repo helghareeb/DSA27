@@ -22,6 +22,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Lecture 07 — Queues](lectures/07-queues/lecture.md)** | FIFO, the O(n) dequeue measured, the ring buffer, and a queue from two stacks. |
 | **[Lecture 08 — Searching](lectures/08-searching/lecture.md)** | Linear and binary search, bounds, jump, exponential and interpolation search — measured. |
 | **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and a mock exam. |
+| **[Worked solutions](../solutions/)** | Every exercise, lab and practice problem solved — read them only after you have tried. |
 | **[Lab manual — weeks 1–3](labs/)** | Python for this course, in three labs, with exercises and tests. Everything you need is in the repository. |
 | **[Your program's regulations](course/regulations/)** | The bylaws, and what they say about this course. |
 | **[Links](links.md)** | WhatsApp channel, YouTube, repository. |

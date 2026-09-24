@@ -75,7 +75,9 @@ New weeks are added as the lectures are delivered.
 
    The tests fail until you write the code — like every exercise in this course.
    Compare with the worked solution in the answers file only **after** the tests
-   pass, and look for what the solution does more simply than yours.
+   pass, and look for what the solution does more simply than yours. The same
+   code, runnable, is in [`solutions/practice/`](../../solutions/practice/):
+   `pytest --solutions tests/test_practice_week02.py` runs the tests on it.
 7. **A week before the exam,** sit a mock exam under exam conditions, then mark
    it: [weeks 1–3](mock-exam-weeks01-03.md), and [weeks 1–7](mock-exam-weeks01-07.md)
    before the midterm.

@@ -983,7 +983,7 @@ All in `labs/lab03.py`. Run `pytest tests/test_lab03.py -v`.
 | 5 | `invert(mapping)` | grouping with `setdefault`, then sorting |
 | 6 | `common_elements(first, second)` | set intersection |
 | 7 | `group_by_length(words)` | grouping into lists, order preserved |
-| 8 | `Bag` | a class with a dict inside and eight methods |
+| 8 | `Bag` | a class with a dict inside and ten methods |
 | 9 | `countdown(n)` | a generator |
 | 10 | `chunks(values, size)` | a generator with slicing |
 

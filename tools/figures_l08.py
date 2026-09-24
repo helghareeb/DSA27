@@ -2,7 +2,8 @@
 
 Run it from the repository root:
 
-    python tools/figures_l08.py
+    python tools/figures_l08.py                       # timing uses YOUR dsa/searching.py
+    python tools/with_solutions.py tools/figures_l08.py   # timing uses solutions/
 
 Same conventions as `tools/figures.py`. The diagrams are drawn from fixed,
 hand-checked traces. The timing figure measures **your** `dsa/searching.py`, so

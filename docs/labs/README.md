@@ -88,6 +88,10 @@ The lab tests are marked `challenge`, like every other exercise, so the
 environment check `pytest -m "not challenge"` does not run them and still passes
 before you have written anything.
 
+**Worked solutions** are in [`solutions/labs/`](../../solutions/labs/) — for
+after you have tried, as [`solutions/README.md`](../../solutions/README.md)
+explains. `pytest --solutions tests/test_lab01.py` runs the tests on them.
+
 **Rules.**
 
 - **Do not edit the test files.** A test you changed proves nothing. The TA runs

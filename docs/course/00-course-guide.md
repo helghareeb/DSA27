@@ -193,6 +193,7 @@ trap and the VS Code debugging setup, are in the repository
 | **Lecture** (2 h/week) | The idea, its cost, and why it exists. |
 | **Lab** (2 h/week) | You implement it. The skeletons in `dsa/` raise `NotImplementedError`. |
 | **Tests** | `tests/` defines what "correct" means. `pytest -m challenge`. |
+| **Solutions** | `solutions/` solves every exercise taught so far — for **after** you have tried. `pytest --solutions` runs the tests on them. |
 | **Notebooks** | One per week, in `notebooks/`, wired to the drawing helpers. |
 | **Visualisation** | `viz/` draws, animates and measures. Already written — use it. |
 

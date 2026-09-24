@@ -2,7 +2,8 @@
 
 Run it from the repository root:
 
-    python tools/figures_l07.py
+    python tools/figures_l07.py                       # timing uses YOUR dsa/queue.py
+    python tools/with_solutions.py tools/figures_l07.py   # timing uses solutions/
 
 Same conventions as `tools/figures.py`. The timing figure is real measurement
 with `viz.complexity.measure` of **your** `dsa/queue.py`, so it needs a working

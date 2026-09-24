@@ -13,6 +13,7 @@ python tools/figures_l05.py                 # regenerate Lecture 05 figures
 python tools/figures_l06.py                 # regenerate Lecture 06 figures
 python tools/figures_l07.py                 # regenerate Lecture 07 figures
 python tools/figures_l08.py                 # regenerate Lecture 08 figures (timing needs a working dsa/searching.py)
+python tools/with_solutions.py tools/figures_l08.py   # run any script on solutions/
 pwsh   tools/build.ps1                      # all PDFs
 pwsh   tools/build.ps1 -Only lecture01-slides   # one target
 python tools/make_notebooks.py              # scaffold any missing week notebook

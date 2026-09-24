@@ -1073,7 +1073,7 @@ Use only what this lab taught: no `import`, no `for` (that is next week).
 When all ten pass:
 
 ```text
-tests/test_lab01.py ........................................ [100%]
+tests/test_lab01.py .................................................... [100%]
 ```
 
 show the TA.
