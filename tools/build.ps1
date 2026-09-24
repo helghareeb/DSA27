@@ -24,7 +24,8 @@ param(
                  'lecture03-handout', 'lecture03-slides',
                  'lecture04-handout', 'lecture04-slides',
                  'lecture05-handout', 'lecture05-slides',
-                 'lecture06-handout', 'lecture06-slides', 'course-guide',
+                 'lecture06-handout', 'lecture06-slides',
+                 'lecture07-handout', 'lecture07-slides', 'course-guide',
                  'study-plan', 'coverage', 'regulations',
                  'lab01', 'lab02', 'lab03', 'lab-ta-guide', 'question-bank')]
     [string]$Only
@@ -155,6 +156,14 @@ Build 'lecture06-handout' $lecture06 `
 Build 'lecture06-slides'  $lecture06 `
       (Join-Path $Dist 'DSA27-L06-slides.pdf')  $SlideOpts
 
+$lecture07 = Join-Path $Docs 'lectures\07-queues\lecture.md'
+
+Build 'lecture07-handout' $lecture07 `
+      (Join-Path $Dist 'DSA27-L07-handout.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
+
+Build 'lecture07-slides'  $lecture07 `
+      (Join-Path $Dist 'DSA27-L07-slides.pdf')  $SlideOpts
+
 Build 'course-guide' (Join-Path $Docs 'course\00-course-guide.md') `
       (Join-Path $Dist 'DSA27-Course-Guide.pdf') ($HandoutOpts + @('--toc', '--toc-depth=2'))
 
@@ -196,6 +205,8 @@ $QBFiles = [ordered]@{
     'week05-answers'        = 'DSA27-QB-Week05-Answers.pdf'
     'week06-questions'      = 'DSA27-QB-Week06-Questions.pdf'
     'week06-answers'        = 'DSA27-QB-Week06-Answers.pdf'
+    'week07-questions'      = 'DSA27-QB-Week07-Questions.pdf'
+    'week07-answers'        = 'DSA27-QB-Week07-Answers.pdf'
     'mock-exam-weeks01-03'  = 'DSA27-QB-Mock-Exam-Weeks01-03.pdf'
 }
 foreach ($entry in $QBFiles.GetEnumerator()) {

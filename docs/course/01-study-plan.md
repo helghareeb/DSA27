@@ -109,6 +109,7 @@ FIFO. `SlowQueue` (`DynamicArray.pop(0)`, O(n)) and `CircularQueue` (a ring on a
 are deliberately paired in `dsa/queue.py` so you measure the difference rather
 than be told about it. You need a queue again in week 11 for level-order
 traversal.
+→ [Lecture 07](../lectures/07-queues/lecture.md)
 
 **8 — Searching.** *(midterm window)*
 Linear, binary, binary recursive, `lower_bound`, `upper_bound`, jump,

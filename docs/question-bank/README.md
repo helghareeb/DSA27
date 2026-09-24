@@ -43,6 +43,7 @@ Every question is tagged **[what]** (recall), **[how]** (apply) or **[why]**
 | **4** | Lecture 04 (dynamic arrays, amortised analysis) | [questions](week04-questions.md) | [answers](week04-answers.md) | `practice/week04.py` |
 | **5** | Lecture 05 (linked lists) | [questions](week05-questions.md) | [answers](week05-answers.md) | `practice/week05.py` |
 | **6** | Lecture 06 (stacks) | [questions](week06-questions.md) | [answers](week06-answers.md) | `practice/week06.py` |
+| **7** | Lecture 07 (queues) | [questions](week07-questions.md) | [answers](week07-answers.md) | `practice/week07.py` |
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | |
 
 Printable PDFs of every file are in [`docs/pdf/`](../pdf/) (`DSA27-QB-...`).
