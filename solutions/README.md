@@ -10,7 +10,7 @@ tried**. The folder mirrors the repository:
 | `dsa/dynamic_array.py` (Week 4) | [`solutions/dsa/dynamic_array.py`](dsa/dynamic_array.py) | `tests/test_dynamic_array.py` |
 | `dsa/linked_list.py` (Week 5) | [`solutions/dsa/linked_list.py`](dsa/linked_list.py) | `tests/test_linked_list.py` |
 | `dsa/stack.py` (Week 6) | [`solutions/dsa/stack.py`](dsa/stack.py) | `tests/test_stack_queue.py` |
-| `evaluate_postfix` in `dsa/translation.py` (Week 6) | [`solutions/dsa/translation.py`](dsa/translation.py) | `tests/test_translation.py -k postfix` |
+| `evaluate_postfix` in `dsa/translation.py` (Week 6) | [`solutions/dsa/translation.py`](dsa/translation.py) | `tests/test_translation.py -k evaluate_postfix` |
 | `dsa/queue.py` (Week 7) | [`solutions/dsa/queue.py`](dsa/queue.py) | `tests/test_stack_queue.py` |
 | `dsa/searching.py` (Week 8) | [`solutions/dsa/searching.py`](dsa/searching.py) | `tests/test_searching.py` |
 | `labs/lab01.py` … `lab03.py` | [`solutions/labs/`](labs/) | `tests/test_lab01.py` … `test_lab03.py` |

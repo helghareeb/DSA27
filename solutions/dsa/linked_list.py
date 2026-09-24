@@ -47,7 +47,7 @@ class LinkedList:
         """Insert at the tail. Target: O(n) without a tail pointer.
 
         Challenge: add a `_tail` reference and get this to O(1). What does
-        that cost you in `pop` and in `remove`?
+        that cost you in `pop_front` and in `remove`?
         """
         node = Node(value)
         if self.head is None:
@@ -146,6 +146,8 @@ class LinkedList:
 
     def __getitem__(self, index):
         """Positional access. Target: O(n) — and that is the whole lesson.
+
+        Raises IndexError unless 0 <= index < len(self).
 
         Contrast with `dsa.dynamic_array.DynamicArray.__getitem__`, which is
         O(1). Same interface, completely different cost.

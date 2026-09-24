@@ -4,7 +4,7 @@ Two implementations worth writing side by side, because the naive one hides an
 O(n) cost that only shows up when you measure it:
 
   * `SlowQueue` dequeues with `DynamicArray.pop(0)` — O(n) per operation
-  * `CircularQueue` uses head/tail indices in a fixed `Array` — O(1) per operation
+  * `CircularQueue` keeps a head index and a size in a fixed `Array` — O(1) per operation
 
 Run both through `viz.complexity.measure` and plot. The gap is the lesson.
 """
@@ -26,7 +26,10 @@ class SlowQueue:
         raise NotImplementedError
 
     def dequeue(self):
-        """Remove from the front. O(n) here — every element shifts left."""
+        """Remove from the front. O(n) here — every element shifts left.
+
+        Raises IndexError when empty.
+        """
         raise NotImplementedError
 
     def __len__(self):
@@ -36,8 +39,8 @@ class SlowQueue:
 class CircularQueue:
     """FIFO in a fixed-capacity ring buffer. Every operation O(1).
 
-    `head` is where the next dequeue reads, `tail` where the next enqueue
-    writes, and both wrap with `% capacity`. Tracking `_size` separately is
+    `head` is where the next dequeue reads; the next enqueue writes at the
+    tail, `(head + size) % capacity`, computed rather than stored. Keeping `_size` is
     what lets you tell "full" from "empty" when head == tail.
     """
 

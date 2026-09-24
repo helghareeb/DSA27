@@ -44,7 +44,11 @@ class DynamicArray:
         raise NotImplementedError
 
     def insert_at(self, index, value):
-        """Insert at `index`, shifting the rest right. Target: O(n)."""
+        """Insert at `index`, shifting the rest right. Target: O(n).
+
+        Raises IndexError unless 0 <= index <= len(self), as `insert_at` does
+        in Week 2 and in the linked list. Inserting at len(self) appends.
+        """
         raise NotImplementedError
 
     def pop(self, index=-1):
@@ -69,6 +73,7 @@ class DynamicArray:
         raise NotImplementedError
 
     def __setitem__(self, index, value):
+        """a[index] = value. Target: O(1). Same indices, and errors, as __getitem__."""
         raise NotImplementedError
 
     def __iter__(self):

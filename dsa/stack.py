@@ -22,7 +22,7 @@ class Stack:
             self.push(value)
 
     def push(self, value):
-        """Add to the top. Target: O(1)."""
+        """Add to the top. Target: O(1) amortised."""
         raise NotImplementedError
 
     def pop(self):

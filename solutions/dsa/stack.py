@@ -24,7 +24,7 @@ class Stack:
             self.push(value)
 
     def push(self, value):
-        """Add to the top. Target: O(1)."""
+        """Add to the top. Target: O(1) amortised."""
         self._items.append(value)                # the top is the END of the array
 
     def pop(self):

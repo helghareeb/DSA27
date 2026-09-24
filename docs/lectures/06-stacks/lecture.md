@@ -241,7 +241,7 @@ stack**:
 
 1. **Number** → output.
 2. **Operator** → first pop to the output every operator on the stack with
-   **higher or equal precedence**; then push this one.
+   **higher or equal precedence**, stopping at a `(`; then push this one.
 3. **`(`** → push.
 4. **`)`** → pop to the output until the `(`; discard the `(`.
 5. **End** → pop everything left to the output.
@@ -360,7 +360,7 @@ action clears the redo stack.
 | `infix_to_postfix(tokens)` | $O(n)$ | pop on **higher or equal** precedence; `(` and `)` |
 
 ```powershell
-pytest tests/test_stack_queue.py -v -k "stack or balanced or postfix"
+pytest tests/test_stack_queue.py -v -k "lifo or peek or empty_behaviour or balanced or infix"
 ```
 
 Your `Stack` stands on your `DynamicArray`: `tests/test_dynamic_array.py` must
@@ -393,7 +393,7 @@ once.
 
 ::: {.handout-only}
 
-For item 3, `pytest tests/test_translation.py -v -k postfix` runs just the
+For item 3, `pytest tests/test_translation.py -v -k evaluate_postfix` runs just the
 postfix tests; the rest of that file belongs to Week 15.
 
 :::

@@ -504,7 +504,7 @@ name, different contract.
 | *challenge:* grow when full | amortised $O(1)$ | copy in queue order; head = 0 |
 
 ```powershell
-pytest tests/test_stack_queue.py -v -k queue
+pytest tests/test_stack_queue.py -v -k "fifo or dequeue or circular"
 ```
 
 ::: {.handout-only}

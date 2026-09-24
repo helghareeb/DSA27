@@ -49,10 +49,13 @@ class DynamicArray:
         self._size += 1
 
     def insert_at(self, index, value):
-        """Insert at `index`, shifting the rest right. Target: O(n)."""
-        if index < 0:
-            index += self._size
-        index = max(0, min(index, self._size))
+        """Insert at `index`, shifting the rest right. Target: O(n).
+
+        Raises IndexError unless 0 <= index <= len(self), as `insert_at` does
+        in Week 2 and in the linked list. Inserting at len(self) appends.
+        """
+        if not 0 <= index <= self._size:
+            raise IndexError(index)
         if self._size == self._capacity:
             self._resize(self._capacity * self.growth)
         for i in range(self._size, index, -1):
@@ -102,6 +105,7 @@ class DynamicArray:
         return self._block[index]
 
     def __setitem__(self, index, value):
+        """a[index] = value. Target: O(1). Same indices, and errors, as __getitem__."""
         if index < 0:
             index += self._size
         if not 0 <= index < self._size:

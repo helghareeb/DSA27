@@ -75,6 +75,13 @@ def test_remove_first_match_only():
     assert list(ll) == [1, 2, 3]
 
 
+def test_remove_updates_the_length():
+    ll = LinkedList([1, 2, 3])
+    ll.remove(2)
+    ll.remove(1)
+    assert len(ll) == 1
+
+
 def test_remove_head():
     ll = LinkedList([1, 2, 3])
     assert ll.remove(1) is True
@@ -123,9 +130,11 @@ def test_reverse_handles_short_lists(values):
 def test_reverse_relinks_rather_than_rebuilding():
     """Reversing must be in place — O(1) extra space, no new Node objects."""
     ll = LinkedList([1, 2, 3])
+    last = ll.head.next.next
     original = {id(node) for node in _nodes(ll)}
     ll.reverse()
     assert {id(node) for node in _nodes(ll)} == original
+    assert ll.head is last, "the old last node must become the head: relink, do not copy values"
 
 
 def _nodes(ll):

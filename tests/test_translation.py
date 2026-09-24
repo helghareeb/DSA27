@@ -79,6 +79,11 @@ def test_evaluate_postfix_operand_order():
     assert evaluate_postfix(["8", "2", "/"]) == 4
 
 
+def test_evaluate_postfix_divides_exactly():
+    """`/` is true division: 7 / 2 is 3.5, not 3."""
+    assert evaluate_postfix(["7", "2", "/"]) == 3.5
+
+
 @pytest.mark.parametrize("tokens", [[], ["3", "4"], ["+"], ["3", "+"]])
 def test_evaluate_postfix_rejects_malformed_input(tokens):
     with pytest.raises(ValueError):

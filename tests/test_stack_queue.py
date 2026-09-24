@@ -56,6 +56,12 @@ def test_infix_to_postfix():
     assert infix_to_postfix("( 3 + 4 ) * 2".split()) == ["3", "4", "+", "2", "*"]
 
 
+def test_infix_to_postfix_is_left_associative():
+    """Equal precedence pops too: 8 - 3 - 2 is (8 - 3) - 2, not 8 - (3 - 2)."""
+    assert infix_to_postfix("8 - 3 - 2".split()) == ["8", "3", "-", "2", "-"]
+    assert infix_to_postfix("8 / 4 / 2".split()) == ["8", "4", "/", "2", "/"]
+
+
 # -- queue ----------------------------------------------------------------
 
 

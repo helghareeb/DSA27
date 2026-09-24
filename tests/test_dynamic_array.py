@@ -52,11 +52,40 @@ def test_insert_at_shifts_right():
     assert len(arr) == 4
 
 
+@pytest.mark.parametrize("index", [-1, 4])
+def test_insert_at_out_of_range_raises(index):
+    with pytest.raises(IndexError):
+        DynamicArray([1, 2, 3]).insert_at(index, 99)
+
+
+def test_insert_at_grows_when_full():
+    """insert_at must resize a full array, just as append does."""
+    arr = DynamicArray()
+    for value in range(100):
+        arr.insert_at(0, value)
+    assert list(arr) == list(range(99, -1, -1))
+
+
+def test_setitem_out_of_range_raises():
+    arr = DynamicArray([1, 2, 3])
+    with pytest.raises(IndexError):
+        arr[3] = 99
+
+
 def test_pop_from_end_and_middle():
     arr = DynamicArray([1, 2, 3])
     assert arr.pop() == 3
     assert arr.pop(0) == 1
     assert list(arr) == [2]
+
+
+def test_pop_clears_the_freed_slot():
+    """The slot a pop frees must not keep a reference (Lecture 04)."""
+    arr = DynamicArray(["a", "b", "c"])
+    arr.pop()
+    arr.pop(0)
+    assert arr._block[len(arr)] is None
+    assert arr._block[len(arr) + 1] is None
 
 
 def test_pop_on_empty_raises():
@@ -82,6 +111,7 @@ def test_doubling_keeps_resizes_logarithmic():
     arr = DynamicArray()
     for value in range(1000):
         arr.append(value)
+    assert arr.resize_count > 0, "resize_count never went up — increment it in _resize"
     assert arr.resize_count < 20, (
         f"{arr.resize_count} reallocations for 1000 appends — "
         "are you growing by a constant instead of doubling?"
