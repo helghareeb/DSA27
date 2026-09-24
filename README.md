@@ -38,7 +38,7 @@ Dynamic programming is included as enrichment.
 | [Lecture 08 — Searching](docs/lectures/08-searching/lecture.md) | [handout PDF](docs/pdf/DSA27-L08-handout.pdf) · [slides PDF](docs/pdf/DSA27-L08-slides.pdf) |
 | **[Question bank](docs/question-bank/)** | MCQ, essay, trace, complexity, proofs, bugs and code — with answers, and a mock exam |
 | **[Worked solutions](solutions/)** | Every exercise solved — for **after** you have tried. `pytest --solutions` runs the tests on them |
-| **[Lab manual — weeks 1–3](docs/labs/)** | Python for this course: [Lab 01](docs/labs/lab01-python-basics.md) · [Lab 02](docs/labs/lab02-control-flow-functions.md) · [Lab 03](docs/labs/lab03-data-structures-classes.md) · [TA notes](docs/labs/ta-guide.md) |
+| **[Lab manual — weeks 1–8](docs/labs/)** | Python: [Lab 01](docs/labs/lab01-python-basics.md) · [02](docs/labs/lab02-control-flow-functions.md) · [03](docs/labs/lab03-data-structures-classes.md) — then building the structures: [Lab 04](docs/labs/lab04-dynamic-arrays.md) · [05](docs/labs/lab05-linked-lists.md) · [06](docs/labs/lab06-stacks.md) · [07](docs/labs/lab07-queues.md) · [08](docs/labs/lab08-searching.md) · [TA notes](docs/labs/ta-guide.md) |
 | [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
 | [Links](docs/links.md) | WhatsApp channel, YouTube |
 

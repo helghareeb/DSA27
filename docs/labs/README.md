@@ -1,4 +1,10 @@
-# DSA27 Lab Manual — Weeks 1 to 3: Python for Data Structures
+# DSA27 Lab Manual — Weeks 1 to 8
+
+Two kinds of lab. **Weeks 1–3** teach Python for this course. **From Week 4**,
+each lab walks you through building that week's structure in `dsa/`, one method
+at a time, with drawings, predictions and the exact tests to run.
+
+## Weeks 1–3: Python for data structures
 
 The first three labs give everyone in the room the same Python, fast. Some of
 you wrote Python last year; some wrote only C++; some of you, in Bio, have not
@@ -14,9 +20,27 @@ folder.** You do not need the tutorial, a textbook or a video to do them.
 | **1** | [The interpreter, numbers, strings and lists](lab01-python-basics.md) | `labs/lab01.py` | `tests/test_lab01.py` | [Lab 01](../pdf/DSA27-Lab01.pdf) |
 | **2** | [Control flow, functions, errors and modules](lab02-control-flow-functions.md) | `labs/lab02.py` | `tests/test_lab02.py` | [Lab 02](../pdf/DSA27-Lab02.pdf) |
 | **3** | [Data structures, classes and generators](lab03-data-structures-classes.md) | `labs/lab03.py` | `tests/test_lab03.py` | [Lab 03](../pdf/DSA27-Lab03.pdf) |
-| — | [Notes for teaching assistants](ta-guide.md) | | | [TA guide](../pdf/DSA27-Lab-TA-Guide.pdf) |
 
-## What each lab covers
+## Weeks 4–8: building the structures
+
+| Week | Lab | You write | Graded by | PDF |
+|---|---|---|---|---|
+| **4** | [Building a dynamic array](lab04-dynamic-arrays.md) | `dsa/dynamic_array.py` | `tests/test_dynamic_array.py` | [Lab 04](../pdf/DSA27-Lab04.pdf) |
+| **5** | [Building a linked list](lab05-linked-lists.md) | `dsa/linked_list.py` | `tests/test_linked_list.py` | [Lab 05](../pdf/DSA27-Lab05.pdf) |
+| **6** | [Stacks, brackets and postfix](lab06-stacks.md) | `dsa/stack.py`, `evaluate_postfix` | `tests/test_stack_queue.py -k "lifo or peek or empty_behaviour or balanced or infix"` · `tests/test_translation.py -k evaluate_postfix` | [Lab 06](../pdf/DSA27-Lab06.pdf) |
+| **7** | [Queues and the ring buffer](lab07-queues.md) | `dsa/queue.py` | `tests/test_stack_queue.py -k "fifo or dequeue or circular"` | [Lab 07](../pdf/DSA27-Lab07.pdf) |
+| **8** | [Eight ways to search](lab08-searching.md) | `dsa/searching.py` | `tests/test_searching.py` | [Lab 08](../pdf/DSA27-Lab08.pdf) |
+
+Each of these labs follows the week's lecture: read the lecture section a part
+names before you start it. **Draw before you code**, predict at every
+Checkpoint, and run the part's tests before moving on. Every checkpoint answer
+and every quoted error message in these manuals was produced by running code.
+
+**Notes for teaching assistants:** [TA guide](ta-guide.md) ·
+[PDF](../pdf/DSA27-Lab-TA-Guide.pdf).
+
+## Weeks 1–3 in more detail
+
 
 **Lab 01 — Week 1.** Running Python three ways (REPL, script, notebook). Numbers:
 `/` against `//` against `%`, integers that never overflow, floats that are
@@ -103,10 +127,10 @@ explains. `pytest --solutions tests/test_lab01.py` runs the tests on them.
   classmate is encouraged. Sending them your file is not — for either of you.
   Every lab ends with the TA asking you to explain a line of your code.
 
-## After the labs
+## After the Python labs
 
 From Week 3 the exercises move into [`dsa/`](../../dsa/) and follow the
-[study plan](../course/01-study-plan.md): `dsa/recursion.py` this week, then
-dynamic arrays, linked lists, stacks and queues. They look exactly like the
-labs — skeleton, docstring, test file — so by then the routine will be
-familiar.
+[study plan](../course/01-study-plan.md): `dsa/recursion.py` in Week 3, then
+the structure labs above. They look exactly like the Python labs — skeleton,
+docstring, test file — so by then the routine is familiar. A new lab manual is
+added each week as the course goes on.

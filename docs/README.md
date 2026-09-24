@@ -23,7 +23,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Lecture 08 — Searching](lectures/08-searching/lecture.md)** | Linear and binary search, bounds, jump, exponential and interpolation search — measured. |
 | **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and a mock exam. |
 | **[Worked solutions](../solutions/)** | Every exercise, lab and practice problem solved — read them only after you have tried. |
-| **[Lab manual — weeks 1–3](labs/)** | Python for this course, in three labs, with exercises and tests. Everything you need is in the repository. |
+| **[Lab manual — weeks 1–8](labs/)** | Python for this course in weeks 1–3, then one lab per week building that week's structure in `dsa/`. Everything you need is in the repository. |
 | **[Your program's regulations](course/regulations/)** | The bylaws, and what they say about this course. |
 | **[Links](links.md)** | WhatsApp channel, YouTube, repository. |
 
@@ -53,6 +53,11 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Lab 01 — the interpreter, numbers, strings, lists | [`DSA27-Lab01.pdf`](pdf/DSA27-Lab01.pdf) |
 | Lab 02 — control flow, functions, errors, modules | [`DSA27-Lab02.pdf`](pdf/DSA27-Lab02.pdf) |
 | Lab 03 — data structures, classes, generators | [`DSA27-Lab03.pdf`](pdf/DSA27-Lab03.pdf) |
+| Lab 04 — building a dynamic array | [`DSA27-Lab04.pdf`](pdf/DSA27-Lab04.pdf) |
+| Lab 05 — building a linked list | [`DSA27-Lab05.pdf`](pdf/DSA27-Lab05.pdf) |
+| Lab 06 — stacks, brackets and postfix | [`DSA27-Lab06.pdf`](pdf/DSA27-Lab06.pdf) |
+| Lab 07 — queues and the ring buffer | [`DSA27-Lab07.pdf`](pdf/DSA27-Lab07.pdf) |
+| Lab 08 — eight ways to search | [`DSA27-Lab08.pdf`](pdf/DSA27-Lab08.pdf) |
 | Lab manual — notes for TAs | [`DSA27-Lab-TA-Guide.pdf`](pdf/DSA27-Lab-TA-Guide.pdf) |
 | Question bank — week 1 | [questions](pdf/DSA27-QB-Week01-Questions.pdf) · [answers](pdf/DSA27-QB-Week01-Answers.pdf) |
 | Question bank — week 2 | [questions](pdf/DSA27-QB-Week02-Questions.pdf) · [answers](pdf/DSA27-QB-Week02-Answers.pdf) |
