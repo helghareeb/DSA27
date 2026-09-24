@@ -44,7 +44,9 @@ Every question is tagged **[what]** (recall), **[how]** (apply) or **[why]**
 | **5** | Lecture 05 (linked lists) | [questions](week05-questions.md) | [answers](week05-answers.md) | `practice/week05.py` |
 | **6** | Lecture 06 (stacks) | [questions](week06-questions.md) | [answers](week06-answers.md) | `practice/week06.py` |
 | **7** | Lecture 07 (queues) | [questions](week07-questions.md) | [answers](week07-answers.md) | `practice/week07.py` |
+| **8** | Lecture 08 (searching) | [questions](week08-questions.md) | [answers](week08-answers.md) | `practice/week08.py` |
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | |
+| — | **[Mock exam, weeks 1–7](mock-exam-weeks01-07.md)** — midterm practice, no overlap with the weeks 1–3 paper | | in the weekly answer files | |
 
 Printable PDFs of every file are in [`docs/pdf/`](../pdf/) (`DSA27-QB-...`).
 New weeks are added as the lectures are delivered.
@@ -74,8 +76,9 @@ New weeks are added as the lectures are delivered.
    The tests fail until you write the code — like every exercise in this course.
    Compare with the worked solution in the answers file only **after** the tests
    pass, and look for what the solution does more simply than yours.
-7. **A week before the exam,** sit the [mock exam](mock-exam-weeks01-03.md) under
-   exam conditions, then mark it.
+7. **A week before the exam,** sit a mock exam under exam conditions, then mark
+   it: [weeks 1–3](mock-exam-weeks01-03.md), and [weeks 1–7](mock-exam-weeks01-07.md)
+   before the midterm.
 
 ## Honesty about what this is
 

@@ -376,21 +376,22 @@ understand amortised cost.
 
 ::: {.handout-only}
 
-Real timings on reference implementations built on the course `Array`, exactly
-as your own will be. Left: n enqueues followed by n dequeues. The two honest
+Real timings of `dsa/queue.py` — the instructor's reference solution, built on
+the course `Array` exactly as yours will be — against a simple linked queue.
+The ring is created with room for all n items, so growing plays no part. Left: n enqueues followed by n dequeues. The two honest
 queues rise with slope 1 on the log–log plot, $O(n)$ for n operations; the
-`SlowQueue` rises with slope 2, $O(n^2)$. At n = 4,096 that was about 6.3 seconds
-against 10 milliseconds for the ring: more than 600 times slower, and the gap
-doubles every time n doubles.
+`SlowQueue` rises with slope 2, $O(n^2)$. At n = 4,000 that was about 6.5 seconds
+against 9 milliseconds for the ring: some 700 times slower, and the gap doubles
+every time n doubles.
 
 Right: the cost of **one** dequeue (paired with one enqueue, to keep the size at
 n) on a queue already holding n items. The ring and the linked queue are flat
 lines: $O(1)$, however long the queue. The `SlowQueue` line is a straight line
-of slope 1: $O(n)$ per dequeue, about 13 milliseconds at n = 16,384 against
-roughly 1.5 microseconds for the ring. (The $O(1)$ lines are averages over 2,000
+of slope 1: $O(n)$ per dequeue, about 15 milliseconds at n = 16,000 against
+roughly 1.4 microseconds for the ring. (The $O(1)$ lines are averages over 2,000
 operations, because one operation is too quick to time on its own.)
 
-**Constant factors.** The linked queue beats the ring by about five times here,
+**Constant factors.** The linked queue beats the ring by four to five times here,
 because every ring operation does a `%` and goes through the Python-level
 bounds check of `dsa/array.py`, while a node's `next` is a plain attribute. The
 same effect as in Lecture 06. Big-O says both are $O(1)$; measurement says how

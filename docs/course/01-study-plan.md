@@ -115,6 +115,8 @@ traversal.
 Linear, binary, binary recursive, `lower_bound`, `upper_bound`, jump,
 exponential, interpolation. Eight functions, one idea: what a sorted invariant
 buys you.
+→ [Lecture 08](../lectures/08-searching/lecture.md) ·
+[mock exam, weeks 1–7](../question-bank/mock-exam-weeks01-07.md)
 
 **9 — Basic sorting.**
 Bubble, selection, insertion — each written twice, once plain and once as a

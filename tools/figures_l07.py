@@ -5,8 +5,9 @@ Run it from the repository root:
     python tools/figures_l07.py
 
 Same conventions as `tools/figures.py`. The timing figure is real measurement
-with `viz.complexity.measure` on reference implementations, so it exists before
-anyone has written `dsa/queue.py`.
+with `viz.complexity.measure` of **your** `dsa/queue.py`, so it needs a working
+implementation (the lecture's copy was made from the instructor's reference
+solution); without one, every other figure is still drawn.
 """
 
 from __future__ import annotations
@@ -303,51 +304,8 @@ def figure_linked():
 # -- measured -----------------------------------------------------------------
 
 
-def reference_queues():
-    """Reference implementations, on the course Array, for timing only."""
-    from dsa.array import Array
-
-    class SlowQueue:                          # DynamicArray-style, pop(0) shifts
-        def __init__(self):
-            self.block, self.size = Array(1), 0
-
-        def enqueue(self, v):
-            if self.size == len(self.block):
-                bigger = Array(2 * len(self.block))
-                for i in range(self.size):
-                    bigger[i] = self.block[i]
-                self.block = bigger
-            self.block[self.size] = v
-            self.size += 1
-
-        def dequeue(self):
-            v = self.block[0]
-            for i in range(self.size - 1):
-                self.block[i] = self.block[i + 1]
-            self.size -= 1
-            self.block[self.size] = None
-            return v
-
-    class RingQueue:                          # CircularQueue that grows
-        def __init__(self):
-            self.block, self.head, self.size = Array(1), 0, 0
-
-        def enqueue(self, v):
-            cap = len(self.block)
-            if self.size == cap:
-                bigger = Array(2 * cap)
-                for i in range(self.size):
-                    bigger[i] = self.block[(self.head + i) % cap]
-                self.block, self.head, cap = bigger, 0, 2 * cap
-            self.block[(self.head + self.size) % cap] = v
-            self.size += 1
-
-        def dequeue(self):
-            v = self.block[self.head]
-            self.block[self.head] = None
-            self.head = (self.head + 1) % len(self.block)
-            self.size -= 1
-            return v
+def linked_queue():
+    """A linked queue, for comparison only: dsa/ has no linked queue exercise."""
 
     class Node:
         __slots__ = ("value", "next")
@@ -356,7 +314,7 @@ def reference_queues():
             self.value, self.next = value, None
 
     class LinkedQueue:                        # head = front, tail = back
-        def __init__(self):
+        def __init__(self, capacity=None):
             self.head = self.tail = None
 
         def enqueue(self, v):
@@ -374,17 +332,33 @@ def reference_queues():
                 self.tail = None
             return v
 
-    return SlowQueue, RingQueue, LinkedQueue
+    return LinkedQueue
 
 
 def figure_measured():
+    from dsa.queue import CircularQueue, SlowQueue
     from viz.complexity import measure
 
-    SlowQueue, RingQueue, LinkedQueue = reference_queues()
+    try:
+        probe = CircularQueue(2)
+        probe.enqueue(1)
+        probe.dequeue()
+        SlowQueue([1]).dequeue()
+    except NotImplementedError:
+        print("  (skipped measured.png: dsa/queue.py is not implemented yet)")
+        return None
+
+    def make_ring(capacity):                # sized up front: growing is the challenge
+        return CircularQueue(capacity)
+
+    def make_slow(capacity):
+        return SlowQueue()
+
+    LinkedQueue = linked_queue()
 
     def total(cls):
         def work(n):
-            q = cls()
+            q = cls(n)
             for i in range(n):
                 q.enqueue(i)
             for _ in range(n):
@@ -392,7 +366,7 @@ def figure_measured():
         return work
 
     def filled(cls, n):
-        q = cls()
+        q = cls(n)
         for i in range(n):
             q.enqueue(i)
         return q
@@ -408,8 +382,8 @@ def figure_measured():
     ax = axes[0]
     sizes = [250, 500, 1000, 2000, 4000]
     for label, cls, colour in [
-        ("SlowQueue (pop(0) shifts)", SlowQueue, RED),
-        ("CircularQueue (ring buffer)", RingQueue, GREEN),
+        ("SlowQueue (pop(0) shifts)", make_slow, RED),
+        ("CircularQueue (ring buffer)", make_ring, GREEN),
         ("linked queue (head + tail)", LinkedQueue, AMBER),
     ]:
         measured, seconds = measure(total(cls), sizes, lambda n: n, repeat=3)
@@ -422,8 +396,8 @@ def figure_measured():
     ax = axes[1]
     sizes = [1000, 2000, 4000, 8000, 16000]
     for label, cls, colour, per in [
-        ("SlowQueue  (average of 50)", SlowQueue, RED, 50),
-        ("CircularQueue  (average of 2,000)", RingQueue, GREEN, 2000),
+        ("SlowQueue  (average of 50)", make_slow, RED, 50),
+        ("CircularQueue  (average of 2,000)", make_ring, GREEN, 2000),
         ("linked queue  (average of 2,000)", LinkedQueue, AMBER, 2000),
     ]:
         measured, seconds = measure(one_dequeue(per), sizes,
