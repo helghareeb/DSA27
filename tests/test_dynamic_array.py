@@ -52,10 +52,12 @@ def test_insert_at_shifts_right():
     assert len(arr) == 4
 
 
-@pytest.mark.parametrize("index", [-1, 4])
+@pytest.mark.parametrize("index", [-1, 6, 7])
 def test_insert_at_out_of_range_raises(index):
+    """Five values in eight slots: indices 6 and 7 exist in the block but are
+    past the end, so only your own check can reject them."""
     with pytest.raises(IndexError):
-        DynamicArray([1, 2, 3]).insert_at(index, 99)
+        DynamicArray([1, 2, 3, 4, 5]).insert_at(index, 99)
 
 
 def test_insert_at_grows_when_full():

@@ -373,7 +373,8 @@ range shrinks by one element per step, and the search becomes a slow linear
 scan — $O(n)$. That is the docstring's warning: an average case that hides a bad
 worst case.
 
-Three traps in the code, all tested by the random-data test:
+Three traps in the code, which the tests on one element and on random data
+catch:
 
 - **Division by zero** when `v[hi] == v[lo]`: handle that range separately.
 - **A guess outside the range** when the target is smaller than `v[lo]` or

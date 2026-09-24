@@ -23,6 +23,10 @@ def test_linear_search_works_on_unsorted_data():
     assert searching.linear_search([], 1) == -1
 
 
+def test_linear_search_returns_the_first_match():
+    assert searching.linear_search([4, 7, 7, 1, 7], 7) == 1
+
+
 @pytest.mark.parametrize("search", SORTED_SEARCHES, ids=lambda f: f.__name__)
 @pytest.mark.parametrize("target,expected", [(1, 0), (5, 2), (9, 4), (4, -1)])
 def test_finds_target_in_sorted_list(search, target, expected):
@@ -34,6 +38,13 @@ def test_handles_empty_and_single_element(search):
     assert search([], 1) == -1
     assert search([42], 42) == 0
     assert search([42], 7) == -1
+
+
+@pytest.mark.parametrize("search", SORTED_SEARCHES, ids=lambda f: f.__name__)
+@pytest.mark.parametrize("target", [0, 10, 99])
+def test_target_outside_the_values(search, target):
+    """Below the first, between, and past the last value: never an IndexError."""
+    assert search([1, 3, 5, 7, 9], target) == -1
 
 
 @pytest.mark.parametrize("search", SORTED_SEARCHES, ids=lambda f: f.__name__)

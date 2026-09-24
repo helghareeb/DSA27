@@ -34,9 +34,10 @@ def linear_search(values, target):
 def binary_search(values, target):
     """Index of `target` in a sorted sequence, or -1. Target: O(log n).
 
-    Write the loop form first. Watch the two classic bugs: `while lo <= hi`
-    versus `<`, and computing mid in a way that cannot overflow (irrelevant in
-    Python, but worth naming — your students will meet it in C and Java).
+    Write the loop form first. Lecture 08 names four classic bugs: `while
+    lo < hi` where it should be `<=`, `hi = mid` and `lo = mid` (both can loop
+    for ever), and a mid that overflows — impossible in Python, but you will
+    meet it in C and Java.
     """
     lo, hi = 0, len(values) - 1
     while lo <= hi:
