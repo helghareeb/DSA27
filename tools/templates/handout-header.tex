@@ -5,15 +5,16 @@
 % longtable. XeTeX already provides \beginR/\endR, which is all that short
 % Arabic runs inside English text need. tools/arabic.lua wraps them.
 %
-% Segoe UI carries Arabic in its regular and bold faces only, so the italic
-% slots are mapped back onto them -- otherwise Arabic inside emphasis or a
-% blockquote silently disappears.
+% The Arabic face is passed in by tools/build.py (Segoe UI on Windows, Noto
+% Sans Arabic elsewhere). It carries regular and bold only, so the italic slots
+% are mapped back onto them -- otherwise Arabic inside emphasis or a blockquote
+% silently disappears.
 \TeXXeTstate=1
 \newfontfamily\arabicfont[
   Script=Arabic, Scale=1.12,
-  BoldFont={Segoe UI Bold},
-  ItalicFont={Segoe UI},
-  BoldItalicFont={Segoe UI Bold}]{Segoe UI}
+  BoldFont={$arabicboldfont$},
+  ItalicFont={$arabicfont$},
+  BoldItalicFont={$arabicboldfont$}]{$arabicfont$}
 \newcommand{\textarabic}[1]{{\arabicfont\beginR #1\endR}}
 
 \usepackage{xcolor}
