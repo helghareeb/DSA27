@@ -65,9 +65,20 @@ function Inlines (inlines)
         out:insert(el)
       end
     elseif el.t == "Code" and has_arabic(el.text) then
-      -- A code span holding Arabic cannot stay monospace.
+      -- The Arabic part of a code span cannot stay monospace (the mono font
+      -- has no Arabic); the Latin part must, or it prints as empty boxes in the
+      -- Arabic font. So `len('...')` becomes code "len('" + Arabic + code "')".
       flush()
-      out:extend(arabic(el.text))
+      local text = el.text
+      local first = text:find("[\216\217\218\219\221]")
+      local last = first
+      for pos in text:gmatch("()[\216\217\218\219\221]") do last = pos end
+      while last < #text and text:byte(last + 1) >= 128 and text:byte(last + 1) < 192 do
+        last = last + 1
+      end
+      if first > 1 then out:insert(pandoc.Code(text:sub(1, first - 1))) end
+      out:extend(arabic(text:sub(first, last)))
+      if last < #text then out:insert(pandoc.Code(text:sub(last + 1))) end
     else
       flush()
       out:insert(el)
