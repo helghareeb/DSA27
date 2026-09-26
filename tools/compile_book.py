@@ -106,6 +106,8 @@ BOOK_EDITS = [
      lambda m: f"**The answers are at the back of the book,** in *Answers — Week {int(m.group(1))}*."),
     (re.compile(r"\*\*Questions:\*\*\s*\[`week(\d+)-questions\.md`\]\([^)]*\)\."),
      lambda m: f"**The questions** are at the end of the *Week {int(m.group(1))}* chapter."),
+    (re.compile(r"`week(\d+)-answers\.md`"), lambda m: f"*Answers — Week {int(m.group(1))}*"),
+    (re.compile(r"`week(\d+)-questions\.md`"), lambda m: f"the *Week {int(m.group(1))}* questions"),
 ]
 
 
@@ -207,7 +209,7 @@ def book() -> str:
         p = DOCS / "question-bank" / f"{stem}.md"
         if p.exists():
             parts.append(chapter(title_of(p) + " — practice paper"))
-            parts.append(include(p, 1))
+            parts.append(include(p, 1, edits=BOOK_EDITS))
     return "".join(parts)
 
 
@@ -219,6 +221,8 @@ STUDENT_EDITS = [
     (re.compile(r"\s*\(answers at the end\)", re.I), ""),
     (re.compile(r"\s*\(answers are at the end[^)]*\)", re.I), ""),
     (re.compile(r"\s*Answers? (are|is) at the end( of (this|the) (lab|manual|document))?\.", re.I), ""),
+    (re.compile(r"before you look at the answers at the end"), "before you check it with your TA"),
+    (re.compile(r"\(Answer in Part \d+ of the\s+checkpoint answers"), "(Your TA has the answer"),
 ]
 
 
