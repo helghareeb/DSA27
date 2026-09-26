@@ -23,8 +23,18 @@ local function has_arabic (s)
   return s:find("[\216\217\218\219\221]") ~= nil
 end
 
+-- ASCII punctuation at either edge of a run -- "(", ")", ".", ",", ";", quotes --
+-- is kept OUT of the Arabic font. Noto Sans Arabic has no Latin punctuation, so
+-- inside \textarabic it printed as an empty box; outside, it is set in the text
+-- font, and in an English sentence "(" + Arabic + ")" reads correctly.
 local function arabic (text)
-  return pandoc.RawInline("latex", "\\textarabic{" .. text .. "}")
+  local pre, core, post = text:match("^([%p%s]*)(.-)([%p%s]*)$")
+  if core == "" then return pandoc.Str(text) end
+  local out = pandoc.Inlines{}
+  if pre ~= "" then out:insert(pandoc.Str(pre)) end
+  out:insert(pandoc.RawInline("latex", "\\textarabic{" .. core .. "}"))
+  if post ~= "" then out:insert(pandoc.Str(post)) end
+  return out
 end
 
 -- Only Inlines is defined, deliberately. Pandoc applies element filters (Str,
@@ -39,7 +49,7 @@ function Inlines (inlines)
 
   local function flush ()
     if run then
-      out:insert(arabic(run))
+      out:extend(arabic(run))
       run = nil
     end
   end
@@ -57,7 +67,7 @@ function Inlines (inlines)
     elseif el.t == "Code" and has_arabic(el.text) then
       -- A code span holding Arabic cannot stay monospace.
       flush()
-      out:insert(arabic(el.text))
+      out:extend(arabic(el.text))
     else
       flush()
       out:insert(el)
