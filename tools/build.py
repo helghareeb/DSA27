@@ -102,6 +102,7 @@ def common() -> list[str]:
 def handout_opts(toc_depth: int | None = 2) -> list[str]:
     opts = common() + [
         "--lua-filter", str(TOOLS / "strip-slides-only.lua"),
+        "--lua-filter", str(TOOLS / "strip-ta-only.lua"),
         "--lua-filter", str(TOOLS / "unwrap-divs.lua"),
         "--include-in-header", header("handout-header.tex"),
         HIGHLIGHT,
@@ -128,16 +129,21 @@ def slide_opts() -> list[str]:
     ]
 
 
-def book_opts() -> list[str]:
-    """A4 book: chapters, a deep TOC, the same look as the handouts."""
+def book_opts(ta: bool = False) -> list[str]:
+    """A4 book: chapters, a TOC, the same look as the handouts.
+
+    `ta=True` keeps the ::: {.ta-only} blocks and boxes them; otherwise they go.
+    """
+    ta_filter = "mark-ta-only.lua" if ta else "strip-ta-only.lua"
     return common() + [
         "--lua-filter", str(TOOLS / "strip-slides-only.lua"),
+        "--lua-filter", str(TOOLS / ta_filter),
         "--lua-filter", str(TOOLS / "unwrap-divs.lua"),
         "--include-in-header", header("handout-header.tex"),
         "--include-in-header", str(TMPL / "book-header.tex"),
         HIGHLIGHT,
         "--top-level-division=chapter",
-        "--toc", "--toc-depth=2",
+        "--toc-depth=1",
         "-V", "documentclass=report",
         "-V", "geometry:a4paper,margin=2.4cm",
         "-V", "fontsize=11pt",
@@ -195,7 +201,7 @@ def targets() -> list[Target]:
     for name, pdf in (("book", "DSA27-Book.pdf"),
                       ("lab-manual", "DSA27-Lab-Manual.pdf"),
                       ("lab-manual-ta", "DSA27-Lab-Manual-TA.pdf")):
-        t.append((name, ROOT / "build" / f"{name}.md", DIST / pdf, book_opts()))
+        t.append((name, ROOT / "build" / f"{name}.md", DIST / pdf, book_opts(ta=name.endswith("-ta"))))
     return t
 
 
