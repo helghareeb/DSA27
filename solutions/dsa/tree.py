@@ -1,4 +1,6 @@
-"""Binary search trees, and the four ways to walk them.
+"""SOLUTION — try the exercise in `dsa/tree.py` first; see `solutions/README.md`.
+
+Binary search trees, and the four ways to walk them.
 
 A **binary search tree** keeps one invariant: for every node, everything in the
 left subtree is smaller and everything in the right subtree is larger. Hold that
@@ -20,7 +22,7 @@ Draw your tree at any point with the helper below:
 
 from __future__ import annotations
 
-from dsa.queue import CircularQueue  # noqa: F401  (your Week 7 queue, for level_order)
+from dsa.queue import CircularQueue
 
 
 class TreeNode:
@@ -73,7 +75,24 @@ class BinarySearchTree:
         Duplicates are ignored — inserting a value already present leaves the
         tree unchanged. Target: O(h).
         """
-        raise NotImplementedError
+        new = TreeNode(value)
+        if self.root is None:
+            self.root = new
+            return
+        node = self.root
+        while True:
+            if value == node.value:
+                return                          # already there: ignore
+            if value < node.value:
+                if node.left is None:
+                    node.left = new
+                    return
+                node = node.left
+            else:
+                if node.right is None:
+                    node.right = new
+                    return
+                node = node.right
 
     def contains(self, value):
         """True when `value` is in the tree. Target: O(h).
@@ -81,7 +100,12 @@ class BinarySearchTree:
         Compare once per level and discard half the remaining tree each time —
         the same idea as binary search, in pointer form.
         """
-        raise NotImplementedError
+        node = self.root
+        while node is not None:
+            if value == node.value:
+                return True
+            node = node.left if value < node.value else node.right
+        return False
 
     def delete(self, value):
         """Remove `value`, keeping the BST invariant. Target: O(h).
@@ -95,7 +119,31 @@ class BinarySearchTree:
 
         Deleting a value that is not present does nothing. Returns None.
         """
-        raise NotImplementedError
+        parent, node = None, self.root
+        while node is not None and node.value != value:
+            parent = node
+            node = node.left if value < node.value else node.right
+        if node is None:
+            return                              # not present: nothing to do
+
+        if node.left is not None and node.right is not None:
+            # Two children: copy in the in-order successor, the leftmost node
+            # of the right subtree, then delete that node instead. It has no
+            # left child, so it is one of the two easy cases below.
+            parent, successor = node, node.right
+            while successor.left is not None:
+                parent, successor = successor, successor.left
+            node.value = successor.value
+            node = successor
+
+        # Now `node` has at most one child: a leaf (child is None) or one child.
+        child = node.left if node.left is not None else node.right
+        if parent is None:
+            self.root = child
+        elif parent.left is node:
+            parent.left = child
+        else:
+            parent.right = child
 
     # -- asking -----------------------------------------------------------
 
@@ -104,11 +152,21 @@ class BinarySearchTree:
 
         No comparisons needed — the BST invariant already says where it is.
         """
-        raise NotImplementedError
+        if self.root is None:
+            raise ValueError("min of an empty tree")
+        node = self.root
+        while node.left is not None:
+            node = node.left
+        return node.value
 
     def max(self):
         """Largest value. Raises ValueError when empty. Target: O(h)."""
-        raise NotImplementedError
+        if self.root is None:
+            raise ValueError("max of an empty tree")
+        node = self.root
+        while node.right is not None:
+            node = node.right
+        return node.value
 
     def height(self):
         """Edges on the longest root-to-leaf path. Target: O(n).
@@ -116,11 +174,21 @@ class BinarySearchTree:
         An empty tree is -1 and a single node is 0, so that height is always
         "how many edges", never "how many nodes".
         """
-        raise NotImplementedError
+        return self._height(self.root)
+
+    def _height(self, node):
+        if node is None:
+            return -1
+        return 1 + max(self._height(node.left), self._height(node.right))
 
     def size(self):
         """Number of nodes. Target: O(n)."""
-        raise NotImplementedError
+        return self._size(self.root)
+
+    def _size(self, node):
+        if node is None:
+            return 0
+        return 1 + self._size(node.left) + self._size(node.right)
 
     def is_valid(self):
         """True when the BST invariant actually holds. Target: O(n).
@@ -129,7 +197,18 @@ class BinarySearchTree:
         **not enough**. A value must beat every ancestor it passed on the way
         down, so carry a (low, high) range as you descend.
         """
-        raise NotImplementedError
+        return self._is_valid(self.root, None, None)
+
+    def _is_valid(self, node, low, high):
+        """Every value in this subtree must lie strictly between low and high."""
+        if node is None:
+            return True
+        if low is not None and node.value <= low:
+            return False
+        if high is not None and node.value >= high:
+            return False
+        return (self._is_valid(node.left, low, node.value)
+                and self._is_valid(node.right, node.value, high))
 
     # -- walking ----------------------------------------------------------
     # Each traversal returns a NEW Python list of the values, in visit order.
@@ -144,7 +223,15 @@ class BinarySearchTree:
 
         That sortedness is the single most useful property a BST has.
         """
-        raise NotImplementedError
+        out = []
+        self._in_order(self.root, out)
+        return out
+
+    def _in_order(self, node, out):
+        if node is not None:
+            self._in_order(node.left, out)
+            out.append(node.value)
+            self._in_order(node.right, out)
 
     def pre_order(self):
         """node, left, right — the order that rebuilds this exact tree.
@@ -152,7 +239,15 @@ class BinarySearchTree:
         Re-inserting a pre-order walk reproduces the original shape, which is
         why it is what you serialise.
         """
-        raise NotImplementedError
+        out = []
+        self._pre_order(self.root, out)
+        return out
+
+    def _pre_order(self, node, out):
+        if node is not None:
+            out.append(node.value)
+            self._pre_order(node.left, out)
+            self._pre_order(node.right, out)
 
     def post_order(self):
         """left, right, node — children always before their parent.
@@ -160,7 +255,15 @@ class BinarySearchTree:
         The order you free a tree in, and the order an expression tree
         evaluates in (see `dsa/translation.py`).
         """
-        raise NotImplementedError
+        out = []
+        self._post_order(self.root, out)
+        return out
+
+    def _post_order(self, node, out):
+        if node is not None:
+            self._post_order(node.left, out)
+            self._post_order(node.right, out)
+            out.append(node.value)
 
     def level_order(self):
         """Top to bottom, left to right — breadth-first.
@@ -171,7 +274,19 @@ class BinarySearchTree:
         queue that **grows** (Lab 07's challenge): the last level of a tree
         can hold far more waiting nodes than the default capacity of 8.
         """
-        raise NotImplementedError
+        out = []
+        if self.root is None:
+            return out
+        pending = CircularQueue()               # grows as the frontier widens
+        pending.enqueue(self.root)
+        while not pending.is_empty():
+            node = pending.dequeue()
+            out.append(node.value)
+            if node.left is not None:
+                pending.enqueue(node.left)
+            if node.right is not None:
+                pending.enqueue(node.right)
+        return out
 
     # -- plumbing ---------------------------------------------------------
 

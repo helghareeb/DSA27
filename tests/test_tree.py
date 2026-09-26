@@ -177,6 +177,23 @@ def test_level_order():
     assert list(bst.level_order()) == [8, 3, 10, 1, 6, 14, 4, 7, 13]
 
 
+def test_level_order_on_a_wide_tree():
+    """A perfect tree of 31 nodes has 16 leaves on its last level — more than
+    the default capacity of a CircularQueue: the queue must grow (Lab 07's
+    challenge)."""
+    def middle_first(lo, hi):
+        if lo > hi:
+            return []
+        mid = (lo + hi) // 2
+        return [mid] + middle_first(lo, mid - 1) + middle_first(mid + 1, hi)
+
+    bst = BinarySearchTree(middle_first(1, 31))
+    assert bst.height() == 4
+    walk = bst.level_order()
+    assert walk[:3] == [16, 8, 24]
+    assert walk[-16:] == list(range(1, 32, 2))
+
+
 def test_pre_order_rebuilds_the_same_tree():
     """Re-inserting a pre-order walk reproduces the original shape. That is
     why pre-order is what you serialise."""
@@ -185,13 +202,22 @@ def test_pre_order_rebuilds_the_same_tree():
     assert list(rebuilt.pre_order()) == list(bst.pre_order())
 
 
-def test_traversals_are_lazy():
-    """Yield the values, do not build a list and return it. Collecting into a
-    list costs O(n) memory the caller may not want."""
-    walk = BinarySearchTree(SAMPLE).in_order()
-    assert not isinstance(walk, (list, tuple))
-    assert iter(walk) is walk, "a traversal must be an iterator"
-    assert next(walk) == 1
+def test_traversals_return_a_fresh_list():
+    """A traversal is output: it returns a new list and leaves the tree alone.
+    The tree must not keep that list — changing it changes nothing."""
+    bst = BinarySearchTree(SAMPLE)
+    for walk in (bst.in_order, bst.pre_order, bst.post_order, bst.level_order):
+        first = walk()
+        assert isinstance(first, list)
+        first.clear()
+        assert walk() != [], f"{walk.__name__} handed out a list the tree still uses"
+    assert bst.pre_order() == [8, 3, 1, 6, 4, 7, 10, 14, 13]
+
+
+def test_traversals_of_an_empty_tree():
+    bst = BinarySearchTree()
+    for walk in (bst.in_order, bst.pre_order, bst.post_order, bst.level_order):
+        assert walk() == []
 
 
 # -- plumbing -------------------------------------------------------------
