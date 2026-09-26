@@ -143,6 +143,11 @@ def insertion_sort(values):
 
 
 # -- advanced: O(n log n) -------------------------------------------------
+#
+# The same `snapshot` parameter as the basic sorts. Merge and quick sort yield
+# about n frames and heap sort about n; copying n values for each would make
+# the plain forms O(n^2) — merge sort measured 0.36, 1.29 and 4.7 seconds for
+# 1,000, 2,000 and 4,000 values before this. With `_live` they are O(n log n).
 
 
 def _merge(a, lo, mid, hi, scratch):
@@ -172,7 +177,7 @@ def _merge(a, lo, mid, hi, scratch):
         a[k] = scratch[k]
 
 
-def merge_sort_steps(values):
+def merge_sort_steps(values, snapshot=list):
     """Divide, sort each half, merge. O(n log n) always, O(n) extra space.
 
     Top-down and recursive, one `scratch` Array shared by every merge, so the
@@ -181,7 +186,7 @@ def merge_sort_steps(values):
     """
     a = _copy(values)
     scratch = Array(len(a))
-    yield list(a), ()
+    yield snapshot(a), ()
 
     def sort(lo, hi):
         if hi - lo <= 1:
@@ -190,14 +195,14 @@ def merge_sort_steps(values):
         yield from sort(lo, mid)
         yield from sort(mid, hi)
         _merge(a, lo, mid, hi, scratch)
-        yield list(a), tuple(range(lo, hi))
+        yield snapshot(a), tuple(range(lo, hi))
 
     yield from sort(0, len(a))
-    yield list(a), ()
+    yield snapshot(a), ()
 
 
 def merge_sort(values):
-    return _finish(merge_sort_steps(values))
+    return _finish(merge_sort_steps(values, snapshot=_live))
 
 
 def _choose_pivot(a, lo, hi, strategy, rng):
@@ -235,7 +240,7 @@ def _partition(a, lo, hi):
     return boundary
 
 
-def quick_sort_steps(values, pivot="median3"):
+def quick_sort_steps(values, pivot="median3", snapshot=list):
     """Partition around a pivot, recurse. O(n log n) average, O(n^2) worst.
 
     `pivot` is "first", "last", "random" or "median3". The chosen pivot is
@@ -248,14 +253,14 @@ def quick_sort_steps(values, pivot="median3"):
     """
     a = _copy(values)
     rng = random.Random(27)               # reproducible frames
-    yield list(a), ()
+    yield snapshot(a), ()
 
     def sort(lo, hi):
         while lo < hi:
             p = _choose_pivot(a, lo, hi, pivot, rng)
             a[p], a[hi] = a[hi], a[p]
             q = _partition(a, lo, hi)
-            yield list(a), (q,)
+            yield snapshot(a), (q,)
             if q - lo < hi - q:
                 yield from sort(lo, q - 1)
                 lo = q + 1
@@ -264,11 +269,11 @@ def quick_sort_steps(values, pivot="median3"):
                 hi = q - 1
 
     yield from sort(0, len(a) - 1)
-    yield list(a), ()
+    yield snapshot(a), ()
 
 
 def quick_sort(values, pivot="median3"):
-    return _finish(quick_sort_steps(values, pivot))
+    return _finish(quick_sort_steps(values, pivot, snapshot=_live))
 
 
 def _sift_down(a, index, size):
@@ -286,7 +291,7 @@ def _sift_down(a, index, size):
         index = largest
 
 
-def heap_sort_steps(values):
+def heap_sort_steps(values, snapshot=list):
     """Build a max-heap in place, then repeatedly swap the root to the back.
 
     O(n log n) always, O(1) extra space, not stable. Build-heap sifts down
@@ -294,19 +299,19 @@ def heap_sort_steps(values):
     """
     a = _copy(values)
     n = len(a)
-    yield list(a), ()
+    yield snapshot(a), ()
     for index in range(n // 2 - 1, -1, -1):        # build the heap: O(n)
         _sift_down(a, index, n)
-    yield list(a), ()
+    yield snapshot(a), ()
     for end in range(n - 1, 0, -1):
         a[0], a[end] = a[end], a[0]                 # the max goes to the back
         _sift_down(a, 0, end)                       # restore the heap in a[:end]
-        yield list(a), (0, end)
-    yield list(a), ()
+        yield snapshot(a), (0, end)
+    yield snapshot(a), ()
 
 
 def heap_sort(values):
-    return _finish(heap_sort_steps(values))
+    return _finish(heap_sort_steps(values, snapshot=_live))
 
 
 # -- not a comparison sort ------------------------------------------------

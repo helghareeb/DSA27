@@ -199,7 +199,7 @@ passes; but equal keys come out in the wrong order. See "Stability" below.
 ```python
 a = _copy(values)
 scratch = Array(len(a))
-yield list(a), ()
+yield snapshot(a), ()
 
 def sort(lo, hi):
     if hi - lo <= 1:
@@ -208,10 +208,10 @@ def sort(lo, hi):
     yield from sort(lo, mid)
     yield from sort(mid, hi)
     _merge(a, lo, mid, hi, scratch)
-    yield list(a), tuple(range(lo, hi))
+    yield snapshot(a), tuple(range(lo, hi))
 
 yield from sort(0, len(a))
-yield list(a), ()
+yield snapshot(a), ()
 ```
 
 ::: {.handout-only}
@@ -517,7 +517,7 @@ def sort(lo, hi):
         p = _choose_pivot(a, lo, hi, pivot, rng)
         a[p], a[hi] = a[hi], a[p]
         q = _partition(a, lo, hi)
-        yield list(a), (q,)
+        yield snapshot(a), (q,)
         if q - lo < hi - q:
             yield from sort(lo, q - 1)
             lo = q + 1
@@ -740,16 +740,21 @@ sort does not care: it makes a little more than on random data. And Python's
 `sorted()` makes **n – 1** comparisons — 1,023 at n = 1,024 — because it
 notices that the input is one sorted run and stops. That is the next section.
 
-**Why count instead of time?** Because timing the course code would measure
-something else. `merge_sort` is `merge_sort_steps` run to the end, and every
-`yield list(a)` copies the whole array: after each of the n – 1 merges, n
-values — $O(n^2)$ copying in total, more than the sort itself. Timed on this
-machine, `merge_sort` took 0.36, 1.29 and 4.7 seconds for 1,000, 2,000 and
-4,000 values: four times as long for twice the input, which is what $n^2$ looks
-like. The snapshots, not the merges, are what those seconds measure. The cure
-is to let the plain form take a snapshot that copies nothing — Lab 10, Part 7,
-makes you find it. (Python's `sorted()`, written in C, sorts 4,000 values in
-under a millisecond.)
+**Why count instead of time?** Because timing the course code can measure
+something else. `merge_sort` is `merge_sort_steps` run to the end, and a frame
+made with `list(a)` copies the whole array: after each of the n – 1 merges, n
+values — $O(n^2)$ copying in total, more than the sort itself. With that
+version, `merge_sort` took 0.36, 1.29 and 4.7 seconds for 1,000, 2,000 and
+4,000 values on this machine: four times as long for twice the input, which is
+what $n^2$ looks like. So every `_steps` form in the reference takes a
+`snapshot` parameter — `list` by default, so the animation gets fresh frames —
+and the plain form passes a function that returns `a` itself, uncopied. That is
+the `snapshot(a)` in the listings above. With it, the same runs took 0.06, 0.12
+and 0.27 seconds: a little over twice the time for twice the input, the
+$n \log n$ shape. Counting comparisons is still the cleaner measure, because a
+time includes the interpreter and whatever else the machine is doing; Lab 10,
+Part 8, has you measure both versions. (Python's `sorted()`, written in C,
+sorts 4,000 values in under a millisecond.)
 
 :::
 

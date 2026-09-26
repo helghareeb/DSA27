@@ -171,7 +171,7 @@ were made descriptive. Never rebuild or re-compress them.
 |---|---|---|
 | `book` | `DSA27-Book.pdf` | Course guide, study plan; for each of the 15 weeks the lecture handout and its question bank; then every week's answers and the mock exams |
 | `lab-manual` | `DSA27-Lab-Manual.pdf` | Labs 1–15, **students' edition**: each lab's `# Answers to the checkpoints` section (which must be the lab's last top-level section) and every `::: {.ta-only}` block are removed |
-| `lab-manual-ta` | `DSA27-Lab-Manual-TA.pdf` | **TAs' edition**: the TA guide, labs 1–15 complete, `ta-only` blocks boxed "For the TA", and every reference solution as an appendix. Not committed: it is built locally and handed to TAs |
+| `lab-manual-ta` | `DSA27-Lab-Manual-TA.pdf` | **TAs' edition**: the TA guide, labs 1–15 complete, `ta-only` blocks boxed "For the TA", and every reference solution as an appendix. Committed like the others; meant for TAs |
 
 `compile_book.py` writes `build/<target>.md` first: YAML stripped, headings pushed
 down a level, image paths made relative to the repository root, links to other

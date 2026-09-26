@@ -1425,13 +1425,14 @@ carry the week:
   heap; `for end in range(n - 1, 0, -1)` swaps `a[0]` with `a[end]` and sifts
   with `size = end`. The same backwards loop opens `heapify` in Week 12.
 
-**The snapshot cost (Part 8).** As written, the plain forms run the `_steps`
-generators to the end, and every `yield list(a)` copies n values: merge sort
+**The snapshot cost (Part 8).** If a plain form runs its `_steps` generator
+with the default `snapshot=list`, every frame copies n values: merge sort
 measured 0.36, 1.29 and 4.7 seconds for 1,000, 2,000 and 4,000 values —
-quadratic. The basic sorts in the reference already take a `snapshot=list`
-parameter, with the plain form passing a no-copy function; the same change to
-the three advanced sorts brings those times to about 0.07, 0.13 and 0.27
-seconds. Students who finish early: have them make that change, then time it.
+quadratic. The reference gives all six `_steps` forms a `snapshot` parameter
+and has each plain form pass `_live`, which copies nothing; the advanced sorts
+then take about 0.06, 0.12 and 0.27 seconds (merge), 0.03, 0.08, 0.16 (quick)
+and 0.06, 0.13, 0.29 (heap). Part 8 has students time both versions; check they
+can say which line was the $O(n)$ one.
 
 ## Lab 11 — worked solution notes
 

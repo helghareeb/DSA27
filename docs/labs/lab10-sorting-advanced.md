@@ -534,17 +534,18 @@ for n in [1000, 2000, 4000]:
 > `_merge`.)
 > (c) Fix it without breaking the animation or the tests.
 
-With the reference code as the lecture shows it, this printed about 0.36, 1.29
-and 4.7 seconds — four times as long for twice the input: $n^2$, not
-$n \log n$. The sort is fine; the **snapshots** are not free. Fix it the way the
-basic sorts of the reference solution do: give the `_steps` form a parameter,
-`snapshot=list`, write `yield snapshot(a), ...` instead of `yield list(a), ...`,
-and let the plain form pass a function that returns `a` itself, uncopied. The
-animation still gets fresh lists; `merge_sort` gets none, and only its last
-state is turned into a list. After the fix, the same loop printed about 0.07,
-0.13 and 0.27 seconds — twice the time for twice the input, plus a little: the
-$\log n$. Apply the same fix to `quick_sort` and `heap_sort`, and run the 37
-tests again.
+Run it twice. **First** with your plain `merge_sort` calling
+`merge_sort_steps(values)` with the default `snapshot=list` — the natural first
+version, where every frame is a fresh `list(a)`. On the course machine that
+printed about 0.36, 1.29 and 4.7 seconds: four times as long for twice the
+input, $n^2$, not $n \log n$. The sort is fine; the **snapshots** are not free.
+**Then** fix it the way the lecture's listings do: the `_steps` form takes
+`snapshot=list` and yields `snapshot(a), ...`, and the plain form passes a
+function that returns `a` itself, uncopied. The animation still gets fresh
+lists; `merge_sort` gets none, and only its last state is turned into a list.
+After the fix the same loop printed about 0.06, 0.12 and 0.27 seconds — a little
+over twice the time for twice the input: the $\log n$. Make the same change to
+`quick_sort` and `heap_sort`, and run the 37 tests again.
 
 ---
 
@@ -744,8 +745,9 @@ assert [c.tag for c in merge_sort(cards)] == ["b", "d", "a", "c"]
 
 **Checkpoint 8.**
 (a) Expected: a little over **2** (2,000 log 2,000 / 1,000 log 1,000 $\approx$ 2.2).
-Seen: about **4** — 0.36, 1.29, 4.7 seconds.
-(b) `yield list(a), tuple(range(lo, hi))` after each merge: `list(a)` copies all
+Seen, with a fresh `list(a)` per frame in the plain form: about **4** — 0.36,
+1.29, 4.7 seconds. After the fix: about 2.2 — 0.06, 0.12, 0.27 seconds.
+(b) The frame yielded after each merge, when it is `list(a)`: that copies all
 n values, and there are n – 1 merges — $O(n^2)$ copying, which dwarfs the
 $O(n \log n)$ sort.
 (c) A `snapshot` parameter, `list` by default for the animation, and a

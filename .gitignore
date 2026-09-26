@@ -42,5 +42,3 @@ dist/
 *.fls
 *.fdb_latexmk
 
-# The TAs' lab manual (with solutions) is handed to TAs, not published
-docs/pdf/DSA27-Lab-Manual-TA.pdf

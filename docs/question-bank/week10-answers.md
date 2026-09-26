@@ -416,7 +416,7 @@ def sort(lo, hi):
         p = _choose_pivot(a, lo, hi, pivot, rng)
         a[p], a[hi] = a[hi], a[p]
         q = _partition(a, lo, hi)
-        yield list(a), (q,)
+        yield snapshot(a), (q,)
         if q - lo < hi - q:
             yield from sort(lo, q - 1)
             lo = q + 1
