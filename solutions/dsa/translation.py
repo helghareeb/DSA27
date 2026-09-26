@@ -1,6 +1,7 @@
-"""SOLUTION, Week 6 part only: `evaluate_postfix`, written with your
-`Stack`. The rest of this module (lexer, parser, tree evaluator) is the
-Week 15 exercise and stays a skeleton here until that week is taught.
+"""SOLUTION — try the exercise in `dsa/translation.py` first; see `solutions/README.md`.
+
+`evaluate_postfix` is the Week 6 exercise (it needs only your `Stack`); the
+lexer, the parser and the tree evaluator are Week 15's.
 
 The principles of language translation — how source text becomes a result.
 
@@ -52,6 +53,9 @@ from dsa.array import Array
 # One function per rule, each calling the rule below it. Precedence is not a
 # table of numbers here -- it is the *shape* of the grammar. `expr` calls
 # `term`, so `term` binds tighter, so `*` beats `+`. That is the whole trick.
+
+DIGITS = "0123456789"
+OPERATORS = "+-*/"
 
 
 class Num:
@@ -136,7 +140,28 @@ def tokenize(text):
     This is the *lexer*, and it is the easiest of the three stages. Do not use
     a regular expression — scanning it by hand is the exercise.
     """
-    raise NotImplementedError
+    tokens = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch.isspace():                         # separates tokens, is never one
+            i += 1
+        elif ch in OPERATORS or ch in "()":
+            tokens.append(ch)                    # one character, one token
+            i += 1
+        elif ch in DIGITS or ch == ".":
+            start, points = i, 0
+            while i < len(text) and (text[i] in DIGITS or text[i] == "."):
+                if text[i] == ".":
+                    points += 1
+                i += 1                           # keep going: "123" is ONE token
+            number = text[start:i]
+            if points > 1 or number == ".":
+                raise ValueError(f"malformed number {number!r}")
+            tokens.append(number)
+        else:
+            raise ValueError(f"unexpected character {ch!r} at position {i}")
+    return tokens
 
 
 # -- stage 2a: tokens -> value, using a stack -----------------------------
@@ -222,7 +247,12 @@ class Parser:
         Raises ValueError on empty input, and on trailing tokens that no rule
         consumed — "3 + 4 )" is an error, not the number 7.
         """
-        raise NotImplementedError
+        if self.peek() is None:
+            raise ValueError("empty expression")
+        tree = self.expr()
+        if self.peek() is not None:              # something no rule could use
+            raise ValueError(f"unexpected {self.peek()!r} after the expression")
+        return tree
 
     def expr(self):
         """expr := term (('+' | '-') term)*
@@ -231,7 +261,11 @@ class Parser:
         there. Build left-associatively: "1 - 2 - 3" must be (1 - 2) - 3 = -4,
         not 1 - (2 - 3) = 2.
         """
-        raise NotImplementedError
+        node = self.term()
+        while self.peek() in ("+", "-"):
+            op = self.advance()
+            node = BinOp(op, node, self.term())  # the old tree goes LEFT
+        return node
 
     def term(self):
         """term := factor (('*' | '/') factor)*
@@ -239,7 +273,11 @@ class Parser:
         Same shape as `expr`, one precedence level tighter. Left-associative
         again: "8 / 4 / 2" is (8 / 4) / 2 = 1.
         """
-        raise NotImplementedError
+        node = self.factor()
+        while self.peek() in ("*", "/"):
+            op = self.advance()
+            node = BinOp(op, node, self.factor())
+        return node
 
     def factor(self):
         """factor := NUMBER | '(' expr ')' | '-' factor
@@ -253,7 +291,23 @@ class Parser:
         calls all the way back up to `expr`. Raise ValueError on anything else,
         including running off the end of the tokens.
         """
-        raise NotImplementedError
+        token = self.peek()
+        if token is None:
+            raise ValueError("unexpected end of input")
+        if token == "(":
+            self.advance()
+            node = self.expr()                   # back to the top rule: recursion
+            if self.peek() != ")":
+                raise ValueError("missing ')'")
+            self.advance()
+            return node
+        if token == "-":
+            self.advance()
+            return BinOp("-", Num(0.0), self.factor())   # unary minus: 0 - x
+        if token[0] in DIGITS or token[0] == ".":
+            self.advance()
+            return Num(float(token))
+        raise ValueError(f"unexpected {token!r}")
 
 
 # -- stage 3: tree -> value, by walking it --------------------------------
@@ -272,7 +326,19 @@ def evaluate(node):
     Division by zero raises ZeroDivisionError. An unknown operator raises
     ValueError.
     """
-    raise NotImplementedError
+    if isinstance(node, Num):
+        return node.value
+    left = evaluate(node.left)                   # both children first ...
+    right = evaluate(node.right)
+    if node.op == "+":                           # ... then the node: post-order
+        return left + right
+    if node.op == "-":
+        return left - right
+    if node.op == "*":
+        return left * right
+    if node.op == "/":
+        return left / right                      # ZeroDivisionError on 0
+    raise ValueError(f"unknown operator {node.op!r}")
 
 
 def calculate(text):
@@ -285,4 +351,6 @@ def calculate(text):
     Three lines: tokenize, parse, evaluate. Writing it is the moment the three
     stages stop being separate exercises.
     """
-    raise NotImplementedError
+    tokens = tokenize(text)
+    tree = Parser(tokens).parse()
+    return evaluate(tree)
