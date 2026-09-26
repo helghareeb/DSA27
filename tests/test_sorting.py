@@ -102,8 +102,33 @@ def test_counting_sort():
     assert sorting.counting_sort([]) == []
 
 
+class Card:
+    """Compared by `key` only, so two cards with the same key are EQUAL to the
+    sort while their labels still tell them apart. (Plain tuples would not do:
+    (1, "a") < (1, "c"), so tuples with equal first items are not equal, and a
+    sort that loses stability would still return the right list.)"""
+
+    def __init__(self, key, label):
+        self.key, self.label = key, label
+
+    def __lt__(self, other):
+        return self.key < other.key
+
+    def __gt__(self, other):
+        return self.key > other.key
+
+    def __le__(self, other):
+        return self.key <= other.key
+
+    def __ge__(self, other):
+        return self.key >= other.key
+
+    def __repr__(self):
+        return f"{self.key}{self.label}"
+
+
 def test_insertion_sort_is_stable():
     """Equal keys keep their original relative order."""
-    pairs = [(1, "a"), (0, "b"), (1, "c"), (0, "d")]
-    result = sorting.insertion_sort(pairs)
-    assert result == [(0, "b"), (0, "d"), (1, "a"), (1, "c")]
+    cards = [Card(1, "a"), Card(0, "b"), Card(1, "c"), Card(0, "d")]
+    result = sorting.insertion_sort(cards)
+    assert [repr(c) for c in result] == ["0b", "0d", "1a", "1c"]

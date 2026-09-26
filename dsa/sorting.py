@@ -58,7 +58,7 @@ def bubble_sort(values):
 def selection_sort_steps(values):
     """Repeatedly select the minimum of the unsorted tail. O(n^2).
 
-    Always exactly n-1 swaps — the fewest writes of any comparison sort, which
+    At most n-1 swaps — the fewest writes of any comparison sort, which
     matters when writes are expensive.
     """
     raise NotImplementedError

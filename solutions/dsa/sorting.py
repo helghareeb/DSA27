@@ -53,9 +53,21 @@ def _finish(steps):
 
 
 # -- basic: O(n^2) --------------------------------------------------------
+#
+# Each basic sort takes `snapshot`, the function that turns the working Array
+# into the frame it yields. The default, `list`, copies it: an animation needs
+# every frame to be its own list. But a copy costs O(n), and a sort that copies
+# before each of its O(n^2) comparisons costs O(n^3) — 70 seconds for 800
+# values, measured. The plain sort needs only the last state, so it passes
+# `_live`, which copies nothing: one implementation, and still O(n^2).
 
 
-def bubble_sort_steps(values):
+def _live(a):
+    """The working Array itself — no copy. For the plain sorts only."""
+    return a
+
+
+def bubble_sort_steps(values, snapshot=list):
     """Yield (list, (i, j)) before each comparison. O(n^2), O(1) extra space.
 
     Early exit: a pass with no swap means the array is sorted, so the best
@@ -63,24 +75,24 @@ def bubble_sort_steps(values):
     """
     a = _copy(values)
     n = len(a)
-    yield list(a), ()
+    yield snapshot(a), ()
     for end in range(n - 1, 0, -1):          # a[end+1:] is already in place
         swapped = False
         for j in range(end):
-            yield list(a), (j, j + 1)          # about to compare
+            yield snapshot(a), (j, j + 1)      # about to compare
             if a[j] > a[j + 1]:
                 a[j], a[j + 1] = a[j + 1], a[j]
                 swapped = True
         if not swapped:
             break
-    yield list(a), ()
+    yield snapshot(a), ()
 
 
 def bubble_sort(values):
-    return _finish(bubble_sort_steps(values))
+    return _finish(bubble_sort_steps(values, snapshot=_live))
 
 
-def selection_sort_steps(values):
+def selection_sort_steps(values, snapshot=list):
     """Repeatedly select the minimum of the unsorted tail. O(n^2) always.
 
     At most n-1 swaps — the fewest writes of any comparison sort. Not stable:
@@ -88,24 +100,24 @@ def selection_sort_steps(values):
     """
     a = _copy(values)
     n = len(a)
-    yield list(a), ()
+    yield snapshot(a), ()
     for i in range(n - 1):
         smallest = i
         for j in range(i + 1, n):
-            yield list(a), (smallest, j)
+            yield snapshot(a), (smallest, j)
             if a[j] < a[smallest]:
                 smallest = j
         if smallest != i:
             a[i], a[smallest] = a[smallest], a[i]
-            yield list(a), (i, smallest)
-    yield list(a), ()
+            yield snapshot(a), (i, smallest)
+    yield snapshot(a), ()
 
 
 def selection_sort(values):
-    return _finish(selection_sort_steps(values))
+    return _finish(selection_sort_steps(values, snapshot=_live))
 
 
-def insertion_sort_steps(values):
+def insertion_sort_steps(values, snapshot=list):
     """Grow a sorted prefix one element at a time. O(n^2) worst, O(n) best.
 
     Stable: an element moves left only past values strictly greater than it,
@@ -113,7 +125,7 @@ def insertion_sort_steps(values):
     """
     a = _copy(values)
     n = len(a)
-    yield list(a), ()
+    yield snapshot(a), ()
     for i in range(1, n):
         current = a[i]
         j = i - 1
@@ -121,13 +133,13 @@ def insertion_sort_steps(values):
             a[j + 1] = a[j]                    # shift right, no swap
             j -= 1
             a[j + 1] = current
-            yield list(a), (j + 1, j + 2)
+            yield snapshot(a), (j + 1, j + 2)
         a[j + 1] = current
-    yield list(a), ()
+    yield snapshot(a), ()
 
 
 def insertion_sort(values):
-    return _finish(insertion_sort_steps(values))
+    return _finish(insertion_sort_steps(values, snapshot=_live))
 
 
 # -- advanced: O(n log n) -------------------------------------------------
@@ -198,8 +210,12 @@ def _choose_pivot(a, lo, hi, strategy, rng):
         return rng.randint(lo, hi)
     if strategy == "median3":
         mid = (lo + hi) // 2
-        trio = sorted([(a[lo], lo), (a[mid], mid), (a[hi], hi)])
-        return trio[1][1]
+        first, middle, last = a[lo], a[mid], a[hi]
+        if first <= middle <= last or last <= middle <= first:
+            return mid
+        if middle <= first <= last or last <= first <= middle:
+            return lo
+        return hi
     raise ValueError(f"unknown pivot strategy {strategy!r}: "
                      "use 'first', 'last', 'random' or 'median3'")
 
