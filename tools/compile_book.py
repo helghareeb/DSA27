@@ -281,6 +281,7 @@ SOLUTION_FILES = [
     ("Lab 13 — hash tables", "solutions/dsa/hashmap.py"),
     ("Lab 14 — graphs", "solutions/dsa/graph.py"),
     ("Labs 06 and 15 — translation", "solutions/dsa/translation.py"),
+    ("Enrichment — dynamic programming", "solutions/dsa/dynamic_programming.py"),
 ]
 
 

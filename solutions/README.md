@@ -19,11 +19,12 @@ tried**. The folder mirrors the repository:
 | `dsa/hashmap.py` (Week 13) | [`solutions/dsa/hashmap.py`](dsa/hashmap.py) | `tests/test_hashmap.py` |
 | `dsa/graph.py` (Week 14) | [`solutions/dsa/graph.py`](dsa/graph.py) | `tests/test_graph.py` |
 | the rest of `dsa/translation.py` (Week 15) | [`solutions/dsa/translation.py`](dsa/translation.py) | `tests/test_translation.py` |
+| `dsa/dynamic_programming.py` (enrichment) | [`solutions/dsa/dynamic_programming.py`](dsa/dynamic_programming.py) | `tests/test_dynamic_programming.py` |
 | `labs/lab01.py` … `lab03.py` | [`solutions/labs/`](labs/) | `tests/test_lab01.py` … `test_lab03.py` |
 | `practice/week01.py` … `week15.py` | [`solutions/practice/`](practice/) | `tests/test_practice_week01.py` … |
 
-All fifteen weeks are solved. The one module with no solution here is
-`dsa/dynamic_programming.py`: it is enrichment, not examined, and left for you.
+All fifteen weeks are solved, and so is the enrichment module
+`dsa/dynamic_programming.py` — not examined, but worth your weekend.
 
 ## How to use them without wasting them
 
