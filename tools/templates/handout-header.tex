@@ -15,6 +15,33 @@
   BoldFont={$arabicboldfont$},
   ItalicFont={$arabicfont$},
   BoldItalicFont={$arabicboldfont$}]{$arabicfont$}
+
+% Symbols the main font may lack (Noto Sans has no arrows, minus, <=, box
+% drawing...). Each is set from $symbolfont$, which tools/build.py picks as a
+% font known to carry them all, so prose and code render them identically.
+\usepackage{newunicodechar}
+\newfontfamily\dsasymbolfont{$symbolfont$}
+\newunicodechar{→}{{\dsasymbolfont\symbol{"2192}}}
+\newunicodechar{−}{{\dsasymbolfont\symbol{"2212}}}
+\newunicodechar{─}{{\dsasymbolfont\symbol{"2500}}}
+\newunicodechar{≥}{{\dsasymbolfont\symbol{"2265}}}
+\newunicodechar{├}{{\dsasymbolfont\symbol{"251C}}}
+\newunicodechar{│}{{\dsasymbolfont\symbol{"2502}}}
+\newunicodechar{≤}{{\dsasymbolfont\symbol{"2264}}}
+\newunicodechar{└}{{\dsasymbolfont\symbol{"2514}}}
+\newunicodechar{√}{{\dsasymbolfont\symbol{"221A}}}
+\newunicodechar{←}{{\dsasymbolfont\symbol{"2190}}}
+\newunicodechar{≈}{{\dsasymbolfont\symbol{"2248}}}
+\newunicodechar{┐}{{\dsasymbolfont\symbol{"2510}}}
+\newunicodechar{►}{{\dsasymbolfont\symbol{"25BA}}}
+\newunicodechar{┘}{{\dsasymbolfont\symbol{"2518}}}
+\newunicodechar{∞}{{\dsasymbolfont\symbol{"221E}}}
+\newunicodechar{⌊}{{\dsasymbolfont\symbol{"230A}}}
+\newunicodechar{⌋}{{\dsasymbolfont\symbol{"230B}}}
+\newunicodechar{⇒}{{\dsasymbolfont\symbol{"21D2}}}
+\newunicodechar{↔}{{\dsasymbolfont\symbol{"2194}}}
+\newunicodechar{⌈}{{\dsasymbolfont\symbol{"2308}}}
+\newunicodechar{⌉}{{\dsasymbolfont\symbol{"2309}}}
 \newcommand{\textarabic}[1]{{\arabicfont\beginR #1\endR}}
 
 \usepackage{xcolor}

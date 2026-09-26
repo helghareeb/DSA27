@@ -45,11 +45,20 @@ Every question is tagged **[what]** (recall), **[how]** (apply) or **[why]**
 | **6** | Lecture 06 (stacks) | [questions](week06-questions.md) | [answers](week06-answers.md) | `practice/week06.py` |
 | **7** | Lecture 07 (queues) | [questions](week07-questions.md) | [answers](week07-answers.md) | `practice/week07.py` |
 | **8** | Lecture 08 (searching) | [questions](week08-questions.md) | [answers](week08-answers.md) | `practice/week08.py` |
+| **9** | Lecture 09 (basic sorting) | [questions](week09-questions.md) | [answers](week09-answers.md) | `practice/week09.py` |
+| **10** | Lecture 10 (advanced sorting) | [questions](week10-questions.md) | [answers](week10-answers.md) | `practice/week10.py` |
+| **11** | Lecture 11 (trees) | [questions](week11-questions.md) | [answers](week11-answers.md) | `practice/week11.py` |
+| **12** | Lecture 12 (heaps and priority queues) | [questions](week12-questions.md) | [answers](week12-answers.md) | `practice/week12.py` |
+| **13** | Lecture 13 (hash tables) | [questions](week13-questions.md) | [answers](week13-answers.md) | `practice/week13.py` |
+| **14** | Lecture 14 (graphs and graph searches) | [questions](week14-questions.md) | [answers](week14-answers.md) | `practice/week14.py` |
+| **15** | Lecture 15 (the principles of language translation) | [questions](week15-questions.md) | [answers](week15-answers.md) | `practice/week15.py` |
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | |
 | — | **[Mock exam, weeks 1–7](mock-exam-weeks01-07.md)** — midterm practice, no overlap with the weeks 1–3 paper | | in the weekly answer files | |
+| — | **[Mock exam, weeks 1–15](mock-exam-weeks01-15.md)** — final practice, no overlap with the two earlier papers | | in the weekly answer files | |
 
 Printable PDFs of every file are in [`docs/pdf/`](../pdf/) (`DSA27-QB-...`).
-New weeks are added as the lectures are delivered.
+All fifteen weeks, questions and answers together, are also in the
+students' book: [`DSA27-Book.pdf`](../pdf/DSA27-Book.pdf).
 
 ## How to use it
 

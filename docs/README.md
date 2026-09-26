@@ -21,9 +21,17 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Lecture 06 — Stacks](lectures/06-stacks/lecture.md)** | LIFO, two honest implementations, brackets, postfix and shunting-yard. |
 | **[Lecture 07 — Queues](lectures/07-queues/lecture.md)** | FIFO, the O(n) dequeue measured, the ring buffer, and a queue from two stacks. |
 | **[Lecture 08 — Searching](lectures/08-searching/lecture.md)** | Linear and binary search, bounds, jump, exponential and interpolation search — measured. |
-| **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and a mock exam. |
+| **[Lecture 09 — Basic Sorting](lectures/09-sorting-basic/lecture.md)** | Bubble, selection and insertion sort as generators you can animate; counting sort and the n log n lower bound. |
+| **[Lecture 10 — Advanced Sorting](lectures/10-sorting-advanced/lecture.md)** | Merge sort, quicksort and its pivots, heap sort — and the worst case measured. |
+| **[Lecture 11 — Trees](lectures/11-trees/lecture.md)** | Binary search trees, the three-case delete, the four traversals, and height measured. |
+| **[Lecture 12 — Heaps and Priority Queues](lectures/12-heaps/lecture.md)** | The array is the tree: sift-up, sift-down, build-heap in O(n), priority queues. |
+| **[Lecture 13 — Hash Tables](lectures/13-hash-tables/lecture.md)** | Hashing, chaining against open addressing, tombstones, load factor and resizing. |
+| **[Lecture 14 — Graphs and Graph Searches](lectures/14-graphs/lecture.md)** | Adjacency list against matrix, BFS and DFS, components, cycles, topological sort. |
+| **[Lecture 15 — The Principles of Language Translation](lectures/15-language-translation/lecture.md)** | Tokens, grammar, recursive descent and the syntax tree — the capstone. |
+| **[The students' book](pdf/DSA27-Book.pdf)** | All fifteen lectures and the question bank with its answers, in one printable PDF. |
+| **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and three mock exams. |
 | **[Worked solutions](../solutions/)** | Every exercise, lab and practice problem solved — read them only after you have tried. |
-| **[Lab manual — weeks 1–8](labs/)** | Python for this course in weeks 1–3, then one lab per week building that week's structure in `dsa/`. Everything you need is in the repository. |
+| **[Lab manual — weeks 1–15](labs/)** | Python for this course in weeks 1–3, then one lab per week building that week's structure in `dsa/`. Everything you need is in the repository. |
 | **[Your program's regulations](course/regulations/)** | The bylaws, and what they say about this course. |
 | **[Links](links.md)** | WhatsApp channel, YouTube, repository. |
 
@@ -31,6 +39,8 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 
 | Document | PDF |
 |---|---|
+| **The students' book** — lectures 1–15 + question bank with answers | [`DSA27-Book.pdf`](pdf/DSA27-Book.pdf) |
+| **Lab manual** — labs 1–15 | [`DSA27-Lab-Manual.pdf`](pdf/DSA27-Lab-Manual.pdf) |
 | Lecture 01 — handout (read this) | [`DSA27-L01-handout.pdf`](pdf/DSA27-L01-handout.pdf) |
 | Lecture 01 — slides (presented) | [`DSA27-L01-slides.pdf`](pdf/DSA27-L01-slides.pdf) |
 | Lecture 02 — handout (read this) | [`DSA27-L02-handout.pdf`](pdf/DSA27-L02-handout.pdf) |
@@ -47,6 +57,20 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Lecture 07 — slides (presented) | [`DSA27-L07-slides.pdf`](pdf/DSA27-L07-slides.pdf) |
 | Lecture 08 — handout (read this) | [`DSA27-L08-handout.pdf`](pdf/DSA27-L08-handout.pdf) |
 | Lecture 08 — slides (presented) | [`DSA27-L08-slides.pdf`](pdf/DSA27-L08-slides.pdf) |
+| Lecture 09 — handout (read this) | [`DSA27-L09-handout.pdf`](pdf/DSA27-L09-handout.pdf) |
+| Lecture 09 — slides (presented) | [`DSA27-L09-slides.pdf`](pdf/DSA27-L09-slides.pdf) |
+| Lecture 10 — handout (read this) | [`DSA27-L10-handout.pdf`](pdf/DSA27-L10-handout.pdf) |
+| Lecture 10 — slides (presented) | [`DSA27-L10-slides.pdf`](pdf/DSA27-L10-slides.pdf) |
+| Lecture 11 — handout (read this) | [`DSA27-L11-handout.pdf`](pdf/DSA27-L11-handout.pdf) |
+| Lecture 11 — slides (presented) | [`DSA27-L11-slides.pdf`](pdf/DSA27-L11-slides.pdf) |
+| Lecture 12 — handout (read this) | [`DSA27-L12-handout.pdf`](pdf/DSA27-L12-handout.pdf) |
+| Lecture 12 — slides (presented) | [`DSA27-L12-slides.pdf`](pdf/DSA27-L12-slides.pdf) |
+| Lecture 13 — handout (read this) | [`DSA27-L13-handout.pdf`](pdf/DSA27-L13-handout.pdf) |
+| Lecture 13 — slides (presented) | [`DSA27-L13-slides.pdf`](pdf/DSA27-L13-slides.pdf) |
+| Lecture 14 — handout (read this) | [`DSA27-L14-handout.pdf`](pdf/DSA27-L14-handout.pdf) |
+| Lecture 14 — slides (presented) | [`DSA27-L14-slides.pdf`](pdf/DSA27-L14-slides.pdf) |
+| Lecture 15 — handout (read this) | [`DSA27-L15-handout.pdf`](pdf/DSA27-L15-handout.pdf) |
+| Lecture 15 — slides (presented) | [`DSA27-L15-slides.pdf`](pdf/DSA27-L15-slides.pdf) |
 | Course guide | [`DSA27-Course-Guide.pdf`](pdf/DSA27-Course-Guide.pdf) |
 | Study plan | [`DSA27-Study-Plan.pdf`](pdf/DSA27-Study-Plan.pdf) |
 | Coverage matrix | [`DSA27-Coverage.pdf`](pdf/DSA27-Coverage.pdf) |
@@ -58,6 +82,13 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Lab 06 — stacks, brackets and postfix | [`DSA27-Lab06.pdf`](pdf/DSA27-Lab06.pdf) |
 | Lab 07 — queues and the ring buffer | [`DSA27-Lab07.pdf`](pdf/DSA27-Lab07.pdf) |
 | Lab 08 — eight ways to search | [`DSA27-Lab08.pdf`](pdf/DSA27-Lab08.pdf) |
+| Lab 09 — sorts you can watch | [`DSA27-Lab09.pdf`](pdf/DSA27-Lab09.pdf) |
+| Lab 10 — divide, conquer, and a pivot | [`DSA27-Lab10.pdf`](pdf/DSA27-Lab10.pdf) |
+| Lab 11 — trees and the four walks | [`DSA27-Lab11.pdf`](pdf/DSA27-Lab11.pdf) |
+| Lab 12 — heaps and priority queues | [`DSA27-Lab12.pdf`](pdf/DSA27-Lab12.pdf) |
+| Lab 13 — hash tables, twice | [`DSA27-Lab13.pdf`](pdf/DSA27-Lab13.pdf) |
+| Lab 14 — graphs and the two searches | [`DSA27-Lab14.pdf`](pdf/DSA27-Lab14.pdf) |
+| Lab 15 — a calculator, stage by stage | [`DSA27-Lab15.pdf`](pdf/DSA27-Lab15.pdf) |
 | Lab manual — notes for TAs | [`DSA27-Lab-TA-Guide.pdf`](pdf/DSA27-Lab-TA-Guide.pdf) |
 | Question bank — week 1 | [questions](pdf/DSA27-QB-Week01-Questions.pdf) · [answers](pdf/DSA27-QB-Week01-Answers.pdf) |
 | Question bank — week 2 | [questions](pdf/DSA27-QB-Week02-Questions.pdf) · [answers](pdf/DSA27-QB-Week02-Answers.pdf) |
@@ -67,8 +98,16 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Question bank — week 6 | [questions](pdf/DSA27-QB-Week06-Questions.pdf) · [answers](pdf/DSA27-QB-Week06-Answers.pdf) |
 | Question bank — week 7 | [questions](pdf/DSA27-QB-Week07-Questions.pdf) · [answers](pdf/DSA27-QB-Week07-Answers.pdf) |
 | Question bank — week 8 | [questions](pdf/DSA27-QB-Week08-Questions.pdf) · [answers](pdf/DSA27-QB-Week08-Answers.pdf) |
+| Question bank — week 9 | [questions](pdf/DSA27-QB-Week09-Questions.pdf) · [answers](pdf/DSA27-QB-Week09-Answers.pdf) |
+| Question bank — week 10 | [questions](pdf/DSA27-QB-Week10-Questions.pdf) · [answers](pdf/DSA27-QB-Week10-Answers.pdf) |
+| Question bank — week 11 | [questions](pdf/DSA27-QB-Week11-Questions.pdf) · [answers](pdf/DSA27-QB-Week11-Answers.pdf) |
+| Question bank — week 12 | [questions](pdf/DSA27-QB-Week12-Questions.pdf) · [answers](pdf/DSA27-QB-Week12-Answers.pdf) |
+| Question bank — week 13 | [questions](pdf/DSA27-QB-Week13-Questions.pdf) · [answers](pdf/DSA27-QB-Week13-Answers.pdf) |
+| Question bank — week 14 | [questions](pdf/DSA27-QB-Week14-Questions.pdf) · [answers](pdf/DSA27-QB-Week14-Answers.pdf) |
+| Question bank — week 15 | [questions](pdf/DSA27-QB-Week15-Questions.pdf) · [answers](pdf/DSA27-QB-Week15-Answers.pdf) |
 | Mock exam — weeks 1–3 | [`DSA27-QB-Mock-Exam-Weeks01-03.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-03.pdf) |
 | Mock exam — weeks 1–7 (midterm practice) | [`DSA27-QB-Mock-Exam-Weeks01-07.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-07.pdf) |
+| Mock exam — weeks 1–15 (final practice) | [`DSA27-QB-Mock-Exam-Weeks01-15.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-15.pdf) |
 | DSA in your program | [`DSA27-DSA-In-Your-Program.pdf`](pdf/DSA27-DSA-In-Your-Program.pdf) |
 | **Official bylaws** | [`course/regulations/`](course/regulations/) |
 

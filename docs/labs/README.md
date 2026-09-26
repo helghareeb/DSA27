@@ -1,4 +1,4 @@
-# DSA27 Lab Manual — Weeks 1 to 8
+# DSA27 Lab Manual — Weeks 1 to 15
 
 Two kinds of lab. **Weeks 1–3** teach Python for this course. **From Week 4**,
 each lab walks you through building that week's structure in `dsa/`, one method
@@ -21,7 +21,7 @@ folder.** You do not need the tutorial, a textbook or a video to do them.
 | **2** | [Control flow, functions, errors and modules](lab02-control-flow-functions.md) | `labs/lab02.py` | `tests/test_lab02.py` | [Lab 02](../pdf/DSA27-Lab02.pdf) |
 | **3** | [Data structures, classes and generators](lab03-data-structures-classes.md) | `labs/lab03.py` | `tests/test_lab03.py` | [Lab 03](../pdf/DSA27-Lab03.pdf) |
 
-## Weeks 4–8: building the structures
+## Weeks 4–15: building the structures
 
 | Week | Lab | You write | Graded by | PDF |
 |---|---|---|---|---|
@@ -30,13 +30,21 @@ folder.** You do not need the tutorial, a textbook or a video to do them.
 | **6** | [Stacks, brackets and postfix](lab06-stacks.md) | `dsa/stack.py`, `evaluate_postfix` | `tests/test_stack_queue.py -k "lifo or peek or empty_behaviour or balanced or infix"` · `tests/test_translation.py -k evaluate_postfix` | [Lab 06](../pdf/DSA27-Lab06.pdf) |
 | **7** | [Queues and the ring buffer](lab07-queues.md) | `dsa/queue.py` | `tests/test_stack_queue.py -k "fifo or dequeue or circular"` | [Lab 07](../pdf/DSA27-Lab07.pdf) |
 | **8** | [Eight ways to search](lab08-searching.md) | `dsa/searching.py` | `tests/test_searching.py` | [Lab 08](../pdf/DSA27-Lab08.pdf) |
+| **9** | [Sorts you can watch](lab09-sorting-basic.md) | `dsa/sorting.py` | `tests/test_sorting.py -k "bubble or selection or insertion or counting or is_sorted"` | [Lab 09](../pdf/DSA27-Lab09.pdf) |
+| **10** | [Divide, conquer, and a pivot](lab10-sorting-advanced.md) | `dsa/sorting.py` | `tests/test_sorting.py -k "merge or quick or heap"` | [Lab 10](../pdf/DSA27-Lab10.pdf) |
+| **11** | [Trees and the four walks](lab11-trees.md) | `dsa/tree.py` | `tests/test_tree.py` | [Lab 11](../pdf/DSA27-Lab11.pdf) |
+| **12** | [Heaps and priority queues](lab12-heaps.md) | `dsa/heap.py` | `tests/test_heap.py` | [Lab 12](../pdf/DSA27-Lab12.pdf) |
+| **13** | [Hash tables, twice](lab13-hash-tables.md) | `dsa/hashmap.py` | `tests/test_hashmap.py` | [Lab 13](../pdf/DSA27-Lab13.pdf) |
+| **14** | [Graphs and the two searches](lab14-graphs.md) | `dsa/graph.py` | `tests/test_graph.py` | [Lab 14](../pdf/DSA27-Lab14.pdf) |
+| **15** | [A calculator, stage by stage](lab15-language-translation.md) | `dsa/translation.py` | `tests/test_translation.py` | [Lab 15](../pdf/DSA27-Lab15.pdf) |
 
 Each of these labs follows the week's lecture: read the lecture section a part
 names before you start it. **Draw before you code**, predict at every
 Checkpoint, and run the part's tests before moving on. Every checkpoint answer
 and every quoted error message in these manuals was produced by running code.
 
-**Notes for teaching assistants:** [TA guide](ta-guide.md) ·
+**The whole manual as one PDF:** [`DSA27-Lab-Manual.pdf`](../pdf/DSA27-Lab-Manual.pdf) (students' edition — no
+checkpoint answers). **Notes for teaching assistants:** [TA guide](ta-guide.md) ·
 [PDF](../pdf/DSA27-Lab-TA-Guide.pdf).
 
 ## Weeks 1–3 in more detail

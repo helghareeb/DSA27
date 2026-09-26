@@ -13,11 +13,17 @@ tried**. The folder mirrors the repository:
 | `evaluate_postfix` in `dsa/translation.py` (Week 6) | [`solutions/dsa/translation.py`](dsa/translation.py) | `tests/test_translation.py -k evaluate_postfix` |
 | `dsa/queue.py` (Week 7) | [`solutions/dsa/queue.py`](dsa/queue.py) | `tests/test_stack_queue.py` |
 | `dsa/searching.py` (Week 8) | [`solutions/dsa/searching.py`](dsa/searching.py) | `tests/test_searching.py` |
+| `dsa/sorting.py` (Weeks 9–10) | [`solutions/dsa/sorting.py`](dsa/sorting.py) | `tests/test_sorting.py` |
+| `dsa/tree.py` (Week 11) | [`solutions/dsa/tree.py`](dsa/tree.py) | `tests/test_tree.py` |
+| `dsa/heap.py` (Week 12) | [`solutions/dsa/heap.py`](dsa/heap.py) | `tests/test_heap.py` |
+| `dsa/hashmap.py` (Week 13) | [`solutions/dsa/hashmap.py`](dsa/hashmap.py) | `tests/test_hashmap.py` |
+| `dsa/graph.py` (Week 14) | [`solutions/dsa/graph.py`](dsa/graph.py) | `tests/test_graph.py` |
+| the rest of `dsa/translation.py` (Week 15) | [`solutions/dsa/translation.py`](dsa/translation.py) | `tests/test_translation.py` |
 | `labs/lab01.py` … `lab03.py` | [`solutions/labs/`](labs/) | `tests/test_lab01.py` … `test_lab03.py` |
-| `practice/week01.py` … `week08.py` | [`solutions/practice/`](practice/) | `tests/test_practice_week01.py` … |
+| `practice/week01.py` … `week15.py` | [`solutions/practice/`](practice/) | `tests/test_practice_week01.py` … |
 
-A new week's solutions are added as the week is taught. A module that is not
-here yet — sorting, trees, heaps, hash tables, graphs — is still to come.
+All fifteen weeks are solved. The one module with no solution here is
+`dsa/dynamic_programming.py`: it is enrichment, not examined, and left for you.
 
 ## How to use them without wasting them
 

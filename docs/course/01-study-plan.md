@@ -122,11 +122,13 @@ buys you.
 Bubble, selection, insertion — each written twice, once plain and once as a
 generator yielding snapshots, so `viz/animate.py` can animate *your* code. Then
 counting sort, which beats the O(n log n) bound by not comparing at all.
+→ [Lecture 09](../lectures/09-sorting-basic/lecture.md) · [Lab 09](../labs/lab09-sorting-basic.md)
 
 **10 — Advanced sorting.**
 Merge sort (divide and conquer, stable, O(n) extra space), quicksort (in place,
 and why the pivot strategy decides between O(n log n) and O(n²)), heap sort —
 which is week 12 arriving early.
+→ [Lecture 10](../lectures/10-sorting-advanced/lecture.md) · [Lab 10](../labs/lab10-sorting-advanced.md)
 
 **11 — Trees.**
 Terminology, binary trees, binary search trees. Insert, search, and the delete
@@ -134,23 +136,27 @@ with three cases. The four traversals: in-order (which comes out **sorted**),
 pre-order (which **rebuilds** the tree), post-order (which **frees** it), and
 level-order (which needs a **queue**, not the call stack). Why an unbalanced BST
 degrades into a linked list.
+→ [Lecture 11](../lectures/11-trees/lecture.md) · [Lab 11](../labs/lab11-trees.md)
 
 **12 — Heaps and priority queues.**
 The heap property, and the fact that the array *is* the tree —
 `viz.draw.draw_array_as_tree` shows this with no conversion at all. `sift_up`,
 `sift_down`, and build-heap in O(n) rather than O(n log n). Then a priority
 queue on top, and the link back to heap sort.
+→ [Lecture 12](../lectures/12-heaps/lecture.md) · [Lab 12](../labs/lab12-heaps.md)
 
 **13 — Hash tables.**
 Hashing, collisions, load factor, resizing. Chaining against open addressing
 with tombstones — both are in `dsa/hashmap.py`. Why "O(1) average" is a promise
 about the *average*, and what breaks it.
+→ [Lecture 13](../lectures/13-hash-tables/lecture.md) · [Lab 13](../labs/lab13-hash-tables.md)
 
 **14 — Graphs and graph searches.**
 Adjacency list against adjacency matrix, paired so you measure the trade-off.
 BFS, DFS recursive and DFS with your own stack. Shortest path by edge count,
 connected components, cycle detection — where the directed and undirected cases
 genuinely differ — and topological sort.
+→ [Lecture 14](../lectures/14-graphs/lecture.md) · [Lab 14](../labs/lab14-graphs.md)
 
 **15 — The principles of language translation.**
 The capstone, and the one week that needs everything in the course: a **stack**
@@ -159,6 +165,7 @@ to evaluate postfix, **recursion** to parse, and a **tree** to hold the result.
 table of numbers but the *shape* of the grammar.
 *Declared in the 2013/2014 bylaws, and the foundation of SWE141 Software
 Construction (2013, p. 42).*
+→ [Lecture 15](../lectures/15-language-translation/lecture.md) · [Lab 15](../labs/lab15-language-translation.md)
 
 ---
 

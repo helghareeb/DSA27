@@ -47,11 +47,12 @@ def _installed(family: str) -> bool:
 def fonts() -> dict[str, str]:
     if _installed("Segoe UI") and _installed("Consolas"):
         return {"main": "Segoe UI", "mono": "Consolas",
-                "arabic": "Segoe UI", "arabicbold": "Segoe UI Bold"}
+                "arabic": "Segoe UI", "arabicbold": "Segoe UI Bold", "symbol": "Consolas"}
     main = "Noto Sans" if _installed("Noto Sans") else "DejaVu Sans"
     mono = "Noto Sans Mono" if _installed("Noto Sans Mono") else "DejaVu Sans Mono"
     arabic = "Noto Sans Arabic" if _installed("Noto Sans Arabic") else "Amiri"
-    return {"main": main, "mono": mono, "arabic": arabic, "arabicbold": arabic + " Bold"}
+    return {"main": main, "mono": mono, "arabic": arabic, "arabicbold": arabic + " Bold",
+            "symbol": mono}
 
 
 FONTS = fonts()
@@ -78,7 +79,9 @@ def header(name: str) -> str:
     $arabicfont$ placeholders are substituted here.
     """
     text = (TMPL / name).read_text(encoding="utf-8")
-    text = text.replace("$arabicboldfont$", FONTS["arabicbold"]).replace("$arabicfont$", FONTS["arabic"])
+    text = (text.replace("$arabicboldfont$", FONTS["arabicbold"])
+                .replace("$arabicfont$", FONTS["arabic"])
+                .replace("$symbolfont$", FONTS["symbol"]))
     BUILD.mkdir(exist_ok=True)
     out = BUILD / name
     out.write_text(text, encoding="utf-8")

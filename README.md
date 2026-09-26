@@ -36,9 +36,17 @@ Dynamic programming is included as enrichment.
 | [Lecture 06 — Stacks](docs/lectures/06-stacks/lecture.md) | [handout PDF](docs/pdf/DSA27-L06-handout.pdf) · [slides PDF](docs/pdf/DSA27-L06-slides.pdf) |
 | [Lecture 07 — Queues](docs/lectures/07-queues/lecture.md) | [handout PDF](docs/pdf/DSA27-L07-handout.pdf) · [slides PDF](docs/pdf/DSA27-L07-slides.pdf) |
 | [Lecture 08 — Searching](docs/lectures/08-searching/lecture.md) | [handout PDF](docs/pdf/DSA27-L08-handout.pdf) · [slides PDF](docs/pdf/DSA27-L08-slides.pdf) |
-| **[Question bank](docs/question-bank/)** | MCQ, essay, trace, complexity, proofs, bugs and code — with answers, and a mock exam |
+| [Lecture 09 — Basic Sorting](docs/lectures/09-sorting-basic/lecture.md) | [handout PDF](docs/pdf/DSA27-L09-handout.pdf) · [slides PDF](docs/pdf/DSA27-L09-slides.pdf) |
+| [Lecture 10 — Advanced Sorting](docs/lectures/10-sorting-advanced/lecture.md) | [handout PDF](docs/pdf/DSA27-L10-handout.pdf) · [slides PDF](docs/pdf/DSA27-L10-slides.pdf) |
+| [Lecture 11 — Trees](docs/lectures/11-trees/lecture.md) | [handout PDF](docs/pdf/DSA27-L11-handout.pdf) · [slides PDF](docs/pdf/DSA27-L11-slides.pdf) |
+| [Lecture 12 — Heaps and Priority Queues](docs/lectures/12-heaps/lecture.md) | [handout PDF](docs/pdf/DSA27-L12-handout.pdf) · [slides PDF](docs/pdf/DSA27-L12-slides.pdf) |
+| [Lecture 13 — Hash Tables](docs/lectures/13-hash-tables/lecture.md) | [handout PDF](docs/pdf/DSA27-L13-handout.pdf) · [slides PDF](docs/pdf/DSA27-L13-slides.pdf) |
+| [Lecture 14 — Graphs and Graph Searches](docs/lectures/14-graphs/lecture.md) | [handout PDF](docs/pdf/DSA27-L14-handout.pdf) · [slides PDF](docs/pdf/DSA27-L14-slides.pdf) |
+| [Lecture 15 — The Principles of Language Translation](docs/lectures/15-language-translation/lecture.md) | [handout PDF](docs/pdf/DSA27-L15-handout.pdf) · [slides PDF](docs/pdf/DSA27-L15-slides.pdf) |
+| **[The students' book](docs/pdf/DSA27-Book.pdf)** | All fifteen lectures and the question bank **with its answers**, in one PDF |
+| **[Question bank](docs/question-bank/)** | MCQ, essay, trace, complexity, proofs, bugs and code — with answers, and three mock exams |
 | **[Worked solutions](solutions/)** | Every exercise solved — for **after** you have tried. `pytest --solutions` runs the tests on them |
-| **[Lab manual — weeks 1–8](docs/labs/)** | Python: [Lab 01](docs/labs/lab01-python-basics.md) · [02](docs/labs/lab02-control-flow-functions.md) · [03](docs/labs/lab03-data-structures-classes.md) — then building the structures: [Lab 04](docs/labs/lab04-dynamic-arrays.md) · [05](docs/labs/lab05-linked-lists.md) · [06](docs/labs/lab06-stacks.md) · [07](docs/labs/lab07-queues.md) · [08](docs/labs/lab08-searching.md) · [TA notes](docs/labs/ta-guide.md) |
+| **[Lab manual — weeks 1–15](docs/labs/)** ([PDF](docs/pdf/DSA27-Lab-Manual.pdf)) | Python: [Lab 01](docs/labs/lab01-python-basics.md) · [02](docs/labs/lab02-control-flow-functions.md) · [03](docs/labs/lab03-data-structures-classes.md) — then building the structures: [Lab 04](docs/labs/lab04-dynamic-arrays.md) · [05](docs/labs/lab05-linked-lists.md) · [06](docs/labs/lab06-stacks.md) · [07](docs/labs/lab07-queues.md) · [08](docs/labs/lab08-searching.md) · [09](docs/labs/lab09-sorting-basic.md) · [10](docs/labs/lab10-sorting-advanced.md) · [11](docs/labs/lab11-trees.md) · [12](docs/labs/lab12-heaps.md) · [13](docs/labs/lab13-hash-tables.md) · [14](docs/labs/lab14-graphs.md) · [15](docs/labs/lab15-language-translation.md) · [TA notes](docs/labs/ta-guide.md) |
 | [Official regulations](docs/course/regulations/) | The bylaws, and what they say about CS201 |
 | [Links](docs/links.md) | WhatsApp channel, YouTube |
 

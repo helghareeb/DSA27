@@ -13,15 +13,19 @@ python tools/figures_l05.py                 # regenerate Lecture 05 figures
 python tools/figures_l06.py                 # regenerate Lecture 06 figures
 python tools/figures_l07.py                 # regenerate Lecture 07 figures
 python tools/figures_l08.py                 # regenerate Lecture 08 figures (timing needs a working dsa/searching.py)
-python tools/with_solutions.py tools/figures_l08.py   # run any script on solutions/
-pwsh   tools/build.ps1                      # all PDFs
-pwsh   tools/build.ps1 -Only lecture01-slides   # one target
+python tools/with_solutions.py tools/figures_l09.py   # ... to l15: the figures of weeks 9-15 time the solutions
+python tools/build.py                       # all PDFs (Windows, Linux, macOS)
+python tools/build.py lecture01-slides      # one target; --list shows them all
+python tools/build.py book lab-manual lab-manual-ta   # the three compiled documents
+pwsh   tools/build.ps1 [-Only <target>]     # the same, from PowerShell
 python tools/make_notebooks.py              # scaffold any missing week notebook
 ```
 
 | Script | What it does |
 |---|---|
-| `build.ps1` | Markdown → PDF, via pandoc and XeLaTeX |
+| `build.py` | Markdown → PDF, via pandoc and XeLaTeX. Falls back to Noto fonts where Segoe UI/Consolas are absent |
+| `build.ps1` | A PowerShell wrapper around `build.py` |
+| `compile_book.py` | Assembles the students' book and the two lab-manual editions from `docs/` (see below) |
 | `figures.py` | Ten figures for Lecture 01, drawn with `viz/` and matplotlib |
 | `make_notebooks.py` | One notebook per teaching week. **Never overwrites** an existing one |
 
@@ -160,3 +164,19 @@ GitHub link and get one, so they have to be in the repository.
 The four bylaw PDFs in `docs/course/regulations/` are **not** generated. They
 are official documents, stored byte-for-byte as downloaded; only their filenames
 were made descriptive. Never rebuild or re-compress them.
+
+## The compiled documents
+
+| Target | PDF | Contents |
+|---|---|---|
+| `book` | `DSA27-Book.pdf` | Course guide, study plan; for each of the 15 weeks the lecture handout and its question bank; then every week's answers and the mock exams |
+| `lab-manual` | `DSA27-Lab-Manual.pdf` | Labs 1–15, **students' edition**: each lab's `# Answers to the checkpoints` section (which must be the lab's last top-level section) and every `::: {.ta-only}` block are removed |
+| `lab-manual-ta` | `DSA27-Lab-Manual-TA.pdf` | **TAs' edition**: the TA guide, labs 1–15 complete, `ta-only` blocks boxed "For the TA", and every reference solution as an appendix. Not committed: it is built locally and handed to TAs |
+
+`compile_book.py` writes `build/<target>.md` first: YAML stripped, headings pushed
+down a level, image paths made relative to the repository root, links to other
+Markdown files reduced to their text.
+
+The main font may lack some symbols (Noto Sans has no `→`, `−`, `≤`, box drawing…).
+Both header templates map those characters to the monospace font with
+`newunicodechar`, so they print the same in prose and in code.
