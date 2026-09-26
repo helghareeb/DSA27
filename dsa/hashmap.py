@@ -79,7 +79,11 @@ class ChainingHashMap:
         return self._size
 
     def __contains__(self, key):
-        return self.get(key, None) is not None
+        try:
+            self.get(key)
+        except KeyError:
+            return False
+        return True
 
     def __iter__(self):
         for entry in self._buckets:
@@ -99,6 +103,7 @@ class OpenAddressingHashMap:
         self._keys = Array(capacity)         # None marks a never-used slot
         self._values = Array(capacity)
         self._size = 0
+        self._tombstones = 0                 # slots holding TOMBSTONE
         self.max_load = max_load
 
     def _probe(self, key):
@@ -110,9 +115,14 @@ class OpenAddressingHashMap:
         raise NotImplementedError
 
     def put(self, key, value):
+        """Insert or overwrite. Count tombstones as used when you check the
+        load, or a table full of tombstones leaves no None to stop a probe."""
         raise NotImplementedError
 
     def get(self, key, default=_MISSING):
+        """Return the value, or `default`. Raises KeyError when neither exists.
+
+        A None slot ends the search; a TOMBSTONE does not."""
         raise NotImplementedError
 
     def delete(self, key):
@@ -129,3 +139,15 @@ class OpenAddressingHashMap:
 
     def __len__(self):
         return self._size
+
+    def __contains__(self, key):
+        try:
+            self.get(key)
+        except KeyError:
+            return False
+        return True
+
+    def __iter__(self):
+        for key in self._keys:
+            if key is not None and key is not TOMBSTONE:
+                yield key
