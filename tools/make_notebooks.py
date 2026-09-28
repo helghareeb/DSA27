@@ -165,12 +165,12 @@ def _next_id():
 
 def markdown(text):
     return {"cell_type": "markdown", "id": _next_id(), "metadata": {},
-            "source": text.split("\n")}
+            "source": text.splitlines(keepends=True)}
 
 
 def code(text):
     return {"cell_type": "code", "id": _next_id(), "execution_count": None,
-            "metadata": {}, "outputs": [], "source": text.split("\n")}
+            "metadata": {}, "outputs": [], "source": text.splitlines(keepends=True)}
 
 
 BOOTSTRAP = (
