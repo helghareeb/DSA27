@@ -1,0 +1,2009 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Array Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen classroom console. Code | variables | the array, transport bar along the bottom. */
+:root {
+  --bg: #e9edf2;
+  --panel: #ffffff;
+  --panel-2: #f4f6f9;
+  --ink: #142033;
+  --muted: #5a6679;
+  --line: #d3d9e2;
+  --accent: #c76a00;        /* the running line, the active frame: a highlighter */
+  --accent-bg: #ffefcc;
+  --wait: #3456c7;          /* paused frames */
+  --wait-bg: #e6ecfc;
+  --done: #23803a;          /* returned */
+  --done-bg: #e2f4e6;
+  --err: #c92a3a;
+  --err-bg: #fde4e7;
+  --hit: #0b7a8a;           /* memo lookup */
+  --hit-bg: #dcf3f6;
+  --kw: #8a2bb8; --str: #237a3a; --num: #b4520b; --com: #7b8798; --fn: #1d5fd0;
+  --shadow: 0 1px 2px rgba(20,32,51,.06), 0 4px 14px rgba(20,32,51,.06);
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-code: "JetBrains Mono", Consolas, "Cascadia Mono", ui-monospace, monospace;
+  --code-size: clamp(14px, 1.18vw, 21px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d121a; --panel: #151c27; --panel-2: #1b2431; --ink: #e5eaf2; --muted: #95a1b4; --line: #2a3546;
+    --accent: #f3a43a; --accent-bg: #3b2a0e; --wait: #8ea6ff; --wait-bg: #1d2747; --done: #5fd07a; --done-bg: #15301d;
+    --err: #ff7a86; --err-bg: #3d1820; --hit: #4fd2e2; --hit-bg: #123338;
+    --kw: #d39bff; --str: #8ad79a; --num: #ffb86b; --com: #7d8aa0; --fn: #7fb0ff;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d121a; --panel: #151c27; --panel-2: #1b2431; --ink: #e5eaf2; --muted: #95a1b4; --line: #2a3546;
+  --accent: #f3a43a; --accent-bg: #3b2a0e; --wait: #8ea6ff; --wait-bg: #1d2747; --done: #5fd07a; --done-bg: #15301d;
+  --err: #ff7a86; --err-bg: #3d1820; --hit: #4fd2e2; --hit-bg: #123338;
+  --kw: #d39bff; --str: #8ad79a; --num: #ffb86b; --com: #7d8aa0; --fn: #7fb0ff;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  display: flex; flex-direction: column;
+  padding-inline: 16px; padding-block: 10px;
+  gap: 10px;
+}
+body, code, pre, .mono, svg text, input { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+code, pre, .mono { font-family: var(--f-code); }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- top bar ---------- */
+.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand b { font-size: 22px; letter-spacing: -.01em; }
+.brand span { color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.picker { display: flex; align-items: center; gap: 8px; flex: 1 1 320px; min-width: 0; }
+.picker select {
+  flex: 1 1 auto; min-width: 0; max-width: 520px;
+  padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel);
+  font-size: 16px; font-weight: 700;
+}
+.top .tools { display: flex; gap: 6px; }
+
+/* ---------- main grid ---------- */
+main {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; gap: 10px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .72fr) minmax(0, 1.25fr);
+}
+.pane {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden;
+}
+.pane-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border-bottom: 1px solid var(--line);
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.pane-head .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-family: var(--f-code); font-size: 12px; }
+
+/* ---------- code pane ---------- */
+.about { padding: 10px 14px 0; display: flex; flex-direction: column; gap: 4px; }
+.about h1 { margin: 0; font-size: 20px; line-height: 1.2; text-wrap: balance; }
+.about p { margin: 0; color: var(--muted); font-size: 14px; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.badge.works { background: var(--done-bg); color: var(--done); }
+.badge.wrong { background: var(--err-bg); color: var(--err); }
+.badge.cost { background: var(--accent-bg); color: var(--accent); }
+.badge.ex { background: var(--wait-bg); color: var(--wait); }
+
+.callstrip {
+  margin: 10px 14px 0; padding: 8px 10px; border-radius: 8px; background: var(--panel-2);
+  font-family: var(--f-code); font-size: var(--code-size);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
+}
+.callstrip .ps { color: var(--muted); margin-right: 6px; }
+.callstrip input {
+  font-family: var(--f-code); font-size: inherit; padding: 1px 6px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--num);
+  min-width: 2.5ch; field-sizing: content;
+}
+.callstrip input.bad { border-color: var(--err); background: var(--err-bg); }
+.callstrip .run { margin-left: auto; }
+.callerr { margin: 4px 14px 0; color: var(--err); font-size: 13px; min-height: 0; }
+
+.code {
+  margin: 10px 14px; padding: 8px 0; border-radius: 8px; border: 1px solid var(--line);
+  font-family: var(--f-code); font-size: var(--code-size); line-height: 1.6;
+  overflow-x: auto; flex: 0 0 auto;
+}
+.ln { display: flex; align-items: center; min-width: max-content; padding-right: 10px; position: relative; }
+.ln .no { width: 3ch; text-align: right; color: var(--com); padding-right: 12px; flex: 0 0 auto; user-select: none; }
+.ln .src { white-space: pre; flex: 0 0 auto; }
+.ln .tags { display: flex; gap: 4px; margin-left: 14px; flex: 0 0 auto; }
+.ln .tag { font-family: var(--f-body); font-size: 12px; font-weight: 700; padding: 0 7px; border-radius: 999px; line-height: 1.6; }
+.ln .tag.w { background: var(--wait-bg); color: var(--wait); }
+.ln .tag.a { background: var(--accent); color: var(--panel); }
+.ln .tag.r { background: var(--done); color: var(--panel); }
+.ln .tag.e { background: var(--err); color: var(--panel); }
+.ln.cur { background: var(--accent-bg); box-shadow: inset 4px 0 0 var(--accent); }
+.ln.ret { background: var(--done-bg); box-shadow: inset 4px 0 0 var(--done); }
+.ln.errl { background: var(--err-bg); box-shadow: inset 4px 0 0 var(--err); }
+.ln.waitl { box-shadow: inset 4px 0 0 var(--wait); }
+.t-kw { color: var(--kw); font-weight: 600; } .t-str { color: var(--str); } .t-num { color: var(--num); }
+.t-com { color: var(--com); font-style: italic; } .t-fn { color: var(--fn); font-weight: 700; } .t-bi { color: var(--fn); }
+
+.narr { margin: 0 14px 12px; flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.say { font-size: clamp(16px, 1.25vw, 21px); line-height: 1.45; max-width: 60ch; }
+.say code, .qtext code, .choice code, .why code { font-size: .92em; background: var(--panel-2); padding: 0 4px; border-radius: 4px; }
+.say.err { color: var(--err); }
+.narr:has(.qcard) .say { font-size: clamp(14px, 1.05vw, 18px); }
+
+/* question card */
+.qcard { border: 2px solid var(--accent); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 10px; }
+.qlabel { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.qtext { font-size: clamp(17px, 1.4vw, 23px); font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.choice {
+  display: flex; gap: 10px; align-items: flex-start; text-align: left;
+  padding: 7px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer;
+  font-size: clamp(14px, 1.05vw, 18px); line-height: 1.3;
+}
+.choice:hover { border-color: var(--accent); }
+.choice .k { font-family: var(--f-code); font-weight: 700; color: var(--accent); flex: 0 0 auto; }
+.choice.right { border-color: var(--done); background: var(--done-bg); }
+.choice.wrong { border-color: var(--err); background: var(--err-bg); }
+.choice[disabled] { cursor: default; }
+.why { font-size: clamp(15px, 1.1vw, 19px); line-height: 1.45; padding: 8px 12px; border-radius: 8px; background: var(--panel-2); }
+.why b { color: var(--done); }
+.qactions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- stack pane ---------- */
+.stackwrap { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.limit { border: 1px dashed var(--err); border-radius: 8px; padding: 6px 10px; color: var(--err); font-size: 13px; display: flex; flex-direction: column; gap: 5px; }
+.limit .bar { height: 8px; border-radius: 4px; background: var(--err-bg); overflow: hidden; }
+.limit .bar i { display: block; height: 100%; background: var(--err); transition: width .25s; }
+.frame {
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--panel);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.frame .fh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.frame .fname { font-family: var(--f-code); font-weight: 700; font-size: clamp(14px, 1.05vw, 18px); overflow-wrap: anywhere; }
+.frame .chip { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.frame .locals { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 10px; row-gap: 1px; font-family: var(--f-code); font-size: clamp(13px, .95vw, 16px); }
+.frame .locals .k { color: var(--muted); }
+.frame .locals .v { overflow-wrap: anywhere; }
+.frame .locals .tmp { font-style: italic; }
+.frame .locals .ref { color: var(--hit); }
+.frame .fnote { font-size: 13px; color: var(--muted); }
+.frame.active { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 1px var(--accent); }
+.frame.active .chip { background: var(--accent); color: var(--panel); }
+.frame.waiting { border-color: var(--wait); }
+.frame.waiting .chip { background: var(--wait-bg); color: var(--wait); }
+.frame.returning { border-color: var(--done); background: var(--done-bg); box-shadow: 0 0 0 1px var(--done); }
+.frame.returning .chip { background: var(--done); color: var(--panel); }
+.frame.error { border-color: var(--err); background: var(--err-bg); }
+.frame.error .chip { background: var(--err); color: var(--panel); }
+.frame.module { background: var(--panel-2); border-style: dashed; }
+.frame.module .chip { background: var(--line); color: var(--muted); }
+.frame.compact { padding: 3px 10px; flex-direction: row; align-items: center; justify-content: space-between; }
+.frame.compact .fname { font-size: 13px; font-weight: 600; }
+.frame.compact .locals, .frame.compact .fnote { display: none; }
+.frame.new { animation: push .32s ease-out; }
+@keyframes push { from { transform: translateY(-10px); opacity: .2; } to { transform: none; opacity: 1; } }
+.stackfoot { padding: 6px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+/* ---------- picture pane: the array, slot by slot ---------- */
+.views { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 14px; }
+.vlabel { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.vlabel .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-family: var(--f-code); }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 2px solid; }
+
+.block { --cw: clamp(36px, 3.1vw, 54px); }
+.block.old { opacity: .62; }
+.block.old .vlabel span:first-child { color: var(--err); }
+.cells { display: flex; gap: 4px; flex-wrap: wrap; align-items: flex-end; row-gap: 22px; padding-bottom: 16px; }
+.cell { display: flex; flex-direction: column; align-items: center; gap: 2px; width: var(--cw); flex: 0 0 auto; }
+.cell .ptr { font-family: var(--f-code); font-size: 12px; font-weight: 700; min-height: 18px; display: flex; flex-direction: column-reverse; align-items: center; gap: 1px; }
+.cell .ptr .p { padding: 0 5px; border-radius: 4px; color: var(--wait); background: var(--wait-bg); white-space: nowrap; }
+.cell .ptr .p::after { content: " ↓"; }
+.cell .ptr .p.a { background: var(--accent); color: var(--panel); }
+.cell .bx {
+  width: 100%; height: calc(var(--cw) * .82); display: flex; align-items: center; justify-content: center;
+  font-family: var(--f-code); font-size: clamp(13px, 1.15vw, 19px); font-weight: 700;
+  border: 1.5px solid var(--line); border-radius: 6px; background: var(--panel-2); position: relative;
+}
+.cell .ix { font-family: var(--f-code); font-size: 12px; color: var(--muted); }
+.cell.used .bx { border-color: var(--wait); background: var(--wait-bg); color: var(--ink); }
+.cell.free .bx { border-style: dashed; color: var(--muted); font-weight: 400; font-size: 12px; background: transparent; }
+.cell.free.stale .bx { color: var(--err); font-weight: 700; font-size: clamp(13px, 1.15vw, 19px); border-color: var(--err); }
+.cell.rd .bx { border-color: var(--hit); background: var(--hit-bg); box-shadow: 0 0 0 2px var(--hit); }
+.cell.wr .bx { border-color: var(--done); background: var(--done-bg); box-shadow: 0 0 0 2px var(--done); }
+.cell.oob .bx { border-color: var(--err); background: var(--err-bg); color: var(--err); border-style: dashed; box-shadow: 0 0 0 2px var(--err); }
+.cell.oob .ix { color: var(--err); font-weight: 700; }
+.cell.ghost .bx { border-style: dotted; background: transparent; }
+.sizemark { align-self: stretch; width: 0; border-left: 3px solid var(--accent); margin: 18px 1px 0; position: relative; flex: 0 0 auto; }
+.sizemark span { position: absolute; bottom: -17px; left: -3px; font-family: var(--f-code); font-size: 11px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.jump { font-family: var(--f-code); font-size: 13px; color: var(--muted); margin-top: 6px; }
+.jump b { color: var(--accent); }
+
+.costs svg { display: block; width: 100%; height: auto; }
+.costs .bar { fill: var(--wait); }
+.costs .bar.rs { fill: var(--err); }
+.costs .bar.now { fill: var(--accent); }
+.costs text { font-size: 11px; fill: var(--muted); }
+.costs .avg { stroke: var(--done); stroke-width: 2; stroke-dasharray: 5 3; }
+.costs .avgt { fill: var(--done); font-weight: 700; }
+.facts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.facts b { font-family: var(--f-code); color: var(--ink); font-size: 15px; }
+.callstrip { flex-direction: column; align-items: stretch; gap: 4px; }
+.cline { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+.cline .run { margin-left: auto; }
+.code { flex: 0 1 auto; min-height: 6em; overflow: auto; position: relative; }
+.narr { flex: 1 1 0; min-height: 8em; }
+.stackfoot code { font-size: .95em; }
+.console { flex: 0 0 auto; border-top: 1px solid var(--line); display: flex; flex-direction: column; max-height: 38%; min-height: 90px; }
+.out { margin: 0; padding: 8px 12px; overflow: auto; font-size: clamp(13px, .95vw, 16px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; flex: 1 1 auto; }
+.out .prompt { color: var(--muted); } .out .ret { color: var(--done); font-weight: 700; } .out .err { color: var(--err); } .out .print { color: var(--ink); }
+.out .print.new, .out .ret.new { background: var(--accent-bg); }
+
+/* ---------- transport ---------- */
+.transport {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; box-shadow: var(--shadow);
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2);
+  font-weight: 700; font-size: 14px; white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn.on { background: var(--wait-bg); border-color: var(--wait); color: var(--wait); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.btn kbd { font-family: var(--f-code); font-size: 11px; font-weight: 400; opacity: .75; }
+.group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.scrub { display: flex; align-items: center; gap: 8px; flex: 1 1 200px; min-width: 160px; }
+.scrub input { flex: 1 1 auto; min-width: 0; accent-color: var(--accent); }
+.scrub .pos { font-family: var(--f-code); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.stats b { color: var(--ink); font-family: var(--f-code); font-size: 15px; font-variant-numeric: tabular-nums; }
+.speed { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.speed input { width: 90px; accent-color: var(--accent); }
+.nudge { color: var(--err); font-size: 13px; font-weight: 700; }
+
+@media (max-width: 1150px) {
+  main { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); grid-template-rows: auto auto; }
+  .views-pane { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  html, body { height: auto; }
+  main { grid-template-columns: minmax(0, 1fr); }
+  .pane { max-height: none; }
+  .stackwrap, .views { max-height: 70vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame.new, .tn.fresh { animation: none; }
+  .limit .bar i { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>Array Lab</b><span>DSA27 · Lectures 02 and 04</span></div>
+  <div class="picker">
+    <label for="scenario" class="mono" style="color:var(--muted);font-size:13px">Scenario</label>
+    <select id="scenario"></select>
+  </div>
+  <div class="tools">
+    <button class="btn" id="themeBtn" title="Switch light / dark">Theme</button>
+    <button class="btn" id="fsBtn" title="Full screen (F)">Full screen</button>
+  </div>
+</header>
+
+<main>
+  <section class="pane code-pane">
+    <div class="pane-head"><span>Code</span><span class="meta" id="lineInfo"></span></div>
+    <div class="about">
+      <div class="badges" id="badges"></div>
+      <h1 id="scTitle"></h1>
+      <p id="scBlurb"></p>
+    </div>
+    <div class="callstrip" id="callstrip"></div>
+    <div class="callerr" id="callerr"></div>
+    <div class="code" id="code"></div>
+    <div class="narr" id="narr"></div>
+  </section>
+
+  <section class="pane stack-pane">
+    <div class="pane-head"><span>Variables</span><span class="meta" id="stackInfo"></span></div>
+    <div class="stackwrap" id="stack"></div>
+    <div class="stackfoot">One frame per running function, newest on top. Each holds its own variables; <code>arr</code> and <code>self</code> refer to the arrays on the right.</div>
+  </section>
+
+  <section class="pane views-pane">
+    <div class="pane-head"><span id="viewTitle">The array</span><span class="meta" id="viewMeta"></span></div>
+    <div class="views" id="views"></div>
+    <div class="console">
+      <div class="pane-head"><span>Python shell</span></div>
+      <pre class="out" id="out"></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="transport">
+  <div class="group">
+    <button class="btn" id="bRestart" title="Back to the start (R)">Restart <kbd>R</kbd></button>
+    <button class="btn" id="bBack" title="One step back (Left arrow)">Back <kbd>&larr;</kbd></button>
+    <button class="btn primary" id="bStep" title="One step (Right arrow or Space)">Step <kbd>&rarr;</kbd></button>
+    <button class="btn" id="bOver" title="Run the next call (an append, a _resize, a reversal) to the end in one step (O)">Step over <kbd>O</kbd></button>
+    <button class="btn" id="bOut" title="Finish this call and go back to its caller (U)">Step out <kbd>U</kbd></button>
+    <button class="btn" id="bPlay" title="Play / pause (P)">Play <kbd>P</kbd></button>
+  </div>
+  <div class="speed"><label for="speed">Speed</label><input type="range" id="speed" min="1" max="10" value="5"></div>
+  <div class="scrub"><input type="range" id="scrub" min="0" max="0" value="0" aria-label="Jump to step"><span class="pos" id="pos"></span></div>
+  <button class="btn on" id="bQuiz" title="Pause on questions (Q)">Questions: on <kbd>Q</kbd></button>
+  <div class="stats" id="stats"></div>
+  <span class="nudge" id="nudge"></span>
+</footer>
+
+<pre id="selftest" hidden></pre>
+
+<script>
+/* =====================================================================
+   ENGINE. Every scenario is a JavaScript mirror of the Python shown on
+   screen. It runs once, and the Tracer records a snapshot at every step,
+   so Back and the scrubber are just an index into that list.
+   Every array slot read or written goes through T.rd / T.wr, which check
+   the index exactly as the course Array does (no negative indices).
+   ===================================================================== */
+
+class PyErr extends Error {
+  constructor(type, msg, extra) { super(msg); this.type = type; this.extra = extra || {}; }
+}
+
+function pyrepr(v) {
+  if (v === null || v === undefined) return 'None';
+  if (typeof v === 'string') return "'" + v.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  if (typeof v === 'boolean') return v ? 'True' : 'False';
+  if (Array.isArray(v)) return '[' + v.map(pyrepr).join(', ') + ']';
+  if (v && v.__ref) return v.__ref;
+  return String(v);
+}
+const C = v => '`' + pyrepr(v) + '`';           // a value, as code, in a message
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+const plural = (k, w) => k + ' ' + w + (k === 1 ? '' : 's');
+const REF = name => ({ __ref: name });
+const arrRepr = cells => 'Array([' + cells.map(pyrepr).join(', ') + '])';
+const daRepr = (cells, size) => 'DynamicArray([' + cells.slice(0, size).map(pyrepr).join(', ') + '])';
+const range = (a, b, s) => { s = s || 1; const r = []; if (s > 0) for (let i = a; i < b; i += s) r.push(i); else for (let i = a; i > b; i += s) r.push(i); return r; };
+
+/* The exact message dsa/array.py raises for a bad index. */
+const arrayMsg = (i, n) => `Array index ${i} out of range for length ${n} (valid: 0..${n - 1}; no negative indices)`;
+const ARRAY_TB = {
+  get: ['  File "dsa/array.py", line 71, in __getitem__', '    return self._block[self._check(index)]'],
+  set: ['  File "dsa/array.py", line 75, in __setitem__', '    self._block[self._check(index)] = value'],
+};
+const CHECK_TB = ['  File "dsa/array.py", line 63, in _check', '    raise IndexError('];
+
+class Tracer {
+  constructor(sc) {
+    this.sc = sc;
+    this.codeLines = sc.code.split('\n');
+    this.steps = []; this.ids = 0;
+    this.out = [];
+    this.counters = { reads: 0, writes: 0 };
+    for (const k in (sc.counters || {})) this.counters[k] = 0;
+    this.extra = { blocks: {}, order: [], ptrs: [], flash: [], oob: null, costs: null, jump: null };
+    this.stack = [{ id: 0, fn: '<module>', label: '<module>', line: 0, locals: [], status: 'active', note: '' }];
+  }
+  get top() { return this.stack[this.stack.length - 1]; }
+  get depth() { return this.stack.length - 1; }
+
+  snap(msg, kind) {
+    if (this.steps.length > 4000) throw new Error('too many steps');
+    this.steps.push(structuredClone({
+      line: this.top.line, stack: this.stack, depth: this.depth,
+      out: this.out, counters: this.counters, extra: this.extra,
+      msg, kind: kind || '', q: null
+    }));
+    this.extra.flash = [];
+    if (kind !== 'err') this.extra.oob = null;
+  }
+  set(name, val, frame) {
+    const L = (frame || this.top).locals, e = L.find(x => x[0] === name);
+    if (e) e[1] = val; else L.push([name, val]);
+  }
+  unset(name) { const L = this.top.locals, k = L.findIndex(x => x[0] === name); if (k >= 0) L.splice(k, 1); }
+  at(line, msg) { const f = this.top; f.line = line; f.status = 'active'; this.snap(msg); }
+  count(k, by) { this.counters[k] = (this.counters[k] || 0) + (by === undefined ? 1 : by); }
+
+  /* A question about what happens NEXT, shown on the step just recorded. */
+  ask(text, correct, distractors, why) {
+    const seen = new Set([String(correct)]), opts = [String(correct)];
+    for (const d of distractors) { const s = String(d); if (!seen.has(s) && opts.length < 4) { seen.add(s); opts.push(s); } }
+    let h = 0; for (const ch of text) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const order = opts.map((o, i) => [o, (h ^ (i * 2654435761)) >>> 0 ^ (i * 7919)]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+    this.steps[this.steps.length - 1].q = { text, choices: order, answer: order.indexOf(String(correct)), why };
+  }
+
+  call(fn, args, label, opt) {
+    opt = opt || {};
+    const caller = this.top;
+    caller.status = 'waiting';
+    caller.note = 'waiting for ' + label;
+    const f = { id: ++this.ids, fn, label, line: opt.line || 1, locals: args.map(a => [a[0], a[1]]), status: 'active', note: '' };
+    this.stack.push(f);
+    this.count('calls');
+    this.snap(opt.msg || `Call \`${label}\`. Python pushes a frame for it, holding its own local variables.`);
+    return f;
+  }
+
+  ret(val, line, msg, opt) {
+    opt = opt || {};
+    const f = this.top;
+    f.line = line; f.status = 'returning'; f.ret = val; f.implicit = val === null || val === undefined;
+    this.snap(msg || `Return ${C(val)}.`);
+    this.stack.pop();
+    const c = this.top;
+    c.status = 'active';
+    const none = val === null || val === undefined;
+    if (c.fn === '<module>') {
+      if (!none) this.out.push({ k: 'ret', t: pyrepr(val), fresh: true });
+      c.note = none ? `${f.label} finished` : 'result: ' + pyrepr(val);
+      if (!opt.quiet) this.snap(`\`${f.label}\` is popped. ` + (none ? 'It returned None, so the shell prints nothing.' : `The shell prints the answer, ${C(val)}.`));
+    } else {
+      if (opt.assign) this.set(opt.assign, val);
+      c.note = none ? `${f.label} finished` : `${f.label} returned ${pyrepr(val)}`;
+      if (!opt.quiet) this.snap(none
+        ? `\`${f.label}\` is finished and popped. \`${c.label}\` carries on from line ${c.line}.`
+        : `\`${f.label}\` is popped, and ${C(val)} goes back to \`${c.label}\`, which resumes at line ${c.line}.`);
+    }
+    return val;
+  }
+
+  /* An exception: every frame on the stack is abandoned. */
+  raise(e) {
+    const frames = this.stack.slice(1);
+    for (const f of frames) f.status = 'error';
+    if (frames.length) this.top.note = `${e.type}: ${e.message}`;
+    const tb = ['Traceback (most recent call last):', '  File "<stdin>", line 1, in <module>'];
+    for (const f of frames) tb.push(`  File "demo.py", line ${f.line}, in ${f.fn}\n    ${(this.codeLines[f.line - 1] || '').trim()}`);
+    if (e.extra.arr) tb.push(...ARRAY_TB[e.extra.arr], ...CHECK_TB);
+    tb.push(`${e.type}: ${e.message}`);
+    this.out.push({ k: 'err', t: tb.join('\n'), fresh: true });
+    this.snap(`**${e.type}: ${e.message}.** ${e.extra.why || ''}` + (this.sc.errWhy ? ' ' + this.sc.errWhy : ''), 'err');
+    this.stack = [this.stack[0]];
+    this.stack[0].status = 'error';
+    this.stack[0].note = `${e.type}: no result`;
+    this.stack[0].line = 0;
+    this.snap(frames.length
+      ? `The exception unwinds the stack: ${plural(frames.length, 'frame')} ${frames.length === 1 ? 'is' : 'are'} thrown away, and the shell prints a traceback instead of an answer. Whatever the function had already written to the array stays written.`
+      : 'The shell prints a traceback instead of an answer.', 'err');
+  }
+
+  /* ---- arrays ---- */
+  block(key, cells, opt) {
+    opt = opt || {};
+    this.extra.blocks[key] = { cells: cells.slice(), size: opt.size === undefined ? null : opt.size, label: opt.label || key, meta: opt.meta || '', old: !!opt.old, cap: !!opt.cap };
+    if (!this.extra.order.includes(key)) {
+      if (opt.at !== undefined) this.extra.order.splice(opt.at, 0, key); else this.extra.order.push(key);
+    }
+    return this.extra.blocks[key];
+  }
+  drop(key) { delete this.extra.blocks[key]; this.extra.order = this.extra.order.filter(k => k !== key); }
+  B(key) { return this.extra.blocks[key]; }
+  size(key, n) { this.extra.blocks[key].size = n; }
+  ptr(list) { this.extra.ptrs = list.map(p => ({ b: p[0], i: p[1], l: p[2], a: !!p[3] })); }
+  check(key, i, op) {
+    const n = this.B(key).cells.length;
+    if (!(Number.isInteger(i) && i >= 0 && i < n)) {
+      this.extra.oob = { b: key, i };
+      throw new PyErr('IndexError', arrayMsg(i, n), { arr: op });
+    }
+  }
+  rd(key, i) {
+    this.check(key, i, 'get');
+    this.count('reads');
+    this.extra.flash.push({ b: key, i, k: 'rd' });
+    return this.B(key).cells[i];
+  }
+  wr(key, i, v, from) {
+    this.check(key, i, 'set');
+    this.count('writes');
+    this.extra.flash = this.extra.flash.filter(f => !(f.b === key && f.i === i));
+    this.extra.flash.push({ b: key, i, k: 'wr', from: from || null });
+    this.B(key).cells[i] = v;
+  }
+}
+
+/* The state DynamicArray(values, growth) is in after __init__ appends each
+   value: capacity starts at 1 and is multiplied by `growth` when full. */
+function dynState(values, growth) {
+  let cap = 1, resizes = 0;
+  for (let n = 1; n <= values.length; n++) if (n - 1 === cap) { cap *= growth; resizes++; }
+  const cells = Array(cap).fill(null);
+  values.forEach((v, i) => { cells[i] = v; });
+  return { cap, cells, resizes };
+}
+
+/* ---------------------------------------------------------------------
+   Scenarios. `code` is exactly what students see. The mirror calls
+   T.at(line, ...) with the line numbers of that code.
+   --------------------------------------------------------------------- */
+const SCENARIOS = [];
+const def = sc => SCENARIOS.push(sc);
+const GROUPS = {
+  fixed: 'Fixed array: Array and array_ops (Lecture 02)',
+  dyn: 'DynamicArray (Lecture 04)',
+  crash: 'Goes wrong: crash or wrong answer',
+  slow: 'Goes wrong: right answer, terrible cost',
+};
+
+/* Parameter checks shared by several scenarios. */
+/* Three wrong numeric answers for a question: the given ones first, then
+   nearby numbers, never the right answer, never repeated, never negative. */
+function alts(c, cands, allowNeg) {
+  const out = [];
+  for (const x of cands.concat([c + 1, c + 2, c - 1, c + 3, c + 4])) if (x !== c && (allowNeg || x >= 0) && !out.includes(x)) out.push(x);
+  return out.slice(0, 3);
+}
+const isIntOrNone = v => v === null || Number.isInteger(v);
+const allInts = name => v => v.every(Number.isInteger) || `${name} must hold whole numbers only.`;
+const intsOrNone = name => v => v.every(isIntOrNone) || `${name} must hold whole numbers or None.`;
+const sortedInts = name => v => (v.every(Number.isInteger) || `${name} must hold whole numbers only.`) === true
+  ? (v.every((x, i) => i === 0 || v[i - 1] <= x) || `${name} must be sorted: merge_sorted expects sorted input.`)
+  : `${name} must hold whole numbers only.`;
+const SHOW_ARR = { t: 'arr', v: T => arrRepr(T.B('arr').cells) };
+/* T.da mirrors the DynamicArray's fields: { size, cap, growth, resizes }. */
+const SHOW_DA = [{ t: 'da', v: T => daRepr(T.B('main').cells, T.da.size) }, { t: 'da._capacity', v: T => String(T.da.cap) }];
+
+function setupArr(T, values, size) {
+  T.block('arr', values, { label: 'arr', size: size === undefined ? null : size });
+  T.set('arr', REF('the Array drawn on the right'), T.stack[0]);
+}
+
+/* ---- a[i]: the course Array's own __getitem__ ------------------------- */
+const GETITEM_CODE = `class Array:                      # dsa/array.py, two of its methods
+    def __getitem__(self, index):
+        """a[i]. O(1)."""
+        return self._block[self._check(index)]
+
+    def _check(self, index):
+        if isinstance(index, slice):
+            raise TypeError("Array does not support slicing; copy with a loop")
+        index = operator.index(index)
+        if not 0 <= index < self._length:
+            raise IndexError(
+                f"Array index {index} out of range for length {self._length} "
+                f"(valid: 0..{self._length - 1}; no negative indices)"
+            )
+        return index`;
+function getitemMirror(T, index, wrong) {
+  const n = T.B('arr').cells.length;
+  T.call('__getitem__', [['self', REF('arr')], ['index', index]], `arr.__getitem__(${index})`, { line: 2,
+    msg: `\`arr[${index}]\` is really a method call: Python runs \`arr.__getitem__(${index})\` and pushes a frame for it.` });
+  T.at(4, `Line 4 first checks the index, so it calls \`self._check(${index})\`.`);
+  T.call('_check', [['self', REF('arr')], ['index', index]], `_check(${index})`, { line: 6, msg: `Call \`_check(${index})\`: is ${index} a slot this array has?` });
+  T.at(7, `Is \`index\` a slice? No, it is ${C(index)}.`);
+  T.at(9, `\`operator.index\` accepts only whole numbers. ${C(index)} is one, so \`index\` stays ${C(index)}.`);
+  const ok = index >= 0 && index < n;
+  T.at(10, `Is \`0 <= ${index} < ${n}\`? ${ok ? '**Yes**: slot ' + index + ' exists.' : '**No.** The array has slots 0 to ' + (n - 1) + ' only.'}`);
+  if (wrong && index < 0)
+    T.ask(`\`index\` is ${index}. What does \`arr[${index}]\` do on the course Array?`,
+      'Raise IndexError: there are no negative indices', [`Return the last element, ${pyrepr(T.B('arr').cells[n - 1])}`, `Return the first element, ${pyrepr(T.B('arr').cells[0])}`, 'Return None'],
+      'A Python list counts -1 from the end. The course Array behaves like a C array: index -1 is simply not a slot. Line 10 rejects it.');
+  if (!ok) {
+    T.extra.oob = { b: 'arr', i: index };
+    T.at(11, `So \`_check\` raises IndexError with the message on lines 12 and 13.`);
+    T.extra.oob = { b: 'arr', i: index };
+    throw new PyErr('IndexError', arrayMsg(index, n), { why: '' });
+  }
+  T.ret(index, 15, `Return ${index}: a valid slot number.`);
+  T.extra.jump = { i: index, n };
+  T.ptr([['arr', index, 'index', true]]);
+  T.extra.flash.push({ b: 'arr', i: index, k: 'rd' });
+  T.count('looked');
+  T.at(4, `\`self._block[${index}]\` goes **straight** to slot ${index}: its address is start + ${index} × (size of one slot). No loop, no walk past slots 0 to ${index - 1}.`);
+  if (!wrong)
+    T.ask(`This array has ${n} slots. If it had 1,000,000 slots, how many would \`arr[${index}]\` look at?`, '1', [String(index + 1), '1,000,000', String(n)],
+      'Indexing is one multiplication and one addition to find the address, then one read. The size of the array never enters into it: O(1).');
+  return T.ret(T.B('arr').cells[index], 4, `Return the value in slot ${index}, ${C(T.B('arr').cells[index])}.`);
+}
+def({
+  id: 'getitem', group: 'fixed', title: 'arr[i]: one jump, any size',
+  blurb: 'Indexing computes the slot\'s address and reads it. It never walks past the slots before it, so it costs the same for every index and every length: O(1).',
+  code: GETITEM_CODE, cls: 'Array',
+  call: [['arr = Array.from_values(', 'values', ')'], ['arr[', 'index', ']']],
+  params: { values: { type: 'list', def: [31, 41, 59, 26, 53, 58], minLen: 1, maxLen: 12, check: allInts('values') }, index: { type: 'int', def: 3, min: -20, max: 20 } },
+  counters: { looked: 'Slots looked at' },
+  setup: (T, p) => setupArr(T, p.values),
+  run: (T, p) => getitemMirror(T, p.index, false),
+  summary: () => ' One slot looked at.',
+});
+
+/* ---- find ---------------------------------------------------------- */
+const FIND_CODE = `def find(arr, target, size=None):
+    if size is None:
+        size = len(arr)
+    for i in range(size):
+        if arr[i] == target:
+            return i
+    return -1`;
+function findMirror(T, target, kind) {
+  const n = T.B('arr').cells.length;
+  T.call('find', [['arr', REF('arr')], ['target', target], ['size', null]], `find(arr, ${pyrepr(target)})`);
+  T.at(2, `Is \`size\` None? **Yes**: the call did not pass one.`);
+  T.set('size', n);
+  T.at(3, `\`size = len(arr)\` = ${n}: search every slot.`);
+  const where = T.B('arr').cells.indexOf(target);
+  T.ask(`How many slots will \`find\` look at before it returns?`, where < 0 ? n : where + 1,
+    alts(where < 0 ? n : where + 1, [where < 0 ? n - 1 : n, 1, where < 0 ? n + 1 : where, Math.ceil(n / 2)]),
+    where < 0 ? `${pyrepr(target)} is not there, so it compares every one of the ${n} slots before it can say -1. Not found is a worst case.`
+      : `It stops at the first match, slot ${where}: ${where + 1} comparison${where ? 's' : ''}.` + (where === 0 ? ' That is the best case: O(1).' : where === n - 1 ? ' The match is in the last slot: the worst case for a value that is there.' : ''));
+  for (let i = 0; i < n; i++) {
+    T.set('i', i);
+    T.ptr([['arr', i, 'i', true]]);
+    T.at(4, `\`i\` = ${i}.`);
+    const v = T.rd('arr', i);
+    T.count('comparisons');
+    const eq = v === target;
+    T.at(5, `Is \`arr[${i}] == ${pyrepr(target)}\`? \`arr[${i}]\` is ${C(v)}: ${eq ? '**yes**.' : 'no.'}`);
+    if (eq) return T.ret(i, 6, `Found it: return ${i}. The slots after it are never looked at.`);
+  }
+  T.ptr([]);
+  T.at(4, `The loop has run out: all ${n} slots compared.`);
+  return T.ret(-1, 7, `Not found: return -1.`);
+}
+const FIND_BASE = { group: 'fixed', code: FIND_CODE,
+  call: [['arr = Array.from_values(', 'values', ')'], ['find(arr, ', 'target', ')']],
+  counters: { comparisons: 'Comparisons' },
+  setup: (T, p) => setupArr(T, p.values),
+  run: (T, p) => findMirror(T, p.target),
+  summary: (T) => ` ${plural(T.counters.comparisons, 'comparison')} for ${T.B('arr').cells.length} slots.` };
+const FIND_VALUES = [4, 8, 15, 16, 23, 42];
+const findParams = t => ({ values: { type: 'list', def: FIND_VALUES, minLen: 1, maxLen: 12, check: allInts('values') }, target: { type: 'int', def: t, min: -999, max: 999 } });
+def(Object.assign({}, FIND_BASE, { id: 'find_best', title: 'find: best case (first slot)', params: findParams(4),
+  blurb: 'Linear search looks at the slots one by one. When the target is in slot 0 it stops at once: one comparison, O(1).' }));
+def(Object.assign({}, FIND_BASE, { id: 'find_worst', title: 'find: worst case (last slot)', params: findParams(42),
+  blurb: 'The target is in the last slot, so every slot is compared: n comparisons, O(n).' }));
+def(Object.assign({}, FIND_BASE, { id: 'find_missing', title: 'find: not found', params: findParams(7),
+  blurb: 'To be sure the target is not there, find must compare every slot. Then it returns -1.' }));
+
+/* ---- insert_at, and its broken twin -------------------------------- */
+const INSERT_CODE = `def insert_at(arr, size, index, value):
+    if size == len(arr):
+        raise OverflowError("array is full")
+    if not 0 <= index <= size:
+        raise IndexError(index)
+    for i in range(size, index, -1):         # from the END, backwards
+        arr[i] = arr[i - 1]
+    arr[index] = value
+    return size + 1`;
+const INSERT_FRONT_CODE = INSERT_CODE.replace('    for i in range(size, index, -1):         # from the END, backwards',
+                                              '    for i in range(index + 1, size + 1):     # from the FRONT: a bug');
+function insertMirror(T, size, index, value, front) {
+  const n = T.B('arr').cells.length;
+  T.call('insert_at', [['arr', REF('arr')], ['size', size], ['index', index], ['value', value]], `insert_at(arr, ${size}, ${index}, ${pyrepr(value)})`);
+  const full = size === n;
+  T.at(2, `Is \`size == len(arr)\`? ${size} == ${n}: ${full ? '**yes**. Every slot is in use.' : 'no, there is a free slot at the end.'}`);
+  if (full) {
+    T.ask(`The array is full. What happens next?`, 'OverflowError: the fixed array cannot grow', ['The array grows by one slot', 'The last value is dropped to make room', 'IndexError: index out of range'],
+      'An Array has a fixed number of slots, chosen when it was made. insert_at cannot make more, so it refuses. Growing means making a bigger array and copying: that is the dynamic array of Lecture 04.');
+    T.at(3, `So it raises OverflowError.`);
+    throw new PyErr('OverflowError', 'array is full', { why: `All ${n} slots are in use and an Array never grows.` });
+  }
+  const okIx = index >= 0 && index <= size;
+  T.at(4, `Is \`0 <= ${index} <= ${size}\`? ${okIx ? 'Yes.' : '**No.** The new value must go somewhere in slots 0 to ' + size + '.'}`);
+  if (!okIx) {
+    T.at(5, `So it raises IndexError(${index}).`);
+    throw new PyErr('IndexError', String(index), { why: `There would be a gap of empty slots between the values and slot ${index}.` });
+  }
+  T.size('arr', size);
+  const idxs = front ? range(index + 1, size + 1) : range(size, index, -1);
+  T.size('arr', size + 1);
+  if (!front)
+    T.ask(`How many values must move one slot to the right to make room at index ${index}?`, size - index, alts(size - index, [size - index + 1, size, index, 1]),
+      `Every value from slot ${index} to slot ${size - 1} moves: ${size} − ${index} = ${size - index}.` + (size === index ? ' Inserting at the end moves nothing: O(1).' : index === 0 ? ' Inserting at the front moves all of them: the worst case, O(n).' : ''));
+  let first = true;
+  for (const i of idxs) {
+    T.set('i', i);
+    T.ptr([['arr', i, 'i', true], ['arr', i - 1, 'i - 1', false]]);
+    T.at(6, first ? `The loop runs i = ${idxs.join(', ')}, ${front ? '**upwards** from the front.' : 'from the end **backwards**, so no value is overwritten before it has moved.'} \`i\` = ${i}.` : `\`i\` = ${i}.`);
+    const v = T.rd('arr', i - 1);
+    const was = T.B('arr').cells[i];
+    T.wr('arr', i, v, { b: 'arr', i: i - 1 });
+    T.count('shifts');
+    T.at(7, `\`arr[${i}] = arr[${i - 1}]\`: copy ${C(v)} one slot right.` + (front && was !== null && was !== v ? ` **${C(was)} in slot ${i} is overwritten before it was moved. It is lost.**` : ''));
+    if (front && first && idxs.length >= 2) {
+      T.ask(`Next, \`i\` = ${i + 1}: \`arr[${i + 1}] = arr[${i}]\`. What value is copied into slot ${i + 1}?`, pyrepr(v), [pyrepr(was), pyrepr(T.B('arr').cells[i + 1]), 'None'],
+        `Slot ${i} now holds ${pyrepr(v)}, copied a moment ago. Copying from the front spreads that one value along the array; every original value it passes is destroyed. Copy from the end instead.`);
+    }
+    first = false;
+  }
+  T.ptr([['arr', index, 'index', true]]);
+  T.at(6, idxs.length ? `The loop is done: ${plural(idxs.length, 'value')} moved. Slot ${index} is free to be overwritten.` : `\`range(${size}, ${index}, -1)\` is empty: nothing needs to move. Slot ${index} is already free.`);
+  T.wr('arr', index, value);
+  T.size('arr', size + 1);
+  T.at(8, `\`arr[${index}] = ${pyrepr(value)}\`. Now ${size + 1} slots are in use.`);
+  return T.ret(size + 1, 9, `Return the new size, ${size + 1}. The caller must keep it: the Array itself does not know how many slots are in use.`);
+}
+const insertParams = (values, size, index, value) => ({
+  values: { type: 'list', def: values, minLen: 1, maxLen: 12, check: intsOrNone('values') },
+  size: { type: 'int', def: size, min: 0, max: 12 }, index: { type: 'int', def: index, min: -5, max: 15 }, value: { type: 'int', def: value, min: -999, max: 999 } });
+const INSERT_BASE = { group: 'fixed', code: INSERT_CODE,
+  call: [['arr = Array.from_values(', 'values', ')'], ['insert_at(arr, ', 'size', ', ', 'index', ', ', 'value', ')']],
+  counters: { shifts: 'Shifts', writes: 'Writes' },
+  check: p => p.size <= p.values.length || `size must be at most len(values), ${p.values.length}.`,
+  setup: (T, p) => setupArr(T, p.values, Math.min(p.size, p.values.length)),
+  run: (T, p) => insertMirror(T, p.size, p.index, p.value, false),
+  after: [SHOW_ARR],
+  summary: (T) => ` ${plural(T.counters.shifts, 'shift')} and ${plural(T.counters.writes, 'write')} in all.` };
+const PART = [10, 20, 30, 40, 50, null, null, null];
+def(Object.assign({}, INSERT_BASE, { id: 'insert_front', title: 'insert_at the front: everything moves', params: insertParams(PART, 5, 0, 99),
+  blurb: 'To put a value in slot 0 of a partly filled array, every value in use moves one slot right first: O(n).' }));
+def(Object.assign({}, INSERT_BASE, { id: 'insert_middle', title: 'insert_at the middle: half moves', params: insertParams(PART, 5, 2, 99),
+  blurb: 'Only the values from the index onwards move. The loop runs from the end backwards, so nothing is overwritten.' }));
+def(Object.assign({}, INSERT_BASE, { id: 'insert_end', title: 'insert_at the end: nothing moves', params: insertParams(PART, 5, 5, 99),
+  blurb: 'Inserting at index == size is an append: no value has to move, one write, O(1).' }));
+def(Object.assign({}, INSERT_BASE, { id: 'insert_full', title: 'insert_at into a full array: OverflowError', params: insertParams([10, 20, 30, 40, 50], 5, 2, 99),
+  blurb: 'A fixed array has no spare slot. insert_at checks that first and raises OverflowError.' }));
+def(Object.assign({}, INSERT_BASE, { id: 'insert_wrong_dir', group: 'crash', title: 'insert_at shifting from the front: values destroyed', params: insertParams(PART, 5, 1, 99),
+  code: INSERT_FRONT_CODE, run: (T, p) => insertMirror(T, p.size, p.index, p.value, true),
+  blurb: 'The same loop, run upwards. Each copy lands on a value that has not moved yet, so one value is smeared along the array.',
+  summary: (T) => ` Compare arr with what it should be: the original values after index were overwritten.` }));
+
+/* ---- remove_at, and two broken twins -------------------------------- */
+const REMOVE_CODE = `def remove_at(arr, size, index):
+    if not 0 <= index < size:
+        raise IndexError(index)
+    value = arr[index]
+    for i in range(index, size - 1):         # from the FRONT, forwards
+        arr[i] = arr[i + 1]
+    arr[size - 1] = None                      # that slot is no longer in use
+    return value`;
+const REMOVE_NOCLEAR_CODE = REMOVE_CODE.replace('    arr[size - 1] = None                      # that slot is no longer in use\n', '');
+const REMOVE_OOB_CODE = REMOVE_CODE.replace('    for i in range(index, size - 1):         # from the FRONT, forwards',
+                                            '    for i in range(index, size):             # one step too far');
+function removeMirror(T, size, index, bug) {
+  const n = T.B('arr').cells.length;
+  T.call('remove_at', [['arr', REF('arr')], ['size', size], ['index', index]], `remove_at(arr, ${size}, ${index})`);
+  T.size('arr', size);
+  const okIx = index >= 0 && index < size;
+  T.at(2, `Is \`0 <= ${index} < ${size}\`? ${okIx ? 'Yes.' : '**No.** Only slots 0 to ' + (size - 1) + ' hold values.'}`);
+  if (!okIx) { T.at(3, `So it raises IndexError(${index}).`); throw new PyErr('IndexError', String(index), {}); }
+  T.ptr([['arr', index, 'index', true]]);
+  const value = T.rd('arr', index);
+  T.set('value', value);
+  T.at(4, `Keep the value being removed: \`value\` = ${C(value)}.`);
+  const stop = bug === 'oob' ? size : size - 1;
+  const idxs = range(index, stop);
+  if (bug === 'oob')
+    T.ask(`The loop now runs to \`range(${index}, ${size})\`. What happens when \`i\` reaches ${size - 1}?`,
+      size === n ? `IndexError: arr[${size}] does not exist` : `arr[${size - 1}] = arr[${size}], which is None`,
+      size === n ? ['Nothing: the loop stops at size - 1', `arr[${size}] is None, so it copies None`, 'The array grows by one slot'] : [`IndexError: arr[${size}] does not exist`, 'Nothing: the loop stops at size - 1', 'The array grows by one slot'],
+      size === n ? `\`arr[i + 1]\` becomes \`arr[${size}]\`, but the array has only ${n} slots, 0 to ${n - 1}. The course Array checks every index, so the off-by-one is caught at once.`
+        : `Slot ${size} exists (the array is not full) and holds None, so the bug hides: it copies None and line 7 writes None again. Run it on a full array to see it crash.`);
+  else
+    T.ask(`How many values move one slot to the left?`, size - index - 1, alts(size - index - 1, [size - index, size, index, 1]),
+      `The values in slots ${index + 1} to ${size - 1} each move left: ${size} − ${index} − 1 = ${size - index - 1}.` + (index === size - 1 ? ' Removing the last value moves nothing: O(1).' : index === 0 ? ' Removing the first moves all the rest: O(n).' : ''));
+  let first = true;
+  for (const i of idxs) {
+    T.set('i', i);
+    T.ptr([['arr', i, 'i', true], ['arr', i + 1, 'i + 1', false]]);
+    T.at(5, first ? `The loop runs i = ${idxs.join(', ')}, from the front forwards. \`i\` = ${i}.` : `\`i\` = ${i}.`);
+    first = false;
+    const v = T.rd('arr', i + 1);
+    T.wr('arr', i, v, { b: 'arr', i: i + 1 });
+    T.count('shifts');
+    T.at(6, `\`arr[${i}] = arr[${i + 1}]\`: copy ${C(v)} one slot left.`);
+  }
+  T.ptr([]);
+  T.at(5, idxs.length ? `The loop is done: ${plural(idxs.length, 'value')} moved left.` : `\`range(${index}, ${stop})\` is empty: nothing to move.`);
+  if (bug !== 'noclear') {
+    T.ptr([['arr', size - 1, 'size - 1', true]]);
+    T.wr('arr', size - 1, null);
+    T.size('arr', size - 1);
+    T.at(7, `Slot ${size - 1} is no longer in use: set it to None, so the array no longer refers to the old value.`);
+    return T.ret(value, 8, `Return the removed value, ${C(value)}. The caller's size is now ${size - 1}.`);
+  }
+  T.size('arr', size - 1);
+  const stale = T.B('arr').cells[size - 1];
+  T.ptr([['arr', size - 1, 'size - 1', true]]);
+  T.ask(`The function is about to return. What does slot ${size - 1} hold now?`, pyrepr(stale), ['None', pyrepr(value), 'Nothing: the slot is gone'],
+    `Its value was copied one slot left, but nobody cleared the old copy. Slot ${size - 1} is outside the size now, yet the array still holds ${pyrepr(stale)} there.`);
+  return T.ret(value, 7, `Return ${C(value)}. But slot ${size - 1} still holds a stale ${C(stale)}: the array keeps a reference to it, and anyone who prints arr sees it twice. In a dynamic array of large objects, that stale reference keeps the object alive in memory.`);
+}
+const removeParams = (values, size, index) => ({
+  values: { type: 'list', def: values, minLen: 1, maxLen: 12, check: intsOrNone('values') },
+  size: { type: 'int', def: size, min: 0, max: 12 }, index: { type: 'int', def: index, min: -5, max: 15 } });
+const REMOVE_BASE = { group: 'fixed', code: REMOVE_CODE,
+  call: [['arr = Array.from_values(', 'values', ')'], ['remove_at(arr, ', 'size', ', ', 'index', ')']],
+  counters: { shifts: 'Shifts', writes: 'Writes' },
+  check: p => p.size <= p.values.length || `size must be at most len(values), ${p.values.length}.`,
+  setup: (T, p) => setupArr(T, p.values, p.size),
+  run: (T, p) => removeMirror(T, p.size, p.index, null),
+  after: [SHOW_ARR],
+  summary: (T) => ` ${plural(T.counters.shifts, 'shift')}.` };
+const PART6 = [10, 20, 30, 40, 50, 60, null, null];
+def(Object.assign({}, REMOVE_BASE, { id: 'remove_front', title: 'remove_at the front: everything moves', params: removeParams(PART6, 6, 0),
+  blurb: 'Removing slot 0 leaves a hole; every later value moves one slot left to close it: O(n).' }));
+def(Object.assign({}, REMOVE_BASE, { id: 'remove_middle', title: 'remove_at the middle', params: removeParams(PART6, 6, 2),
+  blurb: 'Only the values after the index move left, front first. Then the last used slot is cleared.' }));
+def(Object.assign({}, REMOVE_BASE, { id: 'remove_end', title: 'remove_at the end: nothing moves', params: removeParams(PART6, 6, 5),
+  blurb: 'Removing the last value in use needs no shifting: clear one slot, O(1).' }));
+def(Object.assign({}, REMOVE_BASE, { id: 'remove_noclear', group: 'crash', title: 'remove_at without clearing the last slot', params: removeParams(PART6, 6, 1),
+  code: REMOVE_NOCLEAR_CODE, run: (T, p) => removeMirror(T, p.size, p.index, 'noclear'),
+  blurb: 'The shifting is right, but the old copy of the last value is never cleared. It stays behind, outside the size.',
+  summary: () => ' Look at arr: the last value appears twice.' }));
+def(Object.assign({}, REMOVE_BASE, { id: 'remove_oob', group: 'crash', title: 'remove_at one step too far: IndexError', params: removeParams([10, 20, 30, 40, 50, 60], 6, 1),
+  code: REMOVE_OOB_CODE, run: (T, p) => removeMirror(T, p.size, p.index, 'oob'),
+  errWhy: 'The loop bound is off by one: arr[i + 1] reached past the last slot. The values already moved stay moved, so arr is left half-changed.',
+  blurb: 'range(index, size) instead of range(index, size - 1). On a full array, arr[i + 1] asks for a slot that does not exist.' }));
+
+/* ---- reverse_in_place and rotate_left: _reverse_between ------------- */
+function revBetween(T, lo, hi, L, note) {
+  T.call('_reverse_between', [['arr', REF('arr')], ['lo', lo], ['hi', hi]], `_reverse_between(arr, ${lo}, ${hi})`, { line: L,
+    msg: `Call \`_reverse_between(arr, ${lo}, ${hi})\`: reverse slots ${lo} to ${hi}, both included.` + (note || '') });
+  let first = true;
+  for (;;) {
+    T.ptr([['arr', lo, 'lo', true], ['arr', hi, 'hi', true]]);
+    const go = lo < hi;
+    T.at(L + 1, `Is \`lo < hi\`? ${lo} < ${hi}: ${go ? 'yes.' : '**no**: ' + (lo === hi ? 'they meet in the middle slot, which stays where it is.' : hi < lo && first ? 'the range is empty, nothing to do.' : 'they have crossed.')}`);
+    if (!go) break;
+    const a = T.rd('arr', hi), b = T.rd('arr', lo);
+    T.wr('arr', lo, a, { b: 'arr', i: hi });
+    T.wr('arr', hi, b, { b: 'arr', i: lo });
+    T.count('swaps');
+    T.at(L + 2, `Swap slots ${lo} and ${hi}: ${C(b)} and ${C(a)} change places. No second array is needed.`);
+    lo++; T.set('lo', lo);
+    T.at(L + 3, `\`lo\` moves right, to ${lo}.`);
+    hi--; T.set('hi', hi);
+    T.at(L + 4, `\`hi\` moves left, to ${hi}.`);
+    first = false;
+  }
+  T.ptr([]);
+  return T.ret(null, L + 1, `The loop ends. \`_reverse_between\` returns None: it changed arr in place.`);
+}
+def({
+  id: 'reverse', group: 'fixed', title: 'reverse_in_place: two indices meet',
+  blurb: 'One index starts at each end. Swap, step inwards, repeat until they meet: n/2 swaps, O(n) time, O(1) extra space.',
+  code: `def reverse_in_place(arr):
+    _reverse_between(arr, 0, len(arr) - 1)
+
+def _reverse_between(arr, lo, hi):
+    while lo < hi:
+        arr[lo], arr[hi] = arr[hi], arr[lo]
+        lo += 1
+        hi -= 1`,
+  call: [['arr = Array.from_values(', 'values', ')'], ['reverse_in_place(arr)']],
+  params: { values: { type: 'list', def: [1, 2, 3, 4, 5, 6, 7], minLen: 1, maxLen: 12, check: intsOrNone('values') } },
+  counters: { swaps: 'Swaps', writes: 'Writes' },
+  setup: (T, p) => setupArr(T, p.values),
+  run: (T, p) => {
+    const n = p.values.length;
+    T.call('reverse_in_place', [['arr', REF('arr')]], 'reverse_in_place(arr)');
+    T.ask(`arr has ${n} slots. How many swaps will reversing it take?`, Math.floor(n / 2), alts(Math.floor(n / 2), [n, n - 1, Math.ceil(n / 2) + 1, 1]),
+      `Each swap fixes two slots, one at each end. ${n} // 2 = ${Math.floor(n / 2)}.` + (n % 2 ? ' The middle slot of an odd-length array never moves.' : ''));
+    T.at(2, `Reverse the whole array: slots 0 to len(arr) - 1 = ${n - 1}.`);
+    revBetween(T, 0, n - 1, 4);
+    return T.ret(null, 2, `Done. \`reverse_in_place\` returns None; the shell prints nothing. Look at arr instead.`);
+  },
+  after: [SHOW_ARR],
+  summary: (T) => ` ${plural(T.counters.swaps, 'swap')}, ${T.counters.writes} writes.`,
+});
+
+const ROTATE_CODE = `def rotate_left(arr, k):
+    n = len(arr)
+    if n == 0:
+        return
+    k %= n
+    _reverse_between(arr, 0, k - 1)           # [1 2 | 3 4 5] -> [2 1 | 3 4 5]
+    _reverse_between(arr, k, n - 1)           #               -> [2 1 | 5 4 3]
+    _reverse_between(arr, 0, n - 1)           #               -> [3 4 5 1 2]
+
+def _reverse_between(arr, lo, hi):
+    while lo < hi:
+        arr[lo], arr[hi] = arr[hi], arr[lo]
+        lo += 1
+        hi -= 1`;
+def({
+  id: 'rotate', group: 'fixed', title: 'rotate_left: three reversals',
+  blurb: 'Rotating left by k moves every element k places, wrapping round. Reverse the first k, reverse the rest, reverse the whole: O(n), no second array.',
+  code: ROTATE_CODE,
+  call: [['arr = Array.from_values(', 'values', ')'], ['rotate_left(arr, ', 'k', ')']],
+  params: { values: { type: 'list', def: [1, 2, 3, 4, 5, 6, 7], minLen: 1, maxLen: 12, check: intsOrNone('values') }, k: { type: 'int', def: 3, min: 0, max: 40 } },
+  counters: { swaps: 'Swaps', writes: 'Writes' },
+  setup: (T, p) => setupArr(T, p.values),
+  run: (T, p) => {
+    const vals = p.values, n = vals.length;
+    T.call('rotate_left', [['arr', REF('arr')], ['k', p.k]], `rotate_left(arr, ${p.k})`);
+    T.set('n', n); T.at(2, `\`n\` = ${n}.`);
+    T.at(3, `Is \`n == 0\`? No.`);
+    const k = p.k % n;
+    T.set('k', k); T.at(5, `\`k %= n\`: ${p.k} % ${n} = ${k}.` + (p.k >= n ? ` Rotating by ${n} changes nothing, so only the remainder matters.` : ''));
+    const r1 = vals.slice(0, k).reverse().concat(vals.slice(k));
+    const r3 = vals.slice(k).concat(vals.slice(0, k));
+    const r2 = r1.slice(0, k).concat(r1.slice(k).reverse());
+    if (k >= 2)
+      T.ask(`What will arr look like after the first reversal, of slots 0 to ${k - 1}?`, pyrepr(r1), [pyrepr(r3), pyrepr(vals.slice().reverse()), pyrepr(vals.slice(k).concat(vals.slice(0, k).reverse()))],
+        `Only slots 0 to ${k - 1} are reversed; the rest stay put. Then the other part is reversed, ${pyrepr(r2)}, and finally the whole array, ${pyrepr(r3)}.`);
+    T.at(6, `First reversal: slots 0 to ${k - 1}.`);
+    revBetween(T, 0, k - 1, 10);
+    T.at(7, `Second reversal: slots ${k} to ${n - 1}.`);
+    revBetween(T, k, n - 1, 10);
+    T.at(8, `Third reversal: the whole array, slots 0 to ${n - 1}.`);
+    revBetween(T, 0, n - 1, 10);
+    return T.ret(null, 8, `Done: each element has moved ${k} place${k === 1 ? '' : 's'} to the left, wrapping round. rotate_left returns None.`);
+  },
+  after: [SHOW_ARR],
+  summary: (T) => ` ${plural(T.counters.swaps, 'swap')} in three reversals: still O(n).`,
+});
+
+/* ---- resized: a new block, and a copy ------------------------------ */
+def({
+  id: 'resized', group: 'fixed', title: 'resized: a new block and a copy',
+  blurb: 'An Array cannot grow. To get more room you make a new, bigger Array and copy every value across: O(n). The dynamic array does exactly this.',
+  code: `def resized(arr, new_length):
+    result = Array(new_length)
+    for i in range(min(len(arr), new_length)):
+        result[i] = arr[i]
+    return result`,
+  call: [['arr = Array.from_values(', 'values', ')'], ['resized(arr, ', 'new_length', ')']],
+  params: { values: { type: 'list', def: [3, 1, 4, 1, 5], minLen: 0, maxLen: 10, check: intsOrNone('values') }, new_length: { type: 'int', def: 8, min: 0, max: 14 } },
+  counters: { copies: 'Copies', writes: 'Writes' },
+  setup: (T, p) => setupArr(T, p.values),
+  run: (T, p) => {
+    const n = p.values.length, m = p.new_length, c = Math.min(n, m);
+    T.call('resized', [['arr', REF('arr')], ['new_length', m]], `resized(arr, ${m})`);
+    T.block('result', Array(m).fill(null), { label: 'result: a new Array' });
+    T.set('result', REF('the new Array'));
+    T.at(2, `\`Array(${m})\`: a brand-new block of ${m} slots, every one None. \`arr\` is not touched.`);
+    T.ask(`How many values will the loop copy?`, c, alts(c, [n, m, Math.max(n, m) - c, 1]),
+      `\`min(len(arr), new_length)\` = min(${n}, ${m}) = ${c}.` + (m < n ? ` The new array is smaller, so ${n - m} value${n - m === 1 ? ' is' : 's are'} dropped.` : ' Every value is copied, one at a time: O(n).'));
+    for (let i = 0; i < c; i++) {
+      T.set('i', i);
+      T.ptr([['arr', i, 'i', false], ['result', i, 'i', true]]);
+      T.at(3, `\`i\` = ${i}.`);
+      const v = T.rd('arr', i);
+      T.wr('result', i, v, { b: 'arr', i });
+      T.count('copies');
+      T.at(4, `\`result[${i}] = arr[${i}]\`: copy ${C(v)} into the new block.`);
+    }
+    T.ptr([]);
+    T.at(3, `The loop is done: ${plural(c, 'value')} copied.`);
+    return T.ret(REF(arrRepr(T.B('result').cells)), 5, `Return the new Array. The old one is unchanged.`);
+  },
+  after: [SHOW_ARR],
+  summary: (T) => ` ${T.counters.copies} ${T.counters.copies === 1 ? 'copy' : 'copies'}: growing a fixed array always costs a full copy.`,
+});
+
+/* ---- merge_sorted --------------------------------------------------- */
+def({
+  id: 'merge', group: 'fixed', title: 'merge_sorted: three indices',
+  blurb: 'Two sorted arrays, one index in each. Take the smaller front value, step that index. When one side runs out, copy the rest of the other. O(len(a) + len(b)).',
+  code: `def merge_sorted(a, b):
+    result = Array(len(a) + len(b))
+    i = j = k = 0
+    while i < len(a) and j < len(b):
+        if a[i] <= b[j]:                      # <= keeps equal values in order
+            result[k] = a[i]
+            i += 1
+        else:
+            result[k] = b[j]
+            j += 1
+        k += 1
+    while i < len(a):                         # at most one of these two runs
+        result[k] = a[i]
+        i += 1
+        k += 1
+    while j < len(b):
+        result[k] = b[j]
+        j += 1
+        k += 1
+    return result`,
+  call: [['a = Array.from_values(', 'a', ')'], ['b = Array.from_values(', 'b', ')'], ['merge_sorted(a, b)']],
+  params: { a: { type: 'list', def: [1, 4, 7], minLen: 0, maxLen: 6, check: sortedInts('a') }, b: { type: 'list', def: [2, 3, 8, 9], minLen: 0, maxLen: 6, check: sortedInts('b') } },
+  counters: { comparisons: 'Comparisons', writes: 'Writes' },
+  setup: (T, p) => {
+    T.block('a', p.a, { label: 'a' }); T.block('b', p.b, { label: 'b' });
+    T.set('a', REF('Array a, on the right'), T.stack[0]); T.set('b', REF('Array b, on the right'), T.stack[0]);
+  },
+  run: (T, p) => {
+    const A = p.a, Bv = p.b, na = A.length, nb = Bv.length;
+    T.call('merge_sorted', [['a', REF('a')], ['b', REF('b')]], 'merge_sorted(a, b)');
+    T.block('result', Array(na + nb).fill(null), { label: 'result' });
+    T.set('result', REF('the new Array'));
+    T.at(2, `A new Array with room for all ${na + nb} values.`);
+    let i = 0, j = 0, k = 0;
+    T.set('i', 0); T.set('j', 0); T.set('k', 0);
+    const P = () => T.ptr([['a', i, 'i', true], ['b', j, 'j', true], ['result', k, 'k', false]]);
+    P(); T.at(3, 'One index for each array, all starting at 0.');
+    let asked = false;
+    for (;;) {
+      P();
+      const go = i < na && j < nb;
+      T.at(4, `Is \`i < ${na} and j < ${nb}\`? i = ${i}, j = ${j}: ${go ? 'yes, both still have values.' : '**no**: ' + (i >= na ? 'a' : 'b') + ' is used up.'}`);
+      if (!go) break;
+      const x = T.rd('a', i), y = T.rd('b', j);
+      T.count('comparisons');
+      const le = x <= y;
+      T.at(5, `Is \`a[${i}] <= b[${j}]\`? ${x} <= ${y}: ${le ? 'yes.' : 'no.'}`);
+      if (!asked) {
+        asked = true;
+        T.ask(`Which value goes into \`result[${k}]\`?`, String(Math.min(x, y)), [String(Math.max(x, y)), String(A[na - 1] !== undefined ? A[na - 1] : x), 'None'],
+          `The smaller of the two front values, ${Math.min(x, y)}. Both arrays are sorted, so nothing behind either front can be smaller.`);
+      }
+      if (le) {
+        T.wr('result', k, T.rd('a', i), { b: 'a', i });
+        T.at(6, `\`result[${k}] = a[${i}]\` = ${x}.`);
+        i++; T.set('i', i); P(); T.at(7, `\`i\` = ${i}.`);
+      } else {
+        T.wr('result', k, T.rd('b', j), { b: 'b', i: j });
+        T.at(9, `\`result[${k}] = b[${j}]\` = ${y}.`);
+        j++; T.set('j', j); P(); T.at(10, `\`j\` = ${j}.`);
+      }
+      k++; T.set('k', k); P(); T.at(11, `\`k\` = ${k}.`);
+    }
+    const tail = (key, L, n, getIdx, setIdx, name) => {
+      let first = true;
+      for (;;) {
+        P();
+        const go = getIdx() < n;
+        T.at(L, `Is \`${name} < ${n}\`? ${name} = ${getIdx()}: ${go ? (first ? 'yes. The values left are already sorted and all larger: copy them across, no comparisons.' : 'yes.') : 'no.'}`);
+        if (!go) break;
+        first = false;
+        const t = getIdx();
+        T.wr('result', k, T.rd(key, t), { b: key, i: t });
+        T.at(L + 1, `\`result[${k}] = ${key}[${t}]\`.`);
+        setIdx(t + 1); T.set(name, t + 1); P(); T.at(L + 2, `\`${name}\` = ${t + 1}.`);
+        k++; T.set('k', k); P(); T.at(L + 3, `\`k\` = ${k}.`);
+      }
+    };
+    tail('a', 12, na, () => i, v => { i = v; }, 'i');
+    tail('b', 16, nb, () => j, v => { j = v; }, 'j');
+    T.ptr([]);
+    return T.ret(REF(arrRepr(T.B('result').cells)), 20, `Return the merged Array: ${na + nb} values, each written once.`);
+  },
+  summary: (T) => ` ${plural(T.counters.comparisons, 'comparison')} and ${T.counters.writes} writes for ${T.B('result').cells.length} values.`,
+});
+
+/* ---- negative index on the course Array ----------------------------- */
+def({
+  id: 'neg_index', group: 'crash', title: 'arr[-1] on the course Array: IndexError',
+  blurb: 'A Python list counts -1 from the end. The course Array, like a C array, has no negative indices: -1 is not a slot.',
+  code: GETITEM_CODE, cls: 'Array',
+  call: [['arr = Array.from_values(', 'values', ')'], ['arr[', 'index', ']']],
+  params: { values: { type: 'list', def: [31, 41, 59, 26, 53, 58], minLen: 1, maxLen: 12, check: allInts('values') }, index: { type: 'int', def: -1, min: -20, max: 20 } },
+  counters: { looked: 'Slots looked at' },
+  errWhy: 'Off-by-one and wrap-around bugs that a list would hide are caught at once. When you want -1 to mean "the last one", write it yourself, as DynamicArray.__getitem__ does.',
+  setup: (T, p) => setupArr(T, p.values),
+  run: (T, p) => getitemMirror(T, p.index, true),
+});
+
+/* ---- DynamicArray -------------------------------------------------- */
+function setupDA(T, values, growth) {
+  const st = dynState(values, growth);
+  T.da = { size: values.length, cap: st.cap, growth, resizes: st.resizes };
+  T.block('main', st.cells, { label: 'da._block' });
+  T.set('da', REF('a DynamicArray'), T.stack[0]);
+  syncDA(T);
+}
+function syncDA(T) {
+  const b = T.B('main'), d = T.da;
+  b.size = Math.min(d.size + (d.grow || 0), b.cells.length);   // grow: the slot being filled right now
+  b.meta = `_size ${d.size} · _capacity ${d.cap}` + (b.cells.length !== d.cap ? ` · but the block has ${plural(b.cells.length, 'slot')}!` : '');
+  for (const f of T.stack) if (f.locals.some(l => l[0] === 'self')) { T.set('self._size', d.size, f); T.set('self._capacity', d.cap, f); }
+}
+
+const RESIZE_CODE = `    def _resize(self, capacity):
+        block = make_block(capacity)
+        for i in range(self._size):
+            block[i] = self._block[i]
+        self._block = block
+        self._capacity = capacity
+        self.resize_count += 1`;
+const RESIZE_NOCOPY = `    def _resize(self, capacity):
+        block = make_block(capacity)
+        self._block = block                 # the old values were never copied
+        self._capacity = capacity
+        self.resize_count += 1`;
+const RESIZE_NOSWITCH = `    def _resize(self, capacity):
+        block = make_block(capacity)
+        for i in range(self._size):
+            block[i] = self._block[i]
+        self._capacity = capacity           # forgot: self._block = block
+        self.resize_count += 1`;
+
+/* _resize, whose def is on line L. kind: 'ok' | 'nocopy' | 'noswitch'. */
+function resizeMirror(T, capacity, kind, L) {
+  T.call('_resize', [['self', REF('da')], ['capacity', capacity]], `_resize(${capacity})`, { line: L,
+    msg: `Call \`_resize(${capacity})\`. A fixed block cannot grow, so this makes a new one and moves in.` });
+  syncDA(T);
+  T.block('new', Array(capacity).fill(null), { label: 'block (new)', meta: `${capacity} slots` });
+  T.set('block', REF('the new block'));
+  T.at(L + 1, `\`make_block(${capacity})\`: a new, empty block of ${capacity} slots, below the old one.`);
+  let ln = L + 2;
+  if (kind !== 'nocopy') {
+    const n = T.da.size;
+    for (let i = 0; i < n; i++) {
+      T.set('i', i);
+      T.ptr([['main', i, 'i', false], ['new', i, 'i', true]]);
+      T.at(L + 2, i === 0 ? `Copy all ${plural(n, 'value')} across, one at a time. \`i\` = 0.` : `\`i\` = ${i}.`);
+      const v = T.rd('main', i);
+      T.wr('new', i, v, { b: 'main', i });
+      T.count('copies');
+      T.at(L + 3, `\`block[${i}] = self._block[${i}]\`: copy ${C(v)}.`);
+    }
+    T.ptr([]);
+    T.at(L + 2, `The copy loop is done: ${plural(n, 'value')} copied. This is the expensive part, O(n).`);
+    ln = L + 4;
+  }
+  if (kind !== 'noswitch') {
+    const oldCells = T.B('main').cells;
+    T.B('main').cells = T.B('new').cells;
+    T.drop('new');
+    T.block('old', oldCells, { label: 'the old block', meta: 'nothing refers to it now', old: true });
+    T.unset('block'); T.set('block', REF('da._block'));
+    syncDA(T);
+    T.at(ln, `\`self._block = block\`: da now uses the new block. Nothing refers to the old block any more, so Python frees it.`);
+    if (kind === 'nocopy')
+      T.ask(`da now uses the new block. What is in its slot 0?`, 'None', ['1', 'The old value, copied automatically', 'IndexError'],
+        'make_block gives a block of None. Nothing copied the old values, so they were left behind in the old block, which is now garbage. The data is lost.');
+    T.drop('old');
+    ln++;
+  }
+  T.da.cap = capacity; syncDA(T);
+  T.at(ln, `\`self._capacity = ${capacity}\`.` + (kind === 'noswitch' ? ` **But \`self._block\` still refers to the old ${plural(T.B('main').cells.length, 'slot')} block.** The new block is only in the local variable \`block\`.` : ''));
+  ln++;
+  T.da.resizes++; T.count('resizes');
+  if (kind === 'noswitch') { T.B('new').old = true; T.B('new').meta = 'lost when _resize returns'; }
+  T.at(ln, `\`resize_count\` is now ${T.da.resizes}.`);
+  T.ret(null, ln, `\`_resize\` ends and returns None.` + (kind === 'noswitch' ? ' Its local `block` disappears with its frame, and the new block with it.' : ''));
+  if (kind === 'noswitch') T.drop('new');
+}
+
+const APPEND_CODE = `class DynamicArray:
+    def append(self, value):
+        if self._size == self._capacity:
+            self._resize(self._capacity * self.growth)
+        self._block[self._size] = value
+        self._size += 1
+
+` + RESIZE_CODE;
+const APPEND_PLUS1 = APPEND_CODE.replace('            self._resize(self._capacity * self.growth)', '            self._resize(self._capacity + 1)     # grow by ONE slot');
+const APPEND_NOCOPY = APPEND_CODE.replace(RESIZE_CODE, RESIZE_NOCOPY);
+const APPEND_NOSWITCH = APPEND_CODE.replace(RESIZE_CODE, RESIZE_NOSWITCH);
+
+function appendMirror(T, v, kind, st) {
+  const w0 = T.counters.writes, d = T.da;
+  T.call('append', [['self', REF('da')], ['value', v]], `append(${v})`, { line: 2,
+    msg: T.counters.calls < 1 ? `Call \`da.append(${v})\`. Python pushes a frame with \`self\` (da) and \`value\`.` : `Call \`da.append(${v})\`.` });
+  syncDA(T);
+  const full = d.size === d.cap;
+  T.ptr([['main', d.size, 'self._size', false]]);
+  T.at(3, `Is \`self._size == self._capacity\`? ${d.size} == ${d.cap}: ${full ? '**yes**, every slot is in use.' : 'no, there is a free slot.'}`);
+  if (kind === 'plus1' && v === 1)
+    T.ask(`This version grows by one slot each time. Over all ${st.n} appends, how many values will be copied in total?`, st.n * (st.n - 1) / 2, [st.n - 1, 2 * st.n, (1 << Math.floor(Math.log2(st.n - 1) + 1)) - 1],
+      `Once the first block is full, every append is a resize that copies everything: 1 + 2 + … + ${st.n - 1} = ${st.n * (st.n - 1) / 2}. That is O(n²) in total, O(n) per append. Doubling copies only ${(1 << Math.ceil(Math.log2(st.n))) - 1}.`);
+  if (kind === 'ok' && !full && d.size >= 3 && !st.askedRoom && st.n > 5) {
+    st.askedRoom = true;
+    T.ask(`There is room. How many writes will this append cost?`, '1', ['0', String(d.size + 1), String(d.cap)],
+      'One write into the free slot, then the size goes up. Most appends are this cheap.');
+  }
+  if (full) {
+    const newCap = kind === 'plus1' ? d.cap + 1 : d.cap * d.growth;
+    if (kind === 'ok' && d.growth > 1 && d.size >= 3 && !st.askedFull) {
+      st.askedFull = true;
+      T.ask(`The block is full (${d.size} of ${d.cap}). How many writes will this one append cost in all?`, d.size + 1, ['1', d.size, 2 * d.size + 1],
+        `_resize copies all ${d.size} values into a block of ${newCap}, then the new value is written: ${d.size} + 1 = ${d.size + 1}. Expensive, but the next ${newCap - d.size - 1} appends are cheap again.`);
+    }
+    if (kind === 'ok' && d.growth === 1)
+      T.ask(`\`growth\` is 1. How many slots will the new block have?`, d.cap, [d.cap + 1, d.cap * 2, 0],
+        `\`self._capacity * self.growth\` = ${d.cap} * 1 = ${d.cap}. The "bigger" block is the same size, so it is still full.`);
+    T.at(4, kind === 'plus1' ? `Grow by one: \`_resize(${d.cap} + 1)\` = \`_resize(${newCap})\`.` : `Grow: \`_resize(${d.cap} * ${d.growth})\` = \`_resize(${newCap})\`.`);
+    resizeMirror(T, newCap, kind === 'plus1' ? 'ok' : kind, 8);
+    syncDA(T);
+    if (kind === 'noswitch')
+      T.ask(`\`self._capacity\` is ${d.cap}, but \`self._block\` still has ${plural(T.B('main').cells.length, 'slot')}. What does \`self._block[${d.size}] = ${v}\` do?`,
+        `IndexError: the old block has no slot ${d.size}`, [`Writes ${v} into the new block`, 'Grows the old block by one slot', `Writes ${v} into slot 0`],
+        `\`self._block\` was never switched, so it is still the old block. The course Array checks the index and refuses.`);
+  }
+  T.ptr([['main', d.size, 'self._size', true]]);
+  T.wr('main', d.size, v);
+  d.grow = 1; syncDA(T);
+  T.at(5, `\`self._block[${d.size}] = ${v}\`: one write.`);
+  d.grow = 0; d.size++; syncDA(T);
+  T.ptr([]);
+  T.at(6, `\`self._size\` is now ${d.size}.`);
+  const cost = T.counters.writes - w0;
+  T.extra.costs.push({ c: cost, rs: full });
+  T.count('appends');
+  return T.ret(null, 6, `\`append(${v})\` is done. It cost ${plural(cost, 'write')}` + (full ? ` (${cost - 1} cop${cost - 1 === 1 ? 'y' : 'ies'} + 1).` : '.'), { quiet: true });
+}
+function appendsRun(T, p, kind) {
+  T.extra.costs = [];
+  T.extra.costsN = p.n - 1;
+  const st = { n: p.n - 1 };
+  T.stack[0].note = `for v in range(1, ${p.n}): da.append(v)`;
+  for (let v = 1; v < p.n; v++) {
+    T.set('v', v, T.stack[0]);
+    appendMirror(T, v, kind, st);
+  }
+  T.snap(`The loop is over: ${plural(p.n - 1, 'append')}.`);
+  return null;
+}
+const appendSummary = (T) => {
+  const n = T.counters.appends, tot = T.counters.writes;
+  return ` ${n} value writes + ${T.counters.copies} copies = ${tot} writes for ${plural(n, 'append')}: ${(tot / Math.max(1, n)).toFixed(2)} per append on average.`;
+};
+const APPEND_BASE = {
+  call: [['da = DynamicArray(growth=', 'growth', ')'], ['for v in range(1, ', 'n', '): da.append(v)']],
+  counters: { appends: 'Appends', copies: 'Copies', resizes: 'Resizes', writes: 'Writes' },
+  views: ['costs'],
+  setup: (T, p) => setupDA(T, [], p.growth),
+  after: SHOW_DA,
+};
+def(Object.assign({}, APPEND_BASE, {
+  id: 'append_double', group: 'dyn', title: 'append: doubling, amortised O(1)',
+  blurb: 'When the block is full, append makes one twice as big and copies everything across. A few appends are expensive, most cost one write; the average stays below 3.',
+  code: APPEND_CODE,
+  params: { growth: { type: 'int', def: 2, min: 2, max: 3 }, n: { type: 'int', def: 10, min: 1, max: 18 } },
+  run: (T, p) => appendsRun(T, p, 'ok'),
+  summary: appendSummary,
+}));
+
+/* ---- insert_at with a resize ---------------------------------------- */
+const DYN_INSERT_CODE = `class DynamicArray:
+    def insert_at(self, index, value):
+        if not 0 <= index <= self._size:
+            raise IndexError(index)
+        if self._size == self._capacity:
+            self._resize(self._capacity * self.growth)
+        for i in range(self._size, index, -1):
+            self._block[i] = self._block[i - 1]
+        self._block[index] = value
+        self._size += 1
+
+` + RESIZE_CODE;
+def({
+  id: 'dyn_insert', group: 'dyn', title: 'insert_at when full: resize, then shift',
+  blurb: 'The block is full, so insert_at first moves everything into a bigger block, then shifts the values after the index right. Two O(n) costs in one call.',
+  code: DYN_INSERT_CODE,
+  call: [['da = DynamicArray(', 'values', ')'], ['da.insert_at(', 'index', ', ', 'value', ')']],
+  params: { values: { type: 'list', def: [10, 20, 30, 40], minLen: 0, maxLen: 9, check: allInts('values') }, index: { type: 'int', def: 1, min: -5, max: 12 }, value: { type: 'int', def: 99, min: -999, max: 999 } },
+  counters: { copies: 'Copies', shifts: 'Shifts', writes: 'Writes' },
+  setup: (T, p) => setupDA(T, p.values, 2),
+  after: SHOW_DA,
+  run: (T, p) => {
+    const d = T.da, index = p.index, value = p.value;
+    T.call('insert_at', [['self', REF('da')], ['index', index], ['value', value]], `insert_at(${index}, ${value})`, { line: 2 });
+    syncDA(T);
+    const ok = index >= 0 && index <= d.size;
+    T.at(3, `Is \`0 <= ${index} <= ${d.size}\`? ${ok ? 'Yes.' : '**No.**'}`);
+    if (!ok) { T.at(4, `So it raises IndexError(${index}).`); throw new PyErr('IndexError', String(index), {}); }
+    const full = d.size === d.cap;
+    T.at(5, `Is \`self._size == self._capacity\`? ${d.size} == ${d.cap}: ${full ? '**yes**, full.' : 'no.'}`);
+    if (full) {
+      T.ask(`The block is full. What happens first?`, `_resize copies all ${d.size} values into a block of ${d.cap * 2}`, ['The values after the index shift right', 'OverflowError: array is full', `Only the values after index ${index} are copied`],
+        'There is no free slot to shift into, so the block must grow first: a full copy. Then the shift happens inside the new block.');
+      T.at(6, `Grow first: \`_resize(${d.cap} * ${d.growth})\` = \`_resize(${d.cap * d.growth})\`.`);
+      resizeMirror(T, d.cap * d.growth, 'ok', 12);
+      syncDA(T);
+    }
+    const idxs = range(d.size, index, -1);
+    d.grow = 1; syncDA(T);
+    for (const i of idxs) {
+      T.set('i', i);
+      T.ptr([['main', i, 'i', true], ['main', i - 1, 'i - 1', false]]);
+      T.at(7, i === idxs[0] ? `Shift from the end backwards: i = ${idxs.join(', ')}. \`i\` = ${i}.` : `\`i\` = ${i}.`);
+      const v = T.rd('main', i - 1);
+      T.wr('main', i, v, { b: 'main', i: i - 1 });
+      T.count('shifts');
+      T.at(8, `\`self._block[${i}] = self._block[${i - 1}]\`: ${C(v)} moves one slot right.`);
+    }
+    T.ptr([['main', index, 'index', true]]);
+    T.wr('main', index, value);
+    T.at(9, `\`self._block[${index}] = ${value}\`.`);
+    d.grow = 0; d.size++; syncDA(T); T.ptr([]);
+    T.at(10, `\`self._size\` is now ${d.size}.`);
+    return T.ret(null, 10, `\`insert_at\` returns None, so the shell prints nothing.`);
+  },
+  summary: (T) => ` ${T.counters.copies} copies + ${T.counters.shifts} shifts + 1 write.`,
+});
+
+/* ---- pop ------------------------------------------------------------ */
+const POP_CODE = `class DynamicArray:
+    def pop(self, index=-1):
+        if self._size == 0:
+            raise IndexError("pop from empty DynamicArray")
+        if index < 0:
+            index += self._size
+        if not 0 <= index < self._size:
+            raise IndexError("index out of range")
+        value = self._block[index]
+        for i in range(index, self._size - 1):
+            self._block[i] = self._block[i + 1]
+        self._size -= 1
+        self._block[self._size] = None
+        return value`;
+function popMirror(T, index0, explicit) {
+  const d = T.da;
+  T.call('pop', [['self', REF('da')], ['index', index0]], explicit ? `pop(${index0})` : 'pop()', { line: 2,
+    msg: explicit ? `Call \`da.pop(${index0})\`.` : 'Call `da.pop()`. No argument, so `index` takes its default, -1: the end.' });
+  syncDA(T);
+  T.at(3, `Is \`self._size == 0\`? ${d.size === 0 ? '**Yes**: nothing to pop.' : 'No.'}`);
+  if (d.size === 0) { T.at(4, 'So it raises IndexError.'); throw new PyErr('IndexError', 'pop from empty DynamicArray', {}); }
+  let index = index0;
+  T.at(5, `Is \`index < 0\`? ${index < 0 ? 'Yes.' : 'No.'}`);
+  if (index < 0) { index += d.size; T.set('index', index); T.at(6, `\`index += self._size\`: ${index0} + ${d.size} = ${index}.` + (index0 === -1 ? ' The last USED slot, not the last slot of the block.' : '')); }
+  const ok = index >= 0 && index < d.size;
+  T.at(7, `Is \`0 <= ${index} < ${d.size}\`? ${ok ? 'Yes.' : '**No.**'}`);
+  if (!ok) { T.at(8, 'So it raises IndexError.'); throw new PyErr('IndexError', 'index out of range', {}); }
+  T.ptr([['main', index, 'index', true]]);
+  const value = T.rd('main', index);
+  T.set('value', value);
+  T.at(9, `\`value\` = ${C(value)}.`);
+  const idxs = range(index, d.size - 1);
+  T.ask(`How many values will move one slot left?`, idxs.length, alts(idxs.length, [d.size - 1, 0, d.size, 1]),
+    idxs.length ? `Every value after slot ${index} moves left to close the gap: ${idxs.length}. Popping from the front is O(n).` : 'None: the end has nothing after it. Popping from the end is O(1).');
+  for (const i of idxs) {
+    T.set('i', i);
+    T.ptr([['main', i, 'i', true], ['main', i + 1, 'i + 1', false]]);
+    T.at(10, i === idxs[0] ? `Close the gap, front first: i = ${idxs.join(', ')}. \`i\` = ${i}.` : `\`i\` = ${i}.`);
+    const v = T.rd('main', i + 1);
+    T.wr('main', i, v, { b: 'main', i: i + 1 });
+    T.count('shifts');
+    T.at(11, `\`self._block[${i}] = self._block[${i + 1}]\`: ${C(v)} moves one slot left.`);
+  }
+  T.ptr([]);
+  if (idxs.length) T.at(10, `The loop is done: ${plural(idxs.length, 'value')} moved.`);
+  d.size--; syncDA(T);
+  T.at(12, `\`self._size\` is now ${d.size}.`);
+  T.ptr([['main', d.size, 'self._size', true]]);
+  T.wr('main', d.size, null);
+  T.at(13, `Clear slot ${d.size}, so the block no longer refers to the old value.`);
+  T.ptr([]);
+  return T.ret(value, 14, `Return ${C(value)}.`);
+}
+const POP_BASE = { group: 'dyn', code: POP_CODE,
+  counters: { shifts: 'Shifts', writes: 'Writes' },
+  setup: (T, p) => setupDA(T, p.values, 2),
+  after: SHOW_DA,
+  summary: (T) => ` ${plural(T.counters.shifts, 'shift')}.` };
+const POP_VALUES = { type: 'list', def: [10, 20, 30, 40, 50, 60], minLen: 0, maxLen: 9, check: allInts('values') };
+def(Object.assign({}, POP_BASE, { id: 'pop_end', title: 'pop(): from the end, O(1)',
+  blurb: 'pop() removes the last value in use. Nothing moves: one read, one slot cleared.',
+  call: [['da = DynamicArray(', 'values', ')'], ['da.pop()']],
+  params: { values: POP_VALUES },
+  run: (T) => popMirror(T, -1, false) }));
+def(Object.assign({}, POP_BASE, { id: 'pop_front', title: 'pop(0): from the front, O(n)',
+  blurb: 'pop(0) removes the first value. Every other value moves one slot left to close the gap.',
+  call: [['da = DynamicArray(', 'values', ')'], ['da.pop(', 'index', ')']],
+  params: { values: POP_VALUES, index: { type: 'int', def: 0, min: -12, max: 12 } },
+  run: (T, p) => popMirror(T, p.index, true) }));
+
+/* ---- da[-1]: negative indices, done by hand ------------------------- */
+def({
+  id: 'dyn_getitem', group: 'dyn', title: 'da[-1]: the last USED slot',
+  blurb: 'DynamicArray adds negative indices itself, on top of an Array that has none. -1 means the last value in use, not the last slot of the block.',
+  code: `class DynamicArray:
+    def __getitem__(self, index):
+        if index < 0:
+            index += self._size               # -1 means the last USED slot
+        if not 0 <= index < self._size:
+            raise IndexError(index)
+        return self._block[index]`,
+  call: [['da = DynamicArray(', 'values', ')'], ['da[', 'index', ']']],
+  params: { values: { type: 'list', def: [10, 20, 30, 40, 50, 60], minLen: 0, maxLen: 9, check: allInts('values') }, index: { type: 'int', def: -1, min: -12, max: 12 } },
+  counters: { reads: 'Reads' },
+  setup: (T, p) => setupDA(T, p.values, 2),
+  after: SHOW_DA,
+  run: (T, p) => {
+    const d = T.da, i0 = p.index;
+    T.call('__getitem__', [['self', REF('da')], ['index', i0]], `da.__getitem__(${i0})`, { line: 2, msg: `\`da[${i0}]\` calls \`da.__getitem__(${i0})\`.` });
+    syncDA(T);
+    let index = i0;
+    T.at(3, `Is \`index < 0\`? ${index < 0 ? 'Yes.' : 'No.'}`);
+    if (index < 0) {
+      T.ask(`The block has ${plural(d.cap, 'slot')}, and ${d.size} ${d.size === 1 ? 'is' : 'are'} in use. Which slot will \`index\` become?`, i0 + d.size, alts(i0 + d.size, [i0 + d.cap, d.cap - 1, 0, d.size], true),
+        `\`index += self._size\`: ${i0} + ${d.size} = ${i0 + d.size}. It counts back from the size, not from the capacity: the slots after the size hold no data.`);
+      index += d.size; T.set('index', index);
+      T.at(4, `\`index += self._size\`: ${i0} + ${d.size} = ${index}.`);
+    }
+    const ok = index >= 0 && index < d.size;
+    T.at(5, `Is \`0 <= ${index} < ${d.size}\`? ${ok ? 'Yes.' : '**No.**'}`);
+    if (!ok) { T.at(6, `So it raises IndexError(${index}).`); throw new PyErr('IndexError', String(index), {}); }
+    T.ptr([['main', index, 'index', true]]);
+    const v = T.rd('main', index);
+    return T.ret(v, 7, `\`self._block[${index}]\`: one jump, O(1). Return ${C(v)}.`);
+  },
+});
+
+/* ---- Goes wrong: DynamicArray --------------------------------------- */
+def(Object.assign({}, APPEND_BASE, {
+  id: 'append_plus1', group: 'slow', title: 'append growing by one slot: O(n²) copies',
+  blurb: 'Grow by one slot instead of doubling. The answer is right, but once the first block is full, every single append copies the whole array.',
+  code: APPEND_PLUS1,
+  call: [['da = DynamicArray()'], ['for v in range(1, ', 'n', '): da.append(v)']],
+  params: { n: { type: 'int', def: 17, min: 4, max: 21 } },
+  setup: (T, p) => setupDA(T, [], 2),
+  run: (T, p) => appendsRun(T, p, 'plus1'),
+  summary: (T) => appendSummary(T) + ` Doubling would copy ${(1 << Math.ceil(Math.log2(Math.max(1, T.counters.appends)))) - 1}.`,
+}));
+def(Object.assign({}, APPEND_BASE, {
+  id: 'append_growth1', group: 'crash', title: 'DynamicArray(growth=1): the block never grows',
+  blurb: 'The real code, with a growth factor of 1. "Growing" makes a block of the same size, so it is still full, and the write runs off the end.',
+  code: APPEND_CODE,
+  params: { growth: { type: 'int', def: 1, min: 1, max: 1 }, n: { type: 'int', def: 4, min: 2, max: 8 } },
+  run: (T, p) => appendsRun(T, p, 'ok'),
+  errWhy: 'capacity * 1 is still capacity. Any growth factor above 1 works; 1 does not.',
+}));
+def(Object.assign({}, APPEND_BASE, {
+  id: 'append_nocopy', group: 'crash', title: '_resize that forgets to copy: data lost',
+  blurb: 'The new block is made and switched in, but the old values are never copied into it. Each resize wipes everything appended so far.',
+  code: APPEND_NOCOPY,
+  call: [['da = DynamicArray()'], ['for v in range(1, ', 'n', '): da.append(v)']],
+  params: { n: { type: 'int', def: 6, min: 2, max: 12 } },
+  setup: (T, p) => setupDA(T, [], 2),
+  run: (T, p) => appendsRun(T, p, 'nocopy'),
+  summary: () => ' No error at all, but look at da: the values from before the last resize are gone.',
+}));
+def(Object.assign({}, APPEND_BASE, {
+  id: 'append_noswitch', group: 'crash', title: '_resize that forgets self._block = block',
+  blurb: 'The values are copied into a new block, but the object never starts using it. The capacity says there is room; the block it really writes to has none.',
+  code: APPEND_NOSWITCH,
+  call: [['da = DynamicArray()'], ['for v in range(1, ', 'n', '): da.append(v)']],
+  params: { n: { type: 'int', def: 4, min: 3, max: 8 } },
+  setup: (T, p) => setupDA(T, [], 2),
+  run: (T, p) => appendsRun(T, p, 'noswitch'),
+  errWhy: 'self._capacity and the real block disagree. The new block lived only in a local variable and vanished with the frame.',
+}));
+
+/* Build the full trace for one scenario and its inputs. */
+function lineText(sc, line, p) {
+  return line.map(part => (part in (sc.params || {})) ? pyrepr(p[part]) : part).join('');
+}
+function build(sc, p) {
+  const T = new Tracer(sc);
+  const lines = sc.call.map(l => lineText(sc, l, p));
+  const ci = lines.length - 1;
+  for (let k = 0; k < ci; k++) T.out.push({ k: 'prompt', t: '>>> ' + lines[k] });
+  if (sc.setup) sc.setup(T, p);
+  T.out.push({ k: 'prompt', t: '>>> ' + lines[ci] });
+  T.stack[0].note = '>>> ' + lines[ci];
+  T.snap(`Ready. Press **Step** to run \`${lines[ci]}\`.`);
+  let v, failed = false;
+  try {
+    v = sc.run(T, p);
+  } catch (e) {
+    if (e instanceof PyErr) { T.raise(e); failed = true; } else throw e;
+  }
+  const summary = !failed && sc.summary ? sc.summary(T, v, p) : '';
+  T.inputs = lines.slice();
+  if (sc.after) {
+    const shown = [];
+    for (const a of sc.after) {
+      const r = a.v(T, p);
+      T.out.push({ k: 'prompt', t: '>>> ' + a.t }, { k: 'ret', t: r, fresh: true });
+      shown.push(`\`${a.t}\` is \`${r}\``);
+      T.inputs.push(a.t);
+    }
+    T.ptr([]);
+    T.snap(`Afterwards, in the shell: ${shown.join('; ')}.` + summary);
+  } else if (summary) T.steps[T.steps.length - 1].msg += summary;
+  return T;
+}
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const md = s => esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+
+const KW = new Set(['def', 'if', 'return', 'for', 'in', 'not', 'is', 'None', 'else', 'and', 'or', 'True', 'False', 'while', 'class', 'raise', 'self']);
+const BI = new Set(['print', 'len', 'range', 'min', 'isinstance', 'Array', 'DynamicArray', 'make_block', 'OverflowError', 'IndexError', 'TypeError', 'operator']);
+function highlight(line) {
+  const re = /(#.*$)|([fF]?"(?:[^"\\]|\\.)*"|[fF]?'(?:[^'\\]|\\.)*')|(\b\d+\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m, html = '', prev = '';
+  while ((m = re.exec(line))) {
+    if (m[1]) html += `<span class="t-com">${esc(m[1])}</span>`;
+    else if (m[2]) html += `<span class="t-str">${esc(m[2])}</span>`;
+    else if (m[3]) html += `<span class="t-num">${m[3]}</span>`;
+    else if (m[4]) {
+      const w = m[4];
+      if (prev === 'def' || prev === 'class') html += `<span class="t-fn">${w}</span>`;
+      else if (KW.has(w)) html += `<span class="t-kw">${w}</span>`;
+      else if (BI.has(w)) html += `<span class="t-bi">${w}</span>`;
+      else html += esc(w);
+      prev = w; continue;
+    } else html += esc(m[5]);
+    if (m[5] && /\S/.test(m[5])) prev = m[5];
+  }
+  return html;
+}
+
+const state = { sc: null, params: {}, T: null, idx: 0, answered: new Map(), quiz: true, timer: null, prevSnap: null, nudge: '', forward: false };
+
+function initPicker() {
+  const sel = $('scenario');
+  for (const g in GROUPS) {
+    const og = document.createElement('optgroup'); og.label = GROUPS[g];
+    for (const sc of SCENARIOS.filter(s => s.group === g)) {
+      const o = document.createElement('option'); o.value = sc.id; o.textContent = sc.title;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  sel.addEventListener('change', () => loadScenario(sel.value));
+}
+
+function loadScenario(id) {
+  stop();
+  const sc = SCENARIOS.find(s => s.id === id) || SCENARIOS[0];
+  state.sc = sc;
+  $('scenario').value = sc.id;
+  state.params = {};
+  for (const k in sc.params) state.params[k] = structuredClone(sc.params[k].def);
+  const kind = ['crash', 'slow'].includes(sc.group) ? 'wrong' : 'works';
+  $('badges').innerHTML = `<span class="badge ${kind}">${esc(GROUPS[sc.group])}</span>`;
+  $('scTitle').textContent = sc.title;
+  $('scBlurb').textContent = sc.blurb;
+  $('callerr').textContent = '';
+  renderCallStrip();
+  rebuild();
+  try { localStorage.setItem('array-lab-scenario', sc.id); } catch (e) {}
+}
+
+function renderCallStrip() {
+  const sc = state.sc, box = $('callstrip');
+  box.innerHTML = '';
+  sc.call.forEach((line, li) => {
+    const row = document.createElement('div'); row.className = 'cline';
+    row.innerHTML = '<span class="ps">&gt;&gt;&gt;</span>';
+    for (const part of line) {
+      if (part in (sc.params || {})) {
+        const inp = document.createElement('input');
+        inp.id = 'param-' + part; inp.value = pyrepr(state.params[part]); inp.spellcheck = false;
+        inp.setAttribute('aria-label', part);
+        inp.size = Math.max(2, inp.value.length);
+        inp.addEventListener('input', () => { inp.size = Math.max(2, inp.value.length); });
+        inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyParams(); } e.stopPropagation(); });
+        inp.addEventListener('change', applyParams);
+        row.appendChild(inp);
+      } else {
+        const s = document.createElement('span'); s.innerHTML = highlight(part); row.appendChild(s);
+      }
+    }
+    if (li === sc.call.length - 1) {
+      const run = document.createElement('button'); run.className = 'btn run'; run.textContent = 'Run';
+      run.addEventListener('click', applyParams); row.appendChild(run);
+    }
+    box.appendChild(row);
+  });
+}
+
+function parsePy(text) {
+  const j = text.trim().replace(/'/g, '"').replace(/\bNone\b/g, 'null').replace(/\bTrue\b/g, 'true').replace(/\bFalse\b/g, 'false');
+  return JSON.parse(j);
+}
+function applyParams() {
+  const sc = state.sc, next = {}; let err = '';
+  for (const k in sc.params) {
+    const spec = sc.params[k], inp = $('param-' + k);
+    inp.classList.remove('bad');
+    try {
+      if (spec.type === 'int') {
+        if (!/^\s*-?\d+\s*$/.test(inp.value)) throw new Error(`${k} must be a whole number.`);
+        const v = parseInt(inp.value, 10);
+        if (v < spec.min || v > spec.max) throw new Error(spec.min === spec.max ? `This scenario is about ${k} = ${spec.min}.` : `For this demo, ${k} must be between ${spec.min} and ${spec.max}.`);
+        next[k] = v;
+      } else {
+        let v; try { v = parsePy(inp.value); } catch (e) { throw new Error(`${k} must be a Python list, like ${pyrepr(spec.def)}.`); }
+        if (!Array.isArray(v)) throw new Error(`${k} must be a list.`);
+        if (v.length < spec.minLen || v.length > spec.maxLen) throw new Error(`For this demo, ${k} must have ${spec.minLen} to ${spec.maxLen} items.`);
+        const ok = spec.check ? spec.check(v) : true;
+        if (ok !== true) throw new Error(ok);
+        next[k] = v;
+      }
+    } catch (e) { inp.classList.add('bad'); err = e.message; }
+  }
+  if (!err && sc.check) { const ok = sc.check(next); if (ok !== true) err = ok; }
+  $('callerr').textContent = err;
+  if (err) return;
+  state.params = next;
+  for (const k in next) { const inp = $('param-' + k); inp.value = pyrepr(next[k]); inp.size = Math.max(2, inp.value.length); }
+  rebuild();
+}
+
+function rebuild() {
+  stop();
+  state.T = build(state.sc, state.params);
+  state.idx = 0; state.answered = new Map(); state.prevSnap = null;
+  $('scrub').max = state.T.steps.length - 1;
+  render();
+}
+
+/* ---------- navigation ---------- */
+const snapAt = i => state.T.steps[i];
+const pendingQ = () => { const s = snapAt(state.idx); return state.quiz && s.q && !state.answered.has(state.idx); };
+function go(i, opts) {
+  opts = opts || {};
+  const N = state.T.steps.length;
+  i = Math.max(0, Math.min(N - 1, i));
+  if (i === state.idx) return false;
+  state.prevSnap = snapAt(state.idx);
+  state.forward = i === state.idx + 1;
+  state.idx = i;
+  state.nudge = '';
+  render(opts);
+  return true;
+}
+function guard() {
+  if (pendingQ()) { state.nudge = 'Answer the question first (keys A–D), or press Reveal.'; $('nudge').textContent = state.nudge; return false; }
+  return true;
+}
+function step() { if (!guard()) { stop(); return false; } return go(state.idx + 1); }
+function back() { stop(); go(state.idx - 1); }
+function stepOver() {
+  if (!guard()) return;
+  stop();
+  const S = state.T.steps, d = S[state.idx].depth;
+  let j = state.idx + 1;
+  if (j < S.length && S[j].depth > d) { while (j < S.length && S[j].depth > d) j++; }
+  go(j);
+}
+function stepOut() {
+  if (!guard()) return;
+  stop();
+  const S = state.T.steps, d = S[state.idx].depth;
+  let j = state.idx + 1;
+  while (j < S.length && S[j].depth >= d && d > 0) j++;
+  go(j);
+}
+function play() {
+  if (state.timer) { stop(); return; }
+  if (state.idx >= state.T.steps.length - 1) go(0);
+  $('bPlay').innerHTML = 'Pause <kbd>P</kbd>'; $('bPlay').classList.add('on');
+  const tick = () => {
+    if (!step() || state.idx >= state.T.steps.length - 1 || pendingQ()) { stop(); return; }
+    state.timer = setTimeout(tick, delay());
+  };
+  state.timer = setTimeout(tick, Math.min(400, delay()));
+}
+function stop() {
+  if (state.timer) clearTimeout(state.timer);
+  state.timer = null;
+  $('bPlay').innerHTML = 'Play <kbd>P</kbd>'; $('bPlay').classList.remove('on');
+}
+const delay = () => [2600, 2000, 1500, 1150, 900, 700, 520, 380, 260, 160][+$('speed').value - 1];
+
+function answer(k) {
+  const s = snapAt(state.idx);
+  if (!s.q || state.answered.has(state.idx)) return;
+  state.answered.set(state.idx, k);
+  state.nudge = '';
+  renderNarr();
+  $('nudge').textContent = '';
+}
+
+/* ---------- rendering ---------- */
+function render(opts) {
+  const s = snapAt(state.idx);
+  renderCode(s);
+  renderNarr();
+  renderStack(s);
+  renderViews(s);
+  renderOut(s);
+  renderTransport(s);
+}
+
+function renderCode(s) {
+  const lines = state.sc.code.split('\n');
+  const frames = s.stack.slice(1), top = s.stack[s.stack.length - 1];
+  const waiting = {};
+  for (const f of frames) if (f !== top || top.status === 'error') if (f.status === 'waiting') (waiting[f.line] = waiting[f.line] || []).push(f);
+  const errLine = s.kind === 'err' && frames.length ? frames[frames.length - 1].line : 0;
+  let html = '';
+  lines.forEach((ln, i) => {
+    const no = i + 1;
+    let cls = '';
+    const tags = [];
+    if (top.fn !== '<module>' && top.line === no) {
+      if (top.status === 'returning') { cls = 'ret'; tags.push(`<span class="tag r">returns ${esc(clip(pyrepr(top.ret), 22))}</span>`); }
+      else if (top.status === 'error') { cls = 'errl'; tags.push(`<span class="tag e">error here</span>`); }
+      else { cls = 'cur'; tags.push(`<span class="tag a">${esc(clip(top.label, 26))}</span>`); }
+    } else if (errLine === no) cls = 'errl';
+    if (waiting[no]) { if (!cls) cls = 'waitl'; tags.push(`<span class="tag w">${esc(clip(waiting[no][0].label, 24))} paused</span>`); }
+    html += `<div class="ln ${cls}"><span class="no">${no}</span><span class="src">${highlight(ln) || ' '}</span><span class="tags">${tags.join('')}</span></div>`;
+  });
+  $('code').innerHTML = html;
+  $('lineInfo').textContent = top.fn === '<module>' ? '' : `${top.label} · line ${top.line}`;
+  const cur = $('code').querySelector('.ln.cur, .ln.ret, .ln.errl');
+  if (cur) { const c = $('code'); if (cur.offsetTop < c.scrollTop || cur.offsetTop > c.scrollTop + c.clientHeight - 30) c.scrollTop = cur.offsetTop - c.clientHeight / 2; }
+}
+
+function renderNarr() {
+  const s = snapAt(state.idx), box = $('narr');
+  let html = `<div class="say ${s.kind === 'err' ? 'err' : ''}">${md(s.msg)}</div>`;
+  if (s.q && state.quiz) {
+    const chosen = state.answered.get(state.idx);
+    const done = chosen !== undefined && chosen !== -2;
+    html += `<div class="qcard" role="group" aria-label="Question"><div class="qlabel">What happens next?</div><div class="qtext">${md(s.q.text)}</div><div class="choices">`;
+    s.q.choices.forEach((c, k) => {
+      let cls = '';
+      if (done) { if (k === s.q.answer) cls = 'right'; else if (k === chosen) cls = 'wrong'; }
+      html += `<button class="choice ${cls}" data-k="${k}" ${done ? 'disabled' : ''}><span class="k">${'ABCD'[k]}</span><span>${md(c)}</span></button>`;
+    });
+    html += `</div>`;
+    if (done) {
+      const verdict = chosen === -1 ? 'Answer:' : chosen === s.q.answer ? 'Correct.' : `Not quite. The answer is ${'ABCD'[s.q.answer]}.`;
+      html += `<div class="why"><b>${verdict}</b> ${md(s.q.why)}</div>`;
+    } else {
+      html += `<div class="qactions"><button class="btn" id="qReveal">Reveal <kbd>V</kbd></button><button class="btn" id="qSkip">Skip question</button></div>`;
+    }
+    html += `</div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+  const rv = $('qReveal'); if (rv) rv.addEventListener('click', () => answer(-1));
+  const sk = $('qSkip'); if (sk) sk.addEventListener('click', () => { state.answered.set(state.idx, -2); step(); });
+}
+
+function renderStack(s) {
+  const box = $('stack');
+  const prevIds = new Set((state.prevSnap ? state.prevSnap.stack : []).map(f => f.id));
+  const frames = s.stack;
+  let html = '';
+  for (let k = frames.length - 1; k >= 0; k--) {
+    const f = frames[k], isTop = k === frames.length - 1;
+    let cls = f.fn === '<module>' ? 'module ' : '';
+    cls += f.status;
+    if (state.prevSnap && !prevIds.has(f.id) && f.fn !== '<module>') cls += ' new';
+    let chip;
+    if (f.fn === '<module>') chip = f.status === 'error' ? 'error' : isTop ? (state.idx === 0 ? 'ready' : 'done') : 'waiting';
+    else if (f.status === 'active') chip = `running · line ${f.line}`;
+    else if (f.status === 'waiting') chip = `paused · line ${f.line}`;
+    else if (f.status === 'returning') chip = f.implicit ? 'returns None' : `returns ${clip(pyrepr(f.ret), 16)}`;
+    else chip = 'abandoned';
+    let locals = '';
+    for (const [n, v] of f.locals) {
+      const isTmp = n.includes('.');
+      const vtxt = v && v.__ref ? '→ ' + v.__ref : pyrepr(v);
+      locals += `<span class="k ${isTmp ? 'tmp' : ''}">${esc(n)}</span><span class="v ${v && v.__ref ? 'ref' : ''}">${esc(clip(vtxt, 60))}</span>`;
+    }
+    const label = f.fn === '<module>' ? '&lt;module&gt; (the shell)' : esc(f.label);
+    html += `<div class="frame ${cls}"><div class="fh"><span class="fname">${label}</span><span class="chip">${esc(chip)}</span></div>` +
+      (locals ? `<div class="locals">${locals}</div>` : '') + (f.note ? `<div class="fnote">${esc(f.note)}</div>` : '') + `</div>`;
+  }
+  box.innerHTML = html;
+  box.scrollTop = 0;
+  $('stackInfo').textContent = s.depth ? plural(s.depth, 'call') + ' running' : '';
+}
+
+function blockHTML(key, b, s) {
+  const ex = s.extra, n = b.cells.length;
+  const ptrs = {};
+  for (const p of ex.ptrs) if (p.b === key) (ptrs[p.i] = ptrs[p.i] || []).push(p);
+  const fl = {};
+  for (const f of ex.flash) if (f.b === key) fl[f.i] = f.k;
+  const oob = ex.oob && ex.oob.b === key ? ex.oob.i : null;
+  const lo = oob !== null && oob < 0 ? oob : 0, hi = oob !== null && oob >= n ? oob : n - 1;
+  const mark = `<div class="sizemark" title="size: slots to the left are in use"><span>size ${b.size}</span></div>`;
+  let cells = '';
+  for (let i = lo; i <= hi; i++) {
+    if (b.size !== null && i === b.size) cells += mark;
+    const ghost = i < 0 || i >= n;
+    const v = ghost ? null : b.cells[i];
+    const used = !ghost && (b.size === null ? v !== null : i < b.size);
+    let cls = ghost ? 'ghost' : used ? 'used' : 'free' + (v !== null ? ' stale' : '');
+    if (!ghost && fl[i]) cls += fl[i] === 'wr' ? ' wr' : ' rd';
+    if (i === oob) cls += ' oob';
+    const pl = (ptrs[i] || []).map(p => `<span class="p ${p.a ? 'a' : ''}">${esc(p.l)}</span>`).join('');
+    cells += `<div class="cell ${cls}" data-b="${key}" data-i="${i}"><div class="ptr">${pl}</div><div class="bx">${ghost ? '✗' : esc(pyrepr(v))}</div><div class="ix">${i}</div></div>`;
+  }
+  if (b.size !== null && b.size >= n && hi < b.size) cells += mark;
+  const meta = b.meta || (b.size !== null ? `size ${b.size} · ${n} slots` : `${plural(n, 'slot')}`);
+  let jump = '';
+  if (ex.jump && key === 'arr') jump = `<div class="jump">address of slot ${ex.jump.i} = start + <b>${ex.jump.i}</b> × (one slot) → one jump, whatever len(arr) is</div>`;
+  if (oob !== null) jump += `<div class="jump" style="color:var(--err)">slot ${oob} does not exist: valid slots are 0 to ${n - 1}</div>`;
+  return `<div class="block ${b.old ? 'old' : ''}"><div class="vlabel"><span>${esc(b.label)}</span><span class="meta">${esc(meta)}</span></div><div class="cells">${cells}</div>${jump}</div>`;
+}
+
+function costsHTML(s) {
+  const costs = s.extra.costs || [], all = state.T.steps[state.T.steps.length - 1].extra.costs || [];
+  const N = Math.max(s.extra.costsN || all.length, 1), maxC = Math.max(1, ...all.map(c => c.c));
+  const W = 420, H = 118, L = 26, R = 6, top = 8, base = H - 18, bw = Math.min(36, (W - L - R) / N);
+  let g = `<line x1="${L}" y1="${base}" x2="${W - R}" y2="${base}" stroke="var(--line)"/>`;
+  g += `<text x="${L - 4}" y="${top + 8}" text-anchor="end">${maxC}</text><text x="${L - 4}" y="${base}" text-anchor="end">0</text>`;
+  const live = s.stack.length > 1;
+  costs.forEach((c, k) => {
+    const h = (base - top) * c.c / maxC;
+    g += `<rect class="bar ${c.rs ? 'rs' : ''} ${k === costs.length - 1 && !live ? 'now' : ''}" x="${L + k * bw + 1}" y="${base - h}" width="${Math.max(1, bw - 2)}" height="${h}" rx="1.5"><title>append ${k + 1}: ${c.c} writes</title></rect>`;
+    if (N <= 20) g += `<text x="${L + k * bw + bw / 2}" y="${H - 5}" text-anchor="middle">${k + 1}</text>`;
+  });
+  const tot = costs.reduce((a, c) => a + c.c, 0);
+  if (costs.length) {
+    const avg = tot / costs.length, y = base - (base - top) * avg / maxC;
+    g += `<line class="avg" x1="${L}" y1="${y}" x2="${L + costs.length * bw}" y2="${y}"/><text class="avgt" x="${L + costs.length * bw + 3 > W - 60 ? W - R : L + costs.length * bw + 3}" y="${y - 3}" text-anchor="${L + costs.length * bw + 3 > W - 60 ? 'end' : 'start'}">avg ${avg.toFixed(2)}</text>`;
+  }
+  return `<div class="costs"><div class="vlabel"><span>Cost of each append (writes)</span><span class="meta">${costs.length} done · ${tot} writes</span></div>` +
+    `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cost of each append">${g}</svg>` +
+    `<div class="legend"><span><i style="border-color:var(--wait);background:var(--wait)"></i>1 write: room in the block</span><span><i style="border-color:var(--err);background:var(--err)"></i>resize: copies + 1</span><span><i style="border-color:var(--done);border-style:dashed"></i>average so far</span></div></div>`;
+}
+
+function renderViews(s) {
+  const box = $('views'), ex = s.extra;
+  let html = '';
+  for (const key of ex.order) html += blockHTML(key, ex.blocks[key], s);
+  if (ex.order.length) html += `<div class="legend"><span><i style="border-color:var(--wait);background:var(--wait-bg)"></i>in use</span><span><i style="border-color:var(--line);border-style:dashed"></i>free</span><span><i style="border-color:var(--hit);background:var(--hit-bg)"></i>read</span><span><i style="border-color:var(--done);background:var(--done-bg)"></i>written</span>` +
+    (Object.values(ex.blocks).some(b => b.size !== null) ? `<span><i style="border-color:var(--accent);border-width:0 0 0 3px;border-radius:0"></i>size boundary</span>` : '') + `</div>`;
+  if ((state.sc.views || []).includes('costs')) html += costsHTML(s);
+  box.innerHTML = html;
+  $('viewMeta').textContent = ex.order.length > 1 ? `${ex.order.length} arrays` : '';
+  animate(s);
+}
+
+/* Moves and copies: each written slot glides in from the slot it was copied from. */
+function animate(s) {
+  if (!state.forward || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const box = $('views');
+  const ms = Math.min(520, delay() * 0.6);
+  for (const f of s.extra.flash) {
+    if (f.k !== 'wr') continue;
+    const el = box.querySelector(`.cell[data-b="${f.b}"][data-i="${f.i}"] .bx`);
+    if (!el || !el.animate) continue;
+    const src = f.from && box.querySelector(`.cell[data-b="${f.from.b}"][data-i="${f.from.i}"] .bx`);
+    if (src) {
+      const a = src.getBoundingClientRect(), b = el.getBoundingClientRect();
+      el.animate([{ transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)`, opacity: .55 }, { transform: 'none', opacity: 1 }], { duration: ms, easing: 'cubic-bezier(.3,.7,.3,1)' });
+    } else {
+      el.animate([{ transform: 'scale(1.25)' }, { transform: 'none' }], { duration: ms, easing: 'ease-out' });
+    }
+  }
+}
+
+function renderOut(s) {
+  const prevLen = state.prevSnap && state.prevSnap !== s ? state.prevSnap.out.length : s.out.length;
+  const forward = state.prevSnap && state.prevSnap.out.length <= s.out.length;
+  $('out').innerHTML = s.out.map((o, i) => `<span class="${o.k} ${forward && i >= prevLen ? 'new' : ''}">${esc(o.t)}</span>`).join('\n');
+  $('out').scrollTop = $('out').scrollHeight;
+}
+
+function renderTransport(s) {
+  const N = state.T.steps.length;
+  $('scrub').value = state.idx;
+  $('pos').textContent = `step ${state.idx} / ${N - 1}`;
+  $('bBack').disabled = state.idx === 0;
+  $('bStep').disabled = $('bOver').disabled = $('bOut').disabled = state.idx >= N - 1;
+  const c = s.counters, sc = state.sc;
+  let html = '';
+  for (const k in (sc.counters || {})) html += `<span>${esc(sc.counters[k])} <b>${c[k] || 0}</b></span>`;
+  $('stats').innerHTML = html;
+  $('nudge').textContent = state.nudge;
+}
+
+/* ---------- controls ---------- */
+function setTheme(t) {
+  if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('array-lab-theme', t || ''); } catch (e) {}
+}
+function wire() {
+  $('bStep').addEventListener('click', () => { stop(); step(); });
+  $('bBack').addEventListener('click', back);
+  $('bOver').addEventListener('click', stepOver);
+  $('bOut').addEventListener('click', stepOut);
+  $('bPlay').addEventListener('click', play);
+  $('bRestart').addEventListener('click', () => { stop(); go(0); });
+  $('scrub').addEventListener('input', e => { stop(); go(+e.target.value); });
+  $('bQuiz').addEventListener('click', () => {
+    state.quiz = !state.quiz;
+    $('bQuiz').innerHTML = `Questions: ${state.quiz ? 'on' : 'off'} <kbd>Q</kbd>`;
+    $('bQuiz').classList.toggle('on', state.quiz);
+    state.nudge = ''; renderNarr(); $('nudge').textContent = '';
+  });
+  $('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(dark ? 'light' : 'dark');
+  });
+  $('fsBtn').addEventListener('click', () => {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); }
+    } catch (e) {}
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+    if (e.target.tagName === 'SELECT') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    const s = snapAt(state.idx);
+    if (s.q && state.quiz && !state.answered.has(state.idx)) {
+      const map = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+      if (k in map && map[k] < s.q.choices.length) { e.preventDefault(); answer(map[k]); return; }
+      if (k === 'v') { e.preventDefault(); answer(-1); return; }
+    }
+    if (k === 'arrowright' || k === ' ') { e.preventDefault(); stop(); step(); }
+    else if (k === 'arrowleft') { e.preventDefault(); back(); }
+    else if (k === 'o') stepOver();
+    else if (k === 'u') stepOut();
+    else if (k === 'p') play();
+    else if (k === 'r') { stop(); go(0); }
+    else if (k === 'e' || k === 'end') { stop(); go(state.T.steps.length - 1); }
+    else if (k === 'q') $('bQuiz').click();
+    else if (k === 'f') $('fsBtn').click();
+  });
+}
+
+/* Self-check: open the page as array-lab.html#selftest to build every
+   scenario with its default input and a few edge inputs. It prints one JSON
+   record per run, which tools can replay in real Python. */
+function selftest() {
+  const recs = [];
+  const extra = {
+    getitem: [{ index: 0 }, { index: 6 }], find_best: [{ values: [7] }], find_missing: [{ values: [1, 7, 7], target: 7 }],
+    insert_middle: [{ index: 9 }, { index: -1 }, { values: [1, 2, 3, null], size: 3, index: 0 }], insert_end: [{ size: 0, index: 0 }],
+    insert_wrong_dir: [{ values: [1, 2, 3, null], size: 3, index: 0 }],
+    remove_middle: [{ index: 6 }, { size: 1, index: 0 }], remove_oob: [{ values: [10, 20, 30, null], size: 3, index: 0 }],
+    remove_noclear: [{ index: 5 }], reverse: [{ values: [1, 2] }, { values: [5] }, { values: [1, 2, 3, 4, 5, 6] }],
+    rotate: [{ k: 0 }, { k: 10 }, { k: 1 }, { values: [9], k: 3 }], resized: [{ new_length: 3 }, { new_length: 0 }, { values: [] }],
+    merge: [{ a: [] }, { a: [1, 2, 2], b: [2, 2] }, { b: [] }], neg_index: [{ index: -7 }],
+    append_double: [{ growth: 3, n: 12 }, { n: 1 }, { n: 18 }], append_plus1: [{ n: 4 }], append_nocopy: [{ n: 2 }],
+    dyn_insert: [{ index: 4 }, { values: [1, 2, 3] }, { index: 6 }, { values: [] , index: 0 }],
+    pop_end: [{ values: [] }, { values: [7] }], pop_front: [{ index: -2 }, { index: 6 }, { index: -7 }, { values: [] }],
+    dyn_getitem: [{ index: -7 }, { index: 9 }, { index: 2 }, { values: [] }],
+  };
+  for (const sc of SCENARIOS) {
+    const base = {}; for (const k in sc.params) base[k] = sc.params[k].def;
+    for (const p of [base, ...(extra[sc.id] || []).map(e => Object.assign({}, base, e))]) {
+      const rec = { id: sc.id, p, cls: sc.cls || (sc.code.startsWith('class DynamicArray') ? 'DynamicArray' : ''), code: sc.code };
+      try {
+        const T = build(sc, p);
+        rec.inputs = T.inputs;
+        rec.outs = T.out.filter(o => o.k !== 'prompt').map(o => [o.k, o.t.split('\n').pop()]);
+        rec.tb = T.out.filter(o => o.k === 'err').map(o => o.t);
+        rec.reads = T.counters.reads; rec.writes = T.counters.writes;
+        rec.steps = T.steps.length;
+        rec.questions = T.steps.filter(x => x.q).length;
+        const nl = sc.code.split('\n').length;
+        rec.bad = [];
+        if (T.steps.some(x => x.line > nl)) rec.bad.push('line out of range');
+        for (const x of T.steps) if (x.q && (x.q.answer < 0 || x.q.choices.length < 3)) rec.bad.push('question: ' + x.q.text);
+        state.sc = sc; state.T = T; state.prevSnap = null; state.forward = false;
+        for (let i = 0; i < T.steps.length; i++) { state.forward = i > 0; state.idx = i; render(); }
+      } catch (e) { rec.crash = e.message + ' ' + (e.stack || '').split('\n')[1]; }
+      recs.push(rec);
+    }
+  }
+  const pre = $('selftest'); pre.hidden = false; pre.textContent = JSON.stringify(recs);
+}
+
+initPicker();
+wire();
+try { const t = localStorage.getItem('array-lab-theme'); if (t) setTheme(t); } catch (e) {}
+let startId = 'insert_middle';
+try { startId = localStorage.getItem('array-lab-scenario') || startId; } catch (e) {}
+/* #insert_middle opens a scenario; #insert_middle@12 also jumps to step 12. */
+const [hashId, hashStep] = location.hash.slice(1).split('@');
+if (SCENARIOS.some(s => s.id === hashId)) startId = hashId;
+loadScenario(startId);
+if (hashStep && SCENARIOS.some(s => s.id === hashId)) go(+hashStep);
+if (location.hash === '#selftest') selftest();
+</script>
+</body>
+</html>
