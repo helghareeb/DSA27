@@ -16,7 +16,8 @@ lang: en
 > the one storage primitive every structure in this course will be built on.
 >
 > Slides: `DSA27-L02-slides.pdf` · Code: `dsa/array.py`, `dsa/array_ops.py` ·
-> Tests: `tests/test_array.py`, `tests/test_array_ops.py`
+> Tests: `tests/test_array.py`, `tests/test_array_ops.py` ·
+> Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html)
 
 :::
 
@@ -715,6 +716,50 @@ Trace both on paper once; it is the most common bug in this week's exercises.
 
 The loop runs size − index times. Index 0: size moves, the worst case. Index
 size: zero moves, which is just writing at the end.
+
+:::
+
+## Watch it run: the Array Lab
+
+[**Array Lab**](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html) — open it in any browser.
+
+- The code, the variables and the **slots**, one step at a time
+- Every **shift** animated; a counter of reads and writes
+- `arr[i]`, `find`, `insert_at`, `remove_at`, `reverse_in_place`, `rotate_left`
+- *What happens next?* — answer before you step
+- Scenarios that **go wrong**: shifting from the front, a stale last slot,
+  one step too far, `arr[-1]`
+
+::: {.handout-only}
+
+The Array Lab is the demo used in the lecture. It runs the code of this week's
+exercises on the course `Array` and shows each step: the line that runs, the
+variables, and the slots, with in-use slots, free slots and the `size`
+boundary drawn differently. Use it to check your hand traces.
+
+- **Online:** <https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html>
+- **Offline:** open `docs/lectures/02-complexity-and-arrays/array-lab.html`
+  from your copy of the repository. It is a single file and needs no
+  installation.
+
+How to use it:
+
+- Pick a scenario at the top. Change the inputs in the `>>>` line and press
+  **Run**.
+- **Step** (→) moves one step and **Back** (←) undoes it. **Step over** (O)
+  runs a whole call (an `append`, a `_resize`, a reversal) in one step;
+  **Step out** (U) finishes the current call. **Play** (P) runs on its own.
+- At the key moments the demo stops with a question. Answer it (A–D) **before**
+  you look; that is where the learning happens.
+
+What to try, in order: `arr[i]` (one slot looked at, whatever n is), `find`
+best case against worst case, `insert_at` at the front against at the end
+(count the shifts), and then every scenario under *Goes wrong*. For each broken
+one, find the bug in the code **before** you step.
+
+The scenarios show code that solves this week's exercises in
+`dsa/array_ops.py`. Write your own version first. The *Dynamic array*
+scenarios belong to Lecture 04.
 
 :::
 
