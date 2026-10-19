@@ -1,0 +1,2339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Linked List Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen classroom console. Code on the left; the picture of the nodes on the right,
+   with the references and the shell under it; transport bar along the bottom. */
+:root {
+  --bg: #e9edf2;
+  --panel: #ffffff;
+  --panel-2: #f4f6f9;
+  --ink: #142033;
+  --muted: #5a6679;
+  --line: #d3d9e2;
+  --accent: #c76a00;        /* the running line, the link about to change: a highlighter */
+  --accent-bg: #ffefcc;
+  --wait: #3456c7;          /* references held in variables */
+  --wait-bg: #e6ecfc;
+  --done: #23803a;          /* a link that just changed */
+  --done-bg: #e2f4e6;
+  --err: #c92a3a;
+  --err-bg: #fde4e7;
+  --hit: #0b7a8a;           /* prev links in a doubly linked list */
+  --hit-bg: #dcf3f6;
+  --kw: #8a2bb8; --str: #237a3a; --num: #b4520b; --com: #7b8798; --fn: #1d5fd0;
+  --shadow: 0 1px 2px rgba(20,32,51,.06), 0 4px 14px rgba(20,32,51,.06);
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-code: "JetBrains Mono", Consolas, "Cascadia Mono", ui-monospace, monospace;
+  --code-size: clamp(13px, 1.02vw, 19px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d121a; --panel: #151c27; --panel-2: #1b2431; --ink: #e5eaf2; --muted: #95a1b4; --line: #2a3546;
+    --accent: #f3a43a; --accent-bg: #3b2a0e; --wait: #8ea6ff; --wait-bg: #1d2747; --done: #5fd07a; --done-bg: #15301d;
+    --err: #ff7a86; --err-bg: #3d1820; --hit: #4fd2e2; --hit-bg: #123338;
+    --kw: #d39bff; --str: #8ad79a; --num: #ffb86b; --com: #7d8aa0; --fn: #7fb0ff;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d121a; --panel: #151c27; --panel-2: #1b2431; --ink: #e5eaf2; --muted: #95a1b4; --line: #2a3546;
+  --accent: #f3a43a; --accent-bg: #3b2a0e; --wait: #8ea6ff; --wait-bg: #1d2747; --done: #5fd07a; --done-bg: #15301d;
+  --err: #ff7a86; --err-bg: #3d1820; --hit: #4fd2e2; --hit-bg: #123338;
+  --kw: #d39bff; --str: #8ad79a; --num: #ffb86b; --com: #7d8aa0; --fn: #7fb0ff;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  display: flex; flex-direction: column;
+  padding-inline: 16px; padding-block: 10px;
+  gap: 10px;
+}
+body, code, pre, .mono, svg text, input { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+code, pre, .mono { font-family: var(--f-code); }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- top bar ---------- */
+.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand b { font-size: 22px; letter-spacing: -.01em; }
+.brand span { color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.picker { display: flex; align-items: center; gap: 8px; flex: 1 1 320px; min-width: 0; }
+.picker select {
+  flex: 1 1 auto; min-width: 0; max-width: 560px;
+  padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel);
+  font-size: 16px; font-weight: 700;
+}
+.top .tools { display: flex; gap: 6px; }
+
+/* ---------- main grid ---------- */
+main {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; gap: 10px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .56fr) minmax(0, .62fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "code pic pic" "code vars shell";
+}
+.code-pane { grid-area: code; } .pic-pane { grid-area: pic; } .vars-pane { grid-area: vars; } .shell-pane { grid-area: shell; }
+.pane {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden;
+}
+.pane-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border-bottom: 1px solid var(--line);
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.pane-head .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-family: var(--f-code); font-size: 12px; text-align: right; }
+
+/* ---------- code pane ---------- */
+.about { padding: 8px 14px 0; display: flex; flex-direction: column; gap: 4px; }
+.about h1 { margin: 0; font-size: 20px; line-height: 1.2; text-wrap: balance; }
+.about p { margin: 0; color: var(--muted); font-size: 14px; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.badge.works { background: var(--done-bg); color: var(--done); }
+.badge.wrong { background: var(--err-bg); color: var(--err); }
+.badge.cost { background: var(--accent-bg); color: var(--accent); }
+.badge.ex { background: var(--wait-bg); color: var(--wait); }
+
+.callstrip {
+  margin: 8px 14px 0; padding: 6px 10px; border-radius: 8px; background: var(--panel-2);
+  font-family: var(--f-code); font-size: var(--code-size);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
+}
+.callstrip .ps { color: var(--muted); margin-right: 6px; }
+.callstrip .br { flex-basis: 100%; height: 0; }
+.callstrip input {
+  font-family: var(--f-code); font-size: inherit; padding: 1px 6px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--num);
+  min-width: 2.5ch; max-width: 100%; field-sizing: content;
+}
+.callstrip input.bad { border-color: var(--err); background: var(--err-bg); }
+.callstrip .run { margin-left: auto; }
+.callerr { margin: 4px 14px 0; color: var(--err); font-size: 13px; min-height: 0; }
+
+.code {
+  margin: 8px 14px; padding: 6px 0; border-radius: 8px; border: 1px solid var(--line);
+  font-family: var(--f-code); font-size: var(--code-size); line-height: 1.45;
+  overflow: auto; flex: 0 1 auto; min-height: 110px;
+}
+.ln { display: flex; align-items: center; min-width: max-content; padding-right: 10px; position: relative; }
+.ln .no { width: 3ch; text-align: right; color: var(--com); padding-right: 12px; flex: 0 0 auto; user-select: none; }
+.ln .src { white-space: pre; flex: 0 0 auto; }
+.ln .tags { display: flex; gap: 4px; margin-left: 14px; flex: 0 0 auto; }
+.ln .tag { font-family: var(--f-body); font-size: 12px; font-weight: 700; padding: 0 7px; border-radius: 999px; line-height: 1.6; }
+.ln .tag.w { background: var(--wait-bg); color: var(--wait); }
+.ln .tag.a { background: var(--accent); color: var(--panel); }
+.ln .tag.r { background: var(--done); color: var(--panel); }
+.ln .tag.e { background: var(--err); color: var(--panel); }
+.ln.cur { background: var(--accent-bg); box-shadow: inset 4px 0 0 var(--accent); }
+.ln.ret { background: var(--done-bg); box-shadow: inset 4px 0 0 var(--done); }
+.ln.errl { background: var(--err-bg); box-shadow: inset 4px 0 0 var(--err); }
+.ln.waitl { box-shadow: inset 4px 0 0 var(--wait); }
+.ln.bug .no { color: var(--err); font-weight: 700; }
+.t-kw { color: var(--kw); font-weight: 600; } .t-str { color: var(--str); } .t-num { color: var(--num); }
+.t-com { color: var(--com); font-style: italic; } .t-fn { color: var(--fn); font-weight: 700; } .t-bi { color: var(--fn); }
+
+.narr { margin: 0 14px 12px; flex: 1 0 100px; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.say { font-size: clamp(15px, 1.15vw, 21px); line-height: 1.45; max-width: 62ch; }
+.say code, .qtext code, .choice code, .why code { font-size: .92em; background: var(--panel-2); padding: 0 4px; border-radius: 4px; }
+.say.err { color: var(--err); }
+.narr:has(.qcard) .say { font-size: clamp(14px, 1.0vw, 18px); }
+.narr:has(.qcard) { flex-basis: 52%; }
+
+/* question card */
+.qcard { border: 2px solid var(--accent); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 10px; }
+.qlabel { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.qtext { font-size: clamp(16px, 1.3vw, 23px); font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.choice {
+  display: flex; gap: 10px; align-items: flex-start; text-align: left;
+  padding: 7px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer;
+  font-size: clamp(14px, 1.0vw, 18px); line-height: 1.3;
+}
+.choice:hover { border-color: var(--accent); }
+.choice .k { font-family: var(--f-code); font-weight: 700; color: var(--accent); flex: 0 0 auto; }
+.choice.right { border-color: var(--done); background: var(--done-bg); }
+.choice.wrong { border-color: var(--err); background: var(--err-bg); }
+.choice[disabled] { cursor: default; }
+.why { font-size: clamp(14px, 1.05vw, 19px); line-height: 1.45; padding: 8px 12px; border-radius: 8px; background: var(--panel-2); }
+.why b { color: var(--done); }
+.qactions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- references pane ---------- */
+.varwrap { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.frame {
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--panel);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.frame .fh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.frame .fname { font-family: var(--f-code); font-weight: 700; font-size: clamp(13px, .95vw, 17px); overflow-wrap: anywhere; }
+.frame .chip { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.frame .locals { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 10px; row-gap: 1px; font-family: var(--f-code); font-size: clamp(13px, .92vw, 16px); }
+.frame .locals .k { color: var(--muted); }
+.frame .locals .v { overflow-wrap: anywhere; }
+.frame .locals .tmp { font-style: italic; }
+.frame .locals .ref { color: var(--wait); font-weight: 600; }
+.frame .locals .chg { background: var(--done-bg); border-radius: 4px; }
+.frame .fnote { font-size: 13px; color: var(--muted); }
+.frame.obj { border-color: var(--ink); border-width: 1.5px; }
+.frame.obj .chip { background: var(--panel-2); color: var(--muted); }
+.frame.active { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 1px var(--accent); }
+.frame.active .chip { background: var(--accent); color: var(--panel); }
+.frame.waiting { border-color: var(--wait); }
+.frame.waiting .chip { background: var(--wait-bg); color: var(--wait); }
+.frame.returning { border-color: var(--done); background: var(--done-bg); box-shadow: 0 0 0 1px var(--done); }
+.frame.returning .chip { background: var(--done); color: var(--panel); }
+.frame.error { border-color: var(--err); background: var(--err-bg); }
+.frame.error .chip { background: var(--err); color: var(--panel); }
+.frame.module { background: var(--panel-2); border-style: dashed; }
+.frame.module .chip { background: var(--line); color: var(--muted); }
+.frame.new { animation: push .32s ease-out; }
+@keyframes push { from { transform: translateY(-10px); opacity: .2; } to { transform: none; opacity: 1; } }
+.varfoot { padding: 6px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+/* ---------- picture pane ---------- */
+.views { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.picbox { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: safe center; overflow-x: auto; }
+.picbox svg { display: block; max-width: 100%; max-height: 100%; width: 100%; height: auto; }
+svg text { font-family: var(--f-code); }
+.nd { transition: transform .38s ease, opacity .38s ease; }
+.nd rect.box { fill: var(--panel-2); stroke: var(--ink); stroke-width: 1.6; }
+.nd line.div { stroke: var(--ink); stroke-width: 1.2; }
+.nd text.v { fill: var(--ink); font-size: 17px; font-weight: 700; }
+.nd line.none { stroke: var(--muted); stroke-width: 1.4; }
+.nd circle.dot { fill: var(--ink); }
+.nd circle.dot.p { fill: var(--hit); }
+.nd.ref rect.box { stroke: var(--wait); stroke-width: 2.4; fill: var(--wait-bg); }
+.nd.focus rect.box { stroke: var(--accent); stroke-width: 3; fill: var(--accent-bg); }
+.nd.fresh rect.box { stroke: var(--done); stroke-width: 2.6; }
+.nd.sent rect.box { fill: var(--line); stroke-dasharray: 5 3; }
+.nd.sent text.v { fill: var(--muted); font-size: 12px; font-weight: 400; }
+.nd.garbage { opacity: .38; }
+.nd.garbage rect.box { stroke-dasharray: 4 3; }
+.nd text.gone { fill: var(--err); font-size: 11px; font-weight: 700; font-family: var(--f-body); }
+.nd.born { animation: pop .34s ease-out; }
+@keyframes pop { from { opacity: 0; } to { opacity: 1; } }
+.ar { fill: none; stroke: var(--ink); stroke-width: 1.8; transition: d .38s ease, opacity .3s; }
+.ar.p { stroke: var(--hit); }
+.ar.hot { stroke: var(--accent); stroke-width: 3.2; stroke-dasharray: 7 4; }
+.ar.chg { stroke: var(--done); stroke-width: 3.2; }
+.ar.garbage { opacity: .3; }
+.tg { transition: transform .38s ease, opacity .3s; }
+.tg rect { fill: var(--wait-bg); stroke: var(--wait); stroke-width: 1.2; }
+.tg text { fill: var(--wait); font-size: 12.5px; font-weight: 700; }
+.tg line { stroke: var(--wait); stroke-width: 1.4; }
+.tg.self rect { fill: var(--ink); stroke: var(--ink); }
+.tg.self text { fill: var(--panel); }
+.tg.self line { stroke: var(--ink); }
+.tg.tmp rect { fill: var(--panel); stroke-dasharray: 3 2; }
+.tg.tmp text { font-style: italic; }
+.tg.hot rect { fill: var(--accent); stroke: var(--accent); }
+.tg.hot text { fill: var(--panel); }
+.tg.hot line { stroke: var(--accent); stroke-width: 2.4; }
+.tg.chg rect { fill: var(--done); stroke: var(--done); }
+.tg.chg text { fill: var(--panel); }
+.tg.isnone rect { fill: var(--panel); stroke: var(--muted); stroke-dasharray: 3 2; }
+.tg.isnone text { fill: var(--muted); }
+.tg.isnone line { stroke: var(--muted); }
+.nonemark text { fill: var(--muted); font-size: 13px; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 18px; height: 0; display: inline-block; border-top: 3px solid; }
+.legend i.box { width: 12px; height: 12px; border-radius: 3px; border: 2px solid; }
+
+.out { margin: 0; padding: 8px 12px; overflow: auto; font-size: clamp(13px, .92vw, 16px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; flex: 1 1 auto; }
+.out .prompt { color: var(--muted); } .out .ret { color: var(--done); font-weight: 700; } .out .err { color: var(--err); } .out .print { color: var(--ink); }
+.out .ret.new, .out .err.new { background: var(--accent-bg); }
+
+/* ---------- transport ---------- */
+.transport {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; box-shadow: var(--shadow);
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2);
+  font-weight: 700; font-size: 14px; white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn.on { background: var(--wait-bg); border-color: var(--wait); color: var(--wait); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.btn kbd { font-family: var(--f-code); font-size: 11px; font-weight: 400; opacity: .75; }
+.group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.scrub { display: flex; align-items: center; gap: 8px; flex: 1 1 200px; min-width: 160px; }
+.scrub input { flex: 1 1 auto; min-width: 0; accent-color: var(--accent); }
+.scrub .pos { font-family: var(--f-code); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.stats b { color: var(--ink); font-family: var(--f-code); font-size: 15px; font-variant-numeric: tabular-nums; }
+.speed { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.speed input { width: 90px; accent-color: var(--accent); }
+.nudge { color: var(--err); font-size: 13px; font-weight: 700; }
+
+@media (max-width: 1150px) {
+  html, body { height: auto; }
+  main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "pic pic" "code vars" "code shell"; }
+  .pic-pane { min-height: 340px; }
+  .code-pane { min-height: 620px; }
+  .vars-pane, .shell-pane { max-height: 420px; }
+  .transport { position: sticky; bottom: 0; z-index: 2; }
+}
+@media (max-width: 760px) {
+  main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "code" "pic" "vars" "shell"; }
+  .code-pane { min-height: 0; }
+  .pic-pane { min-height: 260px; }
+  .narr { flex-basis: auto; }
+  .vars-pane, .shell-pane { max-height: 60vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame.new, .nd.born { animation: none; }
+  .nd, .ar, .tg { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>Linked List Lab</b><span>DSA27 · Lecture 05</span></div>
+  <div class="picker">
+    <label for="scenario" class="mono" style="color:var(--muted);font-size:13px">Scenario</label>
+    <select id="scenario"></select>
+  </div>
+  <div class="tools">
+    <button class="btn" id="themeBtn" title="Switch light / dark">Theme</button>
+    <button class="btn" id="fsBtn" title="Full screen (F)">Full screen</button>
+  </div>
+</header>
+
+<main>
+  <section class="pane code-pane">
+    <div class="pane-head"><span>Code</span><span class="meta" id="lineInfo"></span></div>
+    <div class="about">
+      <div class="badges" id="badges"></div>
+      <h1 id="scTitle"></h1>
+      <p id="scBlurb"></p>
+    </div>
+    <div class="callstrip" id="callstrip"></div>
+    <div class="callerr" id="callerr"></div>
+    <div class="code" id="code"></div>
+    <div class="narr" id="narr"></div>
+  </section>
+
+  <section class="pane pic-pane">
+    <div class="pane-head"><span id="viewTitle">The nodes</span><span class="meta" id="viewMeta"></span></div>
+    <div class="views" id="views">
+      <div class="picbox" id="picbox"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section class="pane vars-pane">
+    <div class="pane-head"><span>References</span><span class="meta" id="varInfo"></span></div>
+    <div class="varwrap" id="vars"></div>
+    <div class="varfoot">A variable does not hold a node. It holds a <b>reference</b> to one: the arrow in the picture.</div>
+  </section>
+
+  <section class="pane shell-pane">
+    <div class="pane-head"><span>Python shell</span></div>
+    <pre class="out" id="out"></pre>
+  </section>
+</main>
+
+<footer class="transport">
+  <div class="group">
+    <button class="btn" id="bRestart" title="Back to the start (R)">Restart <kbd>R</kbd></button>
+    <button class="btn" id="bBack" title="One step back (Left arrow)">Back <kbd>&larr;</kbd></button>
+    <button class="btn primary" id="bStep" title="One step (Right arrow or Space)">Step <kbd>&rarr;</kbd></button>
+    <button class="btn" id="bOver" title="Finish the walk: run the rest of this loop in one step (O)">Skip loop <kbd>O</kbd></button>
+    <button class="btn" id="bOut" title="Finish this method and go back to its caller (U)">Step out <kbd>U</kbd></button>
+    <button class="btn" id="bPlay" title="Play / pause (P)">Play <kbd>P</kbd></button>
+  </div>
+  <div class="speed"><label for="speed">Speed</label><input type="range" id="speed" min="1" max="10" value="5"></div>
+  <div class="scrub"><input type="range" id="scrub" min="0" max="0" value="0" aria-label="Jump to step"><span class="pos" id="pos"></span></div>
+  <button class="btn on" id="bQuiz" title="Pause on questions (Q)">Questions: on <kbd>Q</kbd></button>
+  <div class="stats" id="stats"></div>
+  <span class="nudge" id="nudge"></span>
+</footer>
+
+<pre id="selftest" hidden></pre>
+
+<script>
+/* =====================================================================
+   ENGINE. Every scenario is a JavaScript mirror of the Python shown on
+   screen. It runs once, and the Tracer records a snapshot at every step,
+   so Back and the scrubber are just an index into that list.
+   The heap holds the nodes; a reference to node 3 is written {n: 3}.
+   ===================================================================== */
+
+class PyErr extends Error {
+  constructor(type, msg, extra) { super(msg); this.type = type; this.extra = extra || {}; }
+}
+
+const SELF = { self: true };
+const R = id => (id === null || id === undefined ? null : { n: id });     // a reference to node id
+const idOf = v => (v && v.n !== undefined ? v.n : null);
+const isRef = v => !!(v && v.n !== undefined);
+
+function pyrepr(v) {
+  if (v === null || v === undefined) return 'None';
+  if (typeof v === 'string') return "'" + v.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  if (typeof v === 'boolean') return v ? 'True' : 'False';
+  if (Array.isArray(v)) return '[' + v.map(pyrepr).join(', ') + ']';
+  if (v && v.self) return 'self';
+  if (v && v.obj) return v.obj;
+  return String(v);
+}
+const C = v => '`' + pyrepr(v) + '`';           // a value, as code, in a message
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+const plural = (k, w) => k + ' ' + w + (k === 1 ? '' : 's');
+
+class Tracer {
+  constructor(sc, p) {
+    this.sc = sc; this.p = p;
+    this.codeLines = sc.code.split('\n');
+    this.steps = []; this.heap = []; this.ids = 0;
+    this.fields = [];                       // the list object's attributes: [name, value]
+    this.out = [];
+    this.counters = { hops: 0, links: 0 };
+    this.stack = [{ id: 0, fn: '<module>', label: '<module>', line: 0, locals: [], status: 'active', note: '' }];
+    this.lastX = {}; this.freeX = {};
+    this.prevLinks = null; this.lastSet = null;
+  }
+  get top() { return this.stack[this.stack.length - 1]; }
+  get depth() { return this.stack.length - 1; }
+  get mod() { return this.stack[0]; }
+
+  /* ---- the heap ---- */
+  node(id) { return this.heap[id]; }
+  newNode(v, o) {
+    o = o || {};
+    const nd = { id: this.heap.length, v, next: o.next === undefined ? null : o.next, prev: o.prev === undefined ? null : o.prev,
+                 sent: !!o.sent, ix: o.ix === undefined ? this.heap.length : o.ix };
+    this.heap.push(nd);
+    if (nd.next !== null) this.counters.links++;
+    if (nd.prev !== null) this.counters.links++;
+    return nd.id;
+  }
+  name(id) {
+    if (id === null || id === undefined) return 'None';
+    const nd = this.heap[id];
+    return nd.sent ? 'the sentinel' : `Node(${pyrepr(nd.v)})`;
+  }
+  nm(id) { return id !== null && this.heap[id].sent ? 'the sentinel' : '`' + this.name(id) + '`'; }
+  nx(id) { return this.heap[id].next; }
+  pv(id) { return this.heap[id].prev; }
+  val(id) { return this.heap[id].v; }
+  setNext(id, to) { if (this.heap[id].next !== to) this.counters.links++; this.heap[id].next = to; }
+  setPrev(id, to) { if (this.heap[id].prev !== to) this.counters.links++; this.heap[id].prev = to; }
+  F(name) { const e = this.fields.find(x => x[0] === name); return e ? e[1] : undefined; }
+  Fid(name) { return idOf(this.F(name)); }
+  setF(name, v, quiet) {
+    const e = this.fields.find(x => x[0] === name);
+    if (!quiet && name !== '_size' && (!e || idOf(e[1]) !== idOf(v))) this.counters.links++;
+    if (e) e[1] = v; else this.fields.push([name, v]);
+  }
+  get size() { return this.F('_size'); }
+  set size(v) { this.setF('_size', v); }
+  chainStart() { const s = this.F('sentinel'); return s !== undefined ? idOf(s) : this.Fid('head'); }
+  /* the values met walking next from the first real node (a cycle is cut at `cap`) */
+  values(cap) {
+    const out = []; let id = this.chainStart();
+    if (this.F('sentinel') !== undefined && id !== null) id = this.heap[id].next;
+    while (id !== null && out.length < (cap || 1000)) { out.push(this.heap[id].v); id = this.heap[id].next; }
+    return out;
+  }
+  backValues() {
+    const out = []; let id = this.Fid('tail');
+    while (id !== null && out.length < 1000) { out.push(this.heap[id].v); id = this.heap[id].prev; }
+    return out;
+  }
+
+  /* ---- frames ---- */
+  set(name, val, frame) {
+    const L = (frame || this.top).locals, e = L.find(x => x[0] === name);
+    if (e) e[1] = val; else L.push([name, val]);
+    if (!frame) this.lastSet = name;
+  }
+  get(name) { const e = this.top.locals.find(x => x[0] === name); return e ? e[1] : undefined; }
+  unset(name, frame) { const f = frame || this.top; f.locals = f.locals.filter(x => x[0] !== name); }
+  tmp(id) { this.set('(new node)', R(id)); }
+  untmp() { this.unset('(new node)'); }
+  hop() { this.counters.hops++; }
+
+  /* ---- where each node is drawn ---- */
+  layout() {
+    const H = this.heap, start = this.chainStart();
+    const chain = [], seen = new Set();
+    for (let id = start; id !== null && !seen.has(id); id = H[id].next) { seen.add(id); chain.push(id); }
+    const alive = new Set(), todo = [];
+    const root = v => { const id = idOf(v); if (id !== null) todo.push(id); };
+    this.fields.forEach(f => root(f[1]));
+    this.stack.forEach(f => f.locals.forEach(l => root(l[1])));
+    while (todo.length) {
+      const id = todo.pop(); if (alive.has(id)) continue; alive.add(id);
+      if (H[id].next !== null) todo.push(H[id].next);
+      if (H[id].prev !== null) todo.push(H[id].prev);
+    }
+    const pos = {};
+    if (this.sc.fixed) {
+      for (const nd of H) pos[nd.id] = { x: nd.ix, row: 0 };
+    } else {
+      const idx = new Map(chain.map((id, i) => [id, i]));
+      chain.forEach((id, i) => { pos[id] = { x: i, row: 0 }; this.lastX[id] = i; });
+      for (const nd of H) {
+        if (idx.has(nd.id)) continue;
+        const was = nd.id in this.lastX;
+        let x;
+        if (!was && nd.next !== null && idx.has(nd.next)) x = idx.get(nd.next) - 0.5;
+        else if (!was && nd.prev !== null && idx.has(nd.prev)) x = idx.get(nd.prev) + 0.5;
+        else if (was) x = this.lastX[nd.id];
+        else { if (!(nd.id in this.freeX)) this.freeX[nd.id] = chain.length; x = this.freeX[nd.id]; }
+        pos[nd.id] = { x, row: 1 };
+      }
+    }
+    const garbage = H.filter(nd => !alive.has(nd.id)).map(nd => nd.id);
+    return { chain, pos, garbage };
+  }
+  links() {
+    const L = {};
+    for (const nd of this.heap) { L['n' + nd.id] = nd.next; L['p' + nd.id] = nd.prev; }
+    for (const [k, v] of this.fields) if (k !== '_size') L['f' + k] = idOf(v);
+    return L;
+  }
+
+  snap(msg, opt) {
+    opt = opt || {};
+    if (this.steps.length > 3000) throw new Error('too many steps');
+    const lay = this.layout(), links = this.links(), chg = [];
+    if (this.prevLinks) for (const k in links) if (k in this.prevLinks && this.prevLinks[k] !== links[k]) chg.push(k);
+    this.prevLinks = links;
+    let focus = opt.focus === undefined ? null : opt.focus;
+    if (opt.focus === undefined && this.lastSet) { const v = this.get(this.lastSet); if (isRef(v)) focus = v.n; }
+    this.lastSet = null;
+    this.steps.push(structuredClone({
+      line: this.top.line, stack: this.stack, depth: this.depth, heap: this.heap, fields: this.fields,
+      out: this.out, counters: this.counters, pos: lay.pos, garbage: lay.garbage, chain: lay.chain,
+      hot: opt.hot || [], chg, focus, msg, kind: opt.kind || '', q: null, loop: opt.loop || null
+    }));
+  }
+  at(line, msg, opt) { const f = this.top; f.line = line; f.status = 'active'; this.snap(msg, opt); }
+
+  /* A question about what happens NEXT, shown on the step just recorded. */
+  ask(text, correct, distractors, why) {
+    const seen = new Set([String(correct)]), opts = [String(correct)];
+    for (const d of distractors) { const s = String(d); if (!seen.has(s) && opts.length < 4) { seen.add(s); opts.push(s); } }
+    let h = 0; for (const ch of text) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const order = opts.map((o, i) => [o, (h ^ (i * 2654435761)) >>> 0 ^ (i * 7919)]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+    this.steps[this.steps.length - 1].q = { text, choices: order, answer: order.indexOf(String(correct)), why };
+  }
+
+  call(fn, args, label, msg, line) {
+    const caller = this.top;
+    caller.status = 'waiting';
+    caller.note = 'waiting for ' + label;
+    const f = { id: ++this.ids, fn, label, line: line || 1, locals: args.map(a => [a[0], a[1]]), status: 'active', note: '' };
+    this.stack.push(f);
+    this.snap(msg || `Call \`${label}\`. Python makes a new frame for it, with its own local variables.`);
+    return f;
+  }
+
+  ret(val, line, msg) {
+    const f = this.top;
+    f.line = line; f.status = 'returning'; f.ret = val;
+    this.snap(msg || `Return ${C(val)}.`);
+    this.stack.pop();
+    const c = this.top;
+    c.status = 'active';
+    const none = val === null || val === undefined;
+    if (c.fn === '<module>') {
+      if (!none) this.out.push({ k: 'ret', t: pyrepr(val), fresh: true });
+      c.note = none ? 'finished' : 'result: ' + pyrepr(val);
+      this.snap(`\`${f.label}\` is finished and its frame is gone, with all its local variables. What it changed in the nodes stays.` +
+                (none ? '' : ` The shell prints the result, ${C(val)}.`));
+    } else {
+      c.note = none ? `${f.label} finished` : `${f.label} returned ${pyrepr(val)}`;
+      this.snap(`\`${f.label}\` is finished. \`${c.label}\` carries on from line ${c.line}.`);
+    }
+    return val;
+  }
+
+  /* An exception: every frame on the stack is abandoned. */
+  raise(e) {
+    const frames = this.stack.slice(1);
+    for (const f of frames) f.status = 'error';
+    if (frames.length) this.top.note = `${e.type}: ${e.message}`;
+    const tb = ['Traceback (most recent call last):', '  File "<stdin>", line 1, in <module>'];
+    for (const f of frames) tb.push(`  File "lab.py", line ${f.line}, in ${f.fn}\n    ${(this.codeLines[f.line - 1] || '').trim()}`);
+    tb.push(`${e.type}: ${e.message}`);
+    this.out.push({ k: 'err', t: tb.join('\n'), fresh: true });
+    this.snap(`**${e.type}: ${e.message}.** ${e.extra.why || ''}`, { kind: 'err' });
+    this.stack = [this.stack[0]];
+    this.stack[0].status = 'error';
+    this.stack[0].note = `${e.type}: no result`;
+  }
+
+  /* A line typed at the shell, outside the traced method. */
+  prompt(text) { this.out.push({ k: 'prompt', t: '>>> ' + text }); }
+  probe(text, fn) {
+    this.prompt(text);
+    try {
+      const v = fn();
+      if (v !== null && v !== undefined) this.out.push({ k: 'ret', t: typeof v === 'object' && v.raw ? v.raw : pyrepr(v), fresh: true });
+    } catch (e) {
+      if (!(e instanceof PyErr)) throw e;
+      this.out.push({ k: 'err', t: `Traceback (most recent call last):\n  ...\n${e.type}: ${e.message}`, fresh: true });
+    }
+  }
+}
+
+/* What the shell prints for the list object, and for ll[i] (the course __getitem__). */
+function reprList(T) { return { raw: `${KINDS[T.sc.kind].cls}([${T.values().map(pyrepr).join(', ')}])` }; }
+function getItem(T, index) {
+  const size = T.size;
+  const i = index < 0 ? index + size : index;
+  if (!(0 <= i && i < size)) throw new PyErr('IndexError', String(i));
+  let id = T.Fid('head');
+  for (let k = 0; k < i; k++) {
+    if (id === null) throw new PyErr('AttributeError', "'NoneType' object has no attribute 'next'");
+    id = T.nx(id);
+  }
+  if (id === null) throw new PyErr('AttributeError', "'NoneType' object has no attribute 'value'");
+  return T.val(id);
+}
+function findIndex(T, value) {
+  let i = 0, id = T.Fid('head');
+  while (id !== null) { if (T.val(id) === value) return i; id = T.nx(id); i++; }
+  return -1;
+}
+
+
+/* ---------------------------------------------------------------------
+   Scenarios. `code` is exactly what students see. The mirror calls
+   T.at(line, ...) with the line numbers of that code. `strip` is the
+   editable shell input: plain text, parameter names, and '\n' between
+   shell lines. The last shell line is the call that is traced.
+   --------------------------------------------------------------------- */
+const SCENARIOS = [];
+const def = sc => SCENARIOS.push(sc);
+const GROUPS = {
+  singly: 'Singly linked list',
+  tricks: 'Singly: a tail reference, a sentinel',
+  doubly: 'Doubly linked list',
+  wrong: 'Goes wrong',
+};
+const KINDS = {
+  singly: { cls: 'LinkedList', obj: 'll' },
+  tail: { cls: 'LinkedList', obj: 'll' },
+  sentinel: { cls: 'SentinelList', obj: 'sl' },
+  doubly: { cls: 'DoublyLinkedList', obj: 'dl', dbl: true },
+};
+const valList = (def, min, max) => ({ type: 'list', def, minLen: min === undefined ? 0 : min, maxLen: max || 7,
+  check: v => v.every(x => (typeof x === 'number' && Number.isInteger(x) && Math.abs(x) < 1000) || (typeof x === 'string' && x.length <= 4)) || 'Use whole numbers (or short strings) only.' });
+const intP = (def, min, max) => ({ type: 'int', def, min, max });
+const valP = def => ({ type: 'value', def });
+const listStrip = (kind, rest) => [`${KINDS[kind].obj} = ${KINDS[kind].cls}(`, 'values', ')', '\n', ...rest];
+
+/* Build the list the way __init__ would, without tracing it. */
+function setupList(T, kind, values) {
+  if (kind === 'sentinel') {
+    const s = T.newNode(null, { sent: true, ix: -1 });
+    let last = s;
+    values.forEach((v, i) => { const id = T.newNode(v, { ix: i }); T.heap[last].next = id; last = id; });
+    T.setF('sentinel', R(s), true);
+  } else {
+    let first = null, last = null;
+    values.forEach((v, i) => {
+      const id = T.newNode(v, { ix: i, prev: kind === 'doubly' ? last : null });
+      if (last === null) first = id; else T.heap[last].next = id;
+      last = id;
+    });
+    T.setF('head', R(first), true);
+    if (kind === 'doubly') T.setF('tail', R(last), true);
+    if (kind === 'tail') T.setF('_tail', R(last), true);
+  }
+  T.setF('_size', values.length, true);
+  T.set(KINDS[kind].obj, { obj: KINDS[kind].obj }, T.mod);
+}
+const stdProbes = kind => (T) => {
+  const o = KINDS[kind].obj, P = [[o, T => reprList(T)], [`len(${o})`, T => T.size]];
+  if (kind === 'doubly') P.push([`${o}.backward()`, T => T.backValues()]);
+  return P;
+};
+
+/* ==== the course code: dsa/linked_list.py ============================= */
+
+const S_PUSH_FRONT = `def push_front(self, value):
+    self.head = Node(value, self.head)       # the new node points at the old head
+    self._size += 1`;
+
+function sPushFront(T, value, o, top) {
+  T.call('push_front', [['self', SELF], ['value', value]], `push_front(${pyrepr(value)})`, null, o + 1);
+  const head = T.Fid('head');
+  const id = T.newNode(value, { next: head });
+  T.tmp(id);
+  T.at(o + 2, `The right-hand side runs first: \`Node(value, self.head)\` makes a new node holding ${C(value)}. Its \`next\` is ${head === null ? '`None`: the list was empty' : 'the current first node, ' + T.nm(head)}. The list itself has not changed yet.`, { hot: ['fhead'], focus: id });
+  if (top) T.ask('The assignment now stores the new node in `self.head`. How many nodes must push_front walk past to do that?',
+    'None: it changes one reference, the head', ['Every node in the list', 'Half of them, on average', 'Only the last one'],
+    'push_front never walks. It makes one node and changes one reference, however long the list is: O(1).');
+  T.setF('head', R(id)); T.untmp();
+  T.at(o + 2, `Now the assignment: \`self.head\` refers to the new node, so it is first, and the old first node is second. Nothing was walked: O(1).`, { focus: id });
+  T.size = T.size + 1;
+  T.at(o + 3, `\`self._size\` goes up to ${T.size}. Keeping the count as we go is what makes \`len\` O(1).`);
+  return T.ret(null, o + 3, `push_front returns None.`);
+}
+def({
+  id: 'push_front', group: 'singly', kind: 'singly', title: 'push_front: O(1) at the head',
+  blurb: 'Make the node, point it at the old head, move the head. Two references, no walking, whatever the length.',
+  code: S_PUSH_FRONT, py: 'singly',
+  params: { values: valList([2, 3, 4]), value: valP(1) },
+  strip: listStrip('singly', ['ll.push_front(', 'value', ')']),
+  run: (T, p) => sPushFront(T, p.value, 0, true),
+  probes: stdProbes('singly'),
+});
+
+const S_APPEND = `def append(self, value):
+    node = Node(value)
+    if self.head is None:
+        self.head = node
+    else:
+        current = self.head
+        while current.next is not None:     # walk to the last node: O(n)
+            current = current.next
+        current.next = node
+    self._size += 1`;
+
+function sAppend(T, value, bug) {
+  T.call('append', [['self', SELF], ['value', value]], `append(${pyrepr(value)})`);
+  const id = T.newNode(value);
+  T.set('node', R(id));
+  T.at(2, `Make the new node first. It is not in the list yet. Its \`next\` is \`None\`, because it is going to be the last node.`);
+  const head = T.Fid('head');
+  T.at(3, head === null ? 'Is the list empty? `self.head` is `None`: **yes**.' : `Is the list empty? \`self.head\` is ${T.nm(head)}: no.`);
+  if (head === null) {
+    T.setF('head', R(id));
+    T.at(4, 'The new node becomes the first node, so there is nothing to walk.', { focus: id });
+  } else {
+    T.set('current', R(head));
+    T.at(6, `\`current\` starts at the first node. The list only knows its head, so to reach the end we have to walk.`);
+    if (T.size >= 2) T.ask(`How many times will line 8, \`current = current.next\`, run on this list of ${T.size} nodes?`, T.size - 1, [T.size, 1, 0],
+      `The walk stops ON the last node, so it moves ${T.size - 1} times: one less than the length. That is O(n): double the list, double the walk.`);
+    let cur = head;
+    for (;;) {
+      const nxt = T.nx(cur);
+      if (nxt === null) {
+        T.at(7, `Is \`current.next\` None? **Yes**: \`current\` is the last node. The walk is over.`, { focus: cur, hot: ['n' + cur] });
+        break;
+      }
+      T.at(7, `Is \`current.next\` None? It is ${T.nm(nxt)}: no, keep walking.`, { loop: 'walk', focus: cur });
+      cur = nxt; T.set('current', R(cur)); T.hop();
+      T.at(8, `\`current\` moves one node along, to ${T.nm(cur)}.`, { loop: 'walk' });
+    }
+    T.setNext(cur, id);
+    T.at(9, `\`current.next = node\`: the last node now points at the new node, which is in the list.`, { focus: id });
+  }
+  if (bug === 'nosize') return T.ret(null, head === null ? 4 : 9, 'append returns None. Nothing went wrong, as far as Python can tell.');
+  T.size = T.size + 1;
+  T.at(10, `\`self._size\` goes up to ${T.size}.`);
+  return T.ret(null, 10, 'append returns None.');
+}
+def({
+  id: 'append', group: 'singly', kind: 'singly', title: 'append: walk to the end, O(n)',
+  blurb: 'Without a tail reference, the only way to the last node is to walk there from the head, one link at a time.',
+  code: S_APPEND, py: 'singly',
+  params: { values: valList([1, 2, 3, 4], 0, 7), value: valP(5) },
+  strip: listStrip('singly', ['ll.append(', 'value', ')']),
+  run: (T, p) => sAppend(T, p.value),
+  probes: stdProbes('singly'),
+  summary: T => ` ${plural(T.counters.hops, 'hop')} to add one node at the end.`,
+});
+
+const S_INSERT = `def insert_at(self, index, value):
+    if not 0 <= index <= self._size:
+        raise IndexError(index)
+    if index == 0:
+        self.push_front(value)
+        return
+    prev = self.head
+    for _ in range(index - 1):               # stop at the node BEFORE the gap
+        prev = prev.next
+    prev.next = Node(value, prev.next)       # the new node takes prev's link
+    self._size += 1
+
+` + S_PUSH_FRONT;
+
+/* opts.bug: 'order' (the two links in the wrong order) or 'off' (range(index)) */
+function sInsertAt(T, index, value, bug) {
+  T.call('insert_at', [['self', SELF], ['index', index], ['value', value]], `insert_at(${index}, ${pyrepr(value)})`);
+  const size = T.size, ok = 0 <= index && index <= size;
+  T.at(2, `Check the position: is \`0 <= ${index} <= ${size}\`? ${ok ? 'Yes.' : `**No.** The valid positions are 0 to ${size}.`}`);
+  if (!ok) {
+    T.at(3, `Raise \`IndexError(${index})\`.`);
+    throw new PyErr('IndexError', String(index), { why: `There are ${size} nodes, so a new node can go at positions 0 to ${size}; ${size} means "at the end".` });
+  }
+  T.at(4, index === 0 ? 'Is `index == 0`? **Yes.** The new node goes in front, where no node comes before the gap.' : 'Is `index == 0`? No.');
+  if (index === 0) {
+    T.at(5, 'There is no node before position 0, so hand the job to `push_front`.');
+    sPushFront(T, value, 12, true);
+    T.at(6, '`return`: the front case is done.');
+    return T.ret(null, 6, 'insert_at returns None.');
+  }
+  const stops = bug === 'off' ? index : index - 1;
+  let prev = T.Fid('head');
+  T.set('prev', R(prev));
+  T.at(7, `\`prev\` starts at the first node, ${T.nm(prev)}.`);
+  if (index >= 2 && !bug) T.ask(`To insert at index ${index}, how many times will line 9, \`prev = prev.next\`, run?`, index - 1, [index, index + 1, size],
+    `\`prev\` must stop on the node BEFORE the gap, at index ${index - 1}. It starts at index 0, so it moves ${index - 1} time${index - 1 === 1 ? '' : 's'}.`);
+  for (let k = 0; k < stops; k++) {
+    T.set('_', k);
+    T.at(8, `Loop: \`_\` is ${k}, from \`range(${bug === 'off' ? 'index' : 'index - 1'})\` = \`range(${stops})\`.`, { loop: 'walk' });
+    if (prev === null) throw new PyErr('AttributeError', "'NoneType' object has no attribute 'next'");
+    prev = T.nx(prev); T.set('prev', R(prev)); T.hop();
+    T.at(9, prev === null ? '`prev` moves along, past the last node: it is now `None`.' : `\`prev\` moves one node along: ${T.nm(prev)}.`, { loop: 'walk' });
+  }
+  const after = prev === null ? null : T.nx(prev);
+  if (bug === 'order') {
+    T.at(8, `The loop is over: \`prev\` is ${T.nm(prev)}, at index ${index - 1}, just before the gap.`);
+    const id = T.newNode(value);
+    T.set('new', R(id));
+    T.at(10, `Make the new node. Its \`next\` is \`None\` for now.`, { hot: ['n' + prev] });
+    T.ask('Line 11 runs `prev.next = new`. What will `new.next = prev.next` on line 12 then do?',
+      'Point the new node at itself', [`Point the new node at ${T.name(after)}`, 'Nothing: new.next is already right', 'Raise an AttributeError'],
+      `After line 11, \`prev.next\` IS the new node. So line 12 reads back the new node and points it at itself. Nothing refers to ${T.name(after)} any more: the rest of the list is lost.`);
+    T.setNext(prev, id);
+    T.at(11, `\`prev.next = new\`. ${T.nm(after)} and everything after it is now unreachable: the only reference to it was \`prev.next\`, and it has just been overwritten.`, { hot: ['n' + id] });
+    T.setNext(id, id);
+    T.at(12, '`new.next = prev.next`, but `prev.next` is the new node itself. The new node now points at itself: a cycle.', { focus: id });
+    T.size = T.size + 1;
+    T.at(13, `\`self._size\` goes up to ${T.size}, so \`len\` will say ${T.size}. The nodes say otherwise.`);
+    return T.ret(null, 13, 'insert_at returns None, with no error. The damage is silent.');
+  }
+  T.at(8, prev === null ? 'The loop is over, but `prev` is `None`: it walked off the end.'
+    : `The loop is over: \`prev\` is ${T.nm(prev)}, at index ${stops}${bug === 'off' ? `. The gap was meant to be at index ${index}, so \`prev\` should be at index ${index - 1}` : ', just before the gap'}.`);
+  if (bug === 'off' && prev !== null) T.ask(`\`prev\` is at index ${stops}. At which index will the new node end up?`, index + 1, [index, index - 1, 0],
+    `The new node always goes right after \`prev\`, so at index ${stops + 1}: one place later than asked. \`range(index)\` moves \`prev\` once too often.`);
+  if (bug === 'off' && prev === null) T.ask('`prev` is `None`. What will line 10 do?', 'Raise AttributeError: None has no next', ['Append the node at the end', 'Insert the node at the front', 'Do nothing'],
+    '`Node(value, prev.next)` reads `prev.next`, and `None` has no attributes at all.');
+  if (prev === null) {
+    T.at(10, '`Node(value, prev.next)` needs `prev.next`, and `prev` is `None`.');
+    throw new PyErr('AttributeError', "'NoneType' object has no attribute 'next'", { why: '`range(index)` moved `prev` once too often: past the last node, onto `None`.' });
+  }
+  const id = T.newNode(value, { next: after });
+  T.tmp(id);
+  T.at(10, `The right-hand side first: \`Node(value, prev.next)\` makes the new node, already pointing at ${after === null ? '`None`, because the gap is at the end' : T.nm(after)}. The list has not changed yet.`, { hot: ['n' + prev], focus: id });
+  if (!bug && index >= 1) T.ask('Which reference does the assignment on line 10 change?', '`prev.next`: it will point at the new node',
+    ['`self.head`: it will point at the new node', `\`${T.name(after)}.next\``, 'Every node after the gap moves one place right'],
+    'Only `prev.next` changes. The nodes after the gap stay exactly where they are in memory; nothing is copied or moved. That is why the splice itself is O(1), once you are there.');
+  T.setNext(prev, id); T.untmp();
+  T.at(10, `\`prev.next\` now refers to the new node. Two links, and the node is spliced in.`, { focus: id });
+  T.size = T.size + 1;
+  T.at(11, `\`self._size\` goes up to ${T.size}.`);
+  return T.ret(null, 11, 'insert_at returns None.');
+}
+const insertDef = (id, title, index, blurb) => def({
+  id, group: 'singly', kind: 'singly', title, blurb, code: S_INSERT, py: 'singly',
+  params: { values: valList([1, 2, 3, 4], 0, 7), index: intP(index, -2, 9), value: valP(99) },
+  strip: listStrip('singly', ['ll.insert_at(', 'index', ', ', 'value', ')']),
+  run: (T, p) => sInsertAt(T, p.index, p.value),
+  probes: stdProbes('singly'),
+  summary: T => ` ${plural(T.counters.hops, 'hop')}, ${plural(T.counters.links, 'link')} changed.`,
+});
+insertDef('insert_middle', 'insert_at in the middle: walk, then splice', 2, 'Walk prev to the node BEFORE the gap, then two links: the new node takes prev\'s link, and prev points at the new node.');
+insertDef('insert_front', 'insert_at(0, …): the front is special', 0, 'Position 0 has no node before it, so insert_at hands the job to push_front.');
+insertDef('insert_end', 'insert_at(len, …): at the end', 4, 'The gap is after the last node: the walk is longest, and the new node points at None.');
+
+const S_POP_FRONT = `def pop_front(self):
+    if self.head is None:
+        raise IndexError("pop from empty list")
+    value = self.head.value
+    self.head = self.head.next
+    self._size -= 1
+    return value`;
+def({
+  id: 'pop_front', group: 'singly', kind: 'singly', title: 'pop_front: O(1), and the node is let go',
+  blurb: 'Move the head one node along. Nothing refers to the old first node any more, so Python frees it.',
+  code: S_POP_FRONT, py: 'singly',
+  params: { values: valList([1, 2, 3, 4], 0, 7) },
+  strip: listStrip('singly', ['ll.pop_front()']),
+  run: (T) => {
+    T.call('pop_front', [['self', SELF]], 'pop_front()');
+    const head = T.Fid('head');
+    T.at(2, head === null ? 'Is the list empty? `self.head` is `None`: **yes**.' : `Is the list empty? \`self.head\` is ${T.nm(head)}: no.`);
+    if (head === null) { T.at(3, 'Raise IndexError.'); throw new PyErr('IndexError', 'pop from empty list', { why: 'There is no first node to remove.' }); }
+    T.set('value', T.val(head));
+    T.at(4, `Keep the value, ${C(T.val(head))}, to return it at the end.`, { hot: ['fhead'] });
+    T.ask('Line 5 moves `self.head` to the second node. What will still refer to the old first node?',
+      'Nothing: it becomes unreachable, and Python frees it', ['The second node\'s next', '`self.head`, until the method returns', 'The variable `value`'],
+      '`value` holds the number, not the node. Once `self.head` moves on, no variable and no node refers to the old first node, so Python\'s garbage collector reclaims it. We never "delete" a node; we stop referring to it.');
+    T.setF('head', R(T.nx(head)));
+    T.at(5, `\`self.head\` moves to ${T.nm(T.nx(head))}. The old first node is unreachable (faded): Python will free it.`);
+    T.size = T.size - 1;
+    T.at(6, `\`self._size\` goes down to ${T.size}.`);
+    return T.ret(T.get('value'), 7, `Return ${C(T.get('value'))}. One reference changed, no walking: O(1).`);
+  },
+  probes: stdProbes('singly'),
+});
+
+const S_REMOVE = `def remove(self, value):
+    if self.head is None:
+        return False
+    if self.head.value == value:             # the special case: no node before it
+        self.head = self.head.next
+        self._size -= 1
+        return True
+    prev = self.head
+    while prev.next is not None:
+        if prev.next.value == value:
+            prev.next = prev.next.next       # bypass the node
+            self._size -= 1
+            return True
+        prev = prev.next
+    return False`;
+
+/* o: line offset; bug 'nohead' drops lines 4-7 (shifting the rest up by 4) */
+function sRemove(T, value, top, bug) {
+  const L = n => (bug === 'nohead' && n >= 8 ? n - 4 : n);
+  T.call('remove', [['self', SELF], ['value', value]], `remove(${pyrepr(value)})`);
+  const head = T.Fid('head');
+  T.at(2, head === null ? 'Is the list empty? **Yes.**' : `Is the list empty? \`self.head\` is ${T.nm(head)}: no.`);
+  if (head === null) return T.ret(false, 3, 'Nothing to remove: return False.');
+  if (!bug) {
+    const hit = T.val(head) === value;
+    T.at(4, `Does the first node hold ${C(value)}? It holds ${C(T.val(head))}: ${hit ? '**yes**.' : 'no.'}`, hit ? { hot: ['fhead'] } : {});
+    if (hit) {
+      if (top) T.ask('The first node holds the value. Why can the loop on lines 9–14 not remove it?',
+        'The loop changes prev.next, and no node comes before the head', ['The loop starts at the second node by mistake', 'Removing the head is O(n)', 'It could; this case is only an optimisation'],
+        'The loop removes a node by changing the `next` of the node before it. The first node has no node before it: the reference to it is `self.head`. So the head needs its own case.');
+      T.setF('head', R(T.nx(head)));
+      T.at(5, `\`self.head\` skips to ${T.nm(T.nx(head))}. The old first node is unreachable.`);
+      T.size = T.size - 1;
+      T.at(6, `\`self._size\` goes down to ${T.size}.`);
+      return T.ret(true, 7, 'Return True.');
+    }
+  }
+  let prev = head;
+  T.set('prev', R(prev));
+  if (bug && T.val(head) === value) T.ask(`${C(value)} is in the FIRST node. Will this remove find and remove it?`, 'No: the loop only ever looks at prev.next, starting from the second node',
+    ['Yes, on the first pass of the loop', 'Yes, but only if the list has one node', 'No: it raises an error'],
+    '`prev` starts at the first node and the loop tests `prev.next`, so the first node itself is never compared. remove will walk the whole list and return False.');
+  T.at(L(8), `\`prev\` starts at the first node.${bug ? '' : ' From now on we look one node AHEAD, at `prev.next`, so that when we find the value we still hold the node before it.'}`);
+  if (top === 'miss') T.ask(`${C(value)} is not in the list. How many nodes will be compared with it before remove gives up?`, T.size - 1, [T.size, 0, 1],
+    `The first node was checked on line 4. The loop then compares \`prev.next\` for every other node: ${T.size - 1}. Finding out that something is NOT there costs a full walk.`);
+  for (;;) {
+    const nxt = T.nx(prev);
+    if (nxt === null) { T.at(L(9), 'Is `prev.next` None? **Yes**: we reached the end.'); break; }
+    T.at(L(9), `Is \`prev.next\` None? It is ${T.nm(nxt)}: no.`, { loop: 'walk', focus: prev });
+    const hit = T.val(nxt) === value;
+    T.at(L(10), `Does \`prev.next\` hold ${C(value)}? It holds ${C(T.val(nxt))}: ${hit ? '**yes**.' : 'no.'}`, hit ? { hot: ['n' + prev], focus: nxt } : { loop: 'walk', focus: nxt });
+    if (hit) {
+      if (top === true) T.ask('`prev.next` holds the value. What does line 11 do?', 'It points prev past that node, at prev.next.next',
+        ['It deletes the node from memory', 'It moves every later node one place left', 'It sets prev.next to None, cutting the list'],
+        'One reference changes: `prev.next` skips over the node. Nothing is moved or copied. The skipped node is now unreachable, and Python frees it.');
+      T.setNext(prev, T.nx(nxt));
+      T.at(L(11), `Bypass it: \`prev.next\` now refers to ${T.nm(T.nx(nxt))}. The removed node is unreachable.`);
+      T.size = T.size - 1;
+      T.at(L(12), `\`self._size\` goes down to ${T.size}.`);
+      return T.ret(true, L(13), 'Return True.');
+    }
+    prev = nxt; T.set('prev', R(prev)); T.hop();
+    T.at(L(14), `\`prev\` moves one node along: ${T.nm(prev)}.`, { loop: 'walk' });
+  }
+  return T.ret(false, L(15), `${C(value)} was not found: return False.`);
+}
+const removeDef = (id, title, values, value, top, blurb) => def({
+  id, group: 'singly', kind: 'singly', title, blurb, code: S_REMOVE, py: 'singly',
+  params: { values: valList(values, 0, 7), value: valP(value) },
+  strip: listStrip('singly', ['ll.remove(', 'value', ')']),
+  run: (T, p) => sRemove(T, p.value, top),
+  probes: stdProbes('singly'),
+  summary: T => ` ${plural(T.counters.hops, 'hop')}.`,
+});
+removeDef('remove_middle', 'remove(value) in the middle: skip over it', [1, 2, 3, 4], 3, true, 'Walk with prev one node behind, look ahead at prev.next, and bypass the node by changing a single link.');
+removeDef('remove_head', 'remove(value) at the head: the special case', [1, 2, 3, 4], 1, true, 'The first node has no node before it, so the head reference itself must change.');
+removeDef('remove_missing', 'remove(value) that is not there: a full walk', [1, 2, 3, 4], 7, 'miss', 'Proving a value is absent means visiting every node.');
+
+const S_FIND = `def find(self, value):
+    index, node = 0, self.head
+    while node is not None:
+        if node.value == value:
+            return index
+        node = node.next
+        index += 1
+    return -1`;
+def({
+  id: 'find', group: 'singly', kind: 'singly', title: 'find: the traversal loop',
+  blurb: 'The loop that every walk is made of: start at the head, look, move to next, stop at None.',
+  code: S_FIND, py: 'singly',
+  params: { values: valList([5, 8, 2, 9, 4], 0, 7), value: valP(9) },
+  strip: listStrip('singly', ['ll.find(', 'value', ')']),
+  run: (T, p) => {
+    const value = p.value;
+    T.call('find', [['self', SELF], ['value', value]], `find(${pyrepr(value)})`);
+    let index = 0, node = T.Fid('head');
+    T.set('index', 0); T.set('node', R(node));
+    T.at(2, `Start at the head: \`index\` is 0 and \`node\` is ${T.nm(node)}.`);
+    const where = T.values().indexOf(value);
+    T.ask(`How many nodes will find look at before it returns?`, where >= 0 ? where + 1 : T.size, [where >= 0 ? where : T.size + 1, 1, T.size, T.size + 1, 2],
+      where >= 0 ? `${C(value)} is at index ${where}, so find looks at nodes 0 to ${where}: ${where + 1}. There is no way to jump ahead.` : `${C(value)} is not there, so find looks at all ${T.size} nodes before it can say -1.`);
+    for (;;) {
+      if (node === null) { T.at(3, 'Is `node` None? **Yes**: we walked off the end.'); break; }
+      T.at(3, `Is \`node\` None? No, it is ${T.nm(node)}.`, { loop: 'walk', focus: node });
+      const hit = T.val(node) === value;
+      T.at(4, `Does it hold ${C(value)}? It holds ${C(T.val(node))}: ${hit ? '**yes**.' : 'no.'}`, hit ? { focus: node } : { loop: 'walk', focus: node });
+      if (hit) return T.ret(index, 5, `Found at index ${index}: return ${index}.`);
+      node = T.nx(node); T.set('node', R(node)); T.hop();
+      T.at(6, node === null ? '`node = node.next`: that was the last node, so `node` is now `None`.' : `\`node = node.next\`: move to ${T.nm(node)}.`, { loop: 'walk' });
+      index++; T.set('index', index);
+      T.at(7, `\`index\` becomes ${index}.`, { loop: 'walk' });
+    }
+    return T.ret(-1, 8, 'Not found: return -1.');
+  },
+  summary: T => ` ${plural(T.counters.hops, 'hop')}.`,
+});
+
+const S_GETITEM = `def __getitem__(self, index):
+    if index < 0:
+        index += self._size
+    if not 0 <= index < self._size:
+        raise IndexError(index)
+    node = self.head
+    for _ in range(index):                   # index steps: there is no jumping ahead
+        node = node.next
+    return node.value`;
+def({
+  id: 'getitem', group: 'singly', kind: 'singly', title: 'll[i]: indexing is O(n)',
+  blurb: 'An array computes where element i is. A linked list has to walk there, one link at a time.',
+  code: S_GETITEM, py: 'singly',
+  params: { values: valList([10, 20, 30, 40, 50], 0, 7), index: intP(3, -9, 9) },
+  strip: listStrip('singly', ['ll[', 'index', ']']),
+  run: (T, p) => {
+    let index = p.index;
+    T.call('__getitem__', [['self', SELF], ['index', index]], `__getitem__(${index})`, `\`ll[${index}]\` calls \`ll.__getitem__(${index})\`. Python makes a frame for it.`);
+    T.at(2, index < 0 ? `Is \`index < 0\`? **Yes**: count from the end.` : 'Is `index < 0`? No.');
+    if (index < 0) { index += T.size; T.set('index', index); T.at(3, `\`index\` becomes ${index - T.size} + ${T.size} = ${index}.`); }
+    const ok = 0 <= index && index < T.size;
+    T.at(4, `Is \`0 <= ${index} < ${T.size}\`? ${ok ? 'Yes.' : '**No.**'}`);
+    if (!ok) { T.at(5, `Raise \`IndexError(${index})\`.`); throw new PyErr('IndexError', String(index), { why: `The valid indices are 0 to ${T.size - 1}.` }); }
+    let node = T.Fid('head');
+    T.set('node', R(node));
+    T.at(6, `Start at the head. There is no address to compute: the only way in is \`self.head\`.`);
+    if (index >= 2) T.ask(`How many times will \`node = node.next\` run to reach index ${index}?`, index, [1, index + 1, T.size],
+      `Index ${index} is ${index} links away from the head, so ${index} hops. In an Array, \`a[${index}]\` is one step, however large the index.`);
+    for (let k = 0; k < index; k++) {
+      T.set('_', k);
+      T.at(7, `Loop: \`_\` is ${k}, from \`range(${index})\`.`, { loop: 'walk' });
+      node = T.nx(node); T.set('node', R(node)); T.hop();
+      T.at(8, `Hop to ${T.nm(node)}.`, { loop: 'walk' });
+    }
+    T.at(7, `\`range(${index})\` is used up after ${plural(index, 'hop')}.`, { focus: node });
+    return T.ret(T.val(node), 9, `Return \`node.value\`, ${C(T.val(node))}.`);
+  },
+  summary: T => ` ${plural(T.counters.hops, 'hop')}: the cost grows with the index.`,
+});
+
+const S_REVERSE = `def reverse(self):
+    prev, current = None, self.head
+    while current is not None:
+        following = current.next             # remember the rest of the list
+        current.next = prev                  # turn this link round
+        prev, current = current, following   # step forward
+    self.head = prev`;
+function sReverse(T, bug) {
+  const L = n => (bug && n >= 5 ? n - 1 : n);
+  T.call('reverse', [['self', SELF]], 'reverse()');
+  let prev = null, cur = T.Fid('head');
+  T.set('prev', null); T.set('current', R(cur));
+  T.at(2, `\`prev\` is \`None\` (nothing is behind the first node) and \`current\` is the first node.`);
+  let first = true;
+  for (;;) {
+    if (cur === null) { T.at(3, 'Is `current` None? **Yes**: every link has been turned round.', { hot: ['fhead'] }); break; }
+    T.at(3, `Is \`current\` None? No, it is ${T.nm(cur)}.`, { loop: 'rev', focus: cur });
+    if (!bug) {
+      const f = T.nx(cur);
+      T.set('following', R(f));
+      T.at(4, `Save \`following\` = ${T.nm(f)} before the link is changed.`, { loop: 'rev', hot: ['n' + cur] });
+      if (first && f !== null) T.ask('Why must `following` be saved BEFORE line 5?', 'Line 5 overwrites current.next, the only reference to the rest of the list',
+        ['To make the loop O(1)', 'Python cannot read current.next after line 5', 'It does not have to be; it only makes the code clearer'],
+        '`current.next` is the only way to reach the rest of the list. Line 5 points it backwards, so without `following` the remaining nodes would be unreachable.');
+      T.setNext(cur, prev);
+      T.at(5, `Turn the link round: ${T.nm(cur)}.next now refers to ${prev === null ? '`None`: it will be the last node' : T.nm(prev)}.`, { loop: 'rev', focus: cur });
+      prev = cur; cur = f; T.set('prev', R(prev)); T.set('current', R(cur)); T.hop();
+      T.at(6, `Step forward: \`prev\` is ${T.nm(prev)}, \`current\` is ${T.nm(cur)}.`, { loop: 'rev', focus: cur === null ? prev : cur });
+    } else {
+      T.at(4, `Turn the link round first, without saving the rest of the list.`, { loop: 'rev', hot: ['n' + cur] });
+      if (first && T.nx(cur) !== null) T.ask('Line 4 points `current.next` backwards. Line 5 then reads `current.next` to step forward. What will `current` become?',
+        prev === null ? '`None`, so the loop stops after one node' : T.name(prev), [T.name(T.nx(cur)), 'The last node', 'The head'],
+        'The right-hand side of line 5 is evaluated after line 4 has run, so `current.next` is already the turned-round link. The walk goes backwards instead of forwards.');
+      T.setNext(cur, prev);
+      T.at(4, `${T.nm(cur)}.next now refers to ${prev === null ? '`None`' : T.nm(prev)}. Nothing refers to the rest of the list any more.`, { loop: 'rev', focus: cur });
+      const nprev = cur; cur = T.nx(cur); prev = nprev; T.set('prev', R(prev)); T.set('current', R(cur)); T.hop();
+      T.at(5, `\`prev, current = current, current.next\`: \`current\` becomes ${T.nm(cur)}, the link we just turned round.`, { loop: 'rev', focus: cur === null ? prev : cur });
+    }
+    first = false;
+  }
+  T.setF('head', R(prev));
+  T.at(L(7), `\`self.head\` refers to ${T.nm(prev)}${bug ? '.' : ', the old last node. The list now runs the other way.'}`, { focus: prev });
+  return T.ret(null, L(7), 'reverse returns None.');
+}
+def({
+  id: 'reverse', group: 'singly', kind: 'singly', fixed: true, title: 'reverse: three references, O(1) space',
+  blurb: 'The nodes stay where they are in memory. Only the arrows turn round, one at a time.',
+  code: S_REVERSE, py: 'singly',
+  params: { values: valList([1, 2, 3, 4], 0, 7) },
+  strip: listStrip('singly', ['ll.reverse()']),
+  run: (T) => sReverse(T, false),
+  probes: stdProbes('singly'),
+  summary: T => ` ${plural(T.counters.links, 'link')} changed, and no new node was made.`,
+});
+
+/* ==== the tail reference: the lecture's challenge ===================== */
+const T_APPEND = `def append(self, value):
+    node = Node(value)
+    if self.head is None:
+        self.head = self._tail = node
+    else:
+        self._tail.next = node              # no walk: we know the last node
+        self._tail = node
+    self._size += 1`;
+def({
+  id: 'append_tail', group: 'tricks', kind: 'tail', title: 'append with a _tail reference: O(1)',
+  blurb: 'Keep a second reference to the last node, and append no longer walks. The price: every method that can change the last node must keep _tail up to date.',
+  code: T_APPEND, py: 'tail',
+  params: { values: valList([1, 2, 3, 4], 0, 7), value: valP(5) },
+  strip: listStrip('tail', ['ll.append(', 'value', ')']),
+  run: (T, p) => {
+    const value = p.value;
+    T.call('append', [['self', SELF], ['value', value]], `append(${pyrepr(value)})`);
+    const id = T.newNode(value);
+    T.set('node', R(id));
+    T.at(2, 'Make the new node, not yet in the list.');
+    const head = T.Fid('head');
+    T.at(3, head === null ? 'Is the list empty? **Yes.**' : `Is the list empty? No.`, head === null ? { hot: ['fhead', 'f_tail'] } : { hot: ['n' + T.Fid('_tail')] });
+    if (head === null) {
+      T.setF('head', R(id)); T.setF('_tail', R(id));
+      T.at(4, 'The only node is both the first and the last: `head` and `_tail` refer to it.', { focus: id });
+    } else {
+      T.ask('How many nodes does this append walk past?', 'None: _tail already refers to the last node', [`${T.size - 1}, like before`, 'One', `${T.size}`],
+        'The walk was only needed to FIND the last node. `_tail` remembers it, so append is O(1).');
+      T.setNext(T.Fid('_tail'), id);
+      T.at(6, `\`self._tail.next = node\`: the old last node points at the new one.`, { hot: ['f_tail'], focus: id });
+      T.setF('_tail', R(id));
+      T.at(7, '`self._tail` moves to the new node, ready for the next append.', { focus: id });
+    }
+    T.size = T.size + 1;
+    T.at(8, `\`self._size\` goes up to ${T.size}.`);
+    return T.ret(null, 8, 'append returns None.');
+  },
+  probes: stdProbes('tail'),
+  summary: T => ` ${plural(T.counters.hops, 'hop')}.`,
+});
+
+/* ==== the sentinel: the lecture's handout ============================= */
+const SEN_REMOVE = `def remove(self, value):
+    prev = self.sentinel                 # sentinel.next is the first real node
+    while prev.next is not None:
+        if prev.next.value == value:
+            prev.next = prev.next.next
+            self._size -= 1
+            return True
+        prev = prev.next
+    return False`;
+def({
+  id: 'remove_sentinel', group: 'tricks', kind: 'sentinel', title: 'remove with a sentinel: no head case',
+  blurb: 'A permanent, valueless node sits before the first real node. Now every real node has a node before it, and the special case disappears.',
+  code: SEN_REMOVE, py: 'sentinel',
+  params: { values: valList([1, 2, 3, 4], 0, 7), value: valP(1) },
+  strip: listStrip('sentinel', ['sl.remove(', 'value', ')']),
+  run: (T, p) => {
+    const value = p.value;
+    T.call('remove', [['self', SELF], ['value', value]], `remove(${pyrepr(value)})`);
+    let prev = T.Fid('sentinel');
+    T.set('prev', R(prev));
+    T.at(2, '`prev` starts at the sentinel, the node BEFORE the first real node.');
+    T.ask(`Compare with the plain remove. What happens if ${C(value)} is in the first real node?`, 'The same code removes it: the sentinel is the node before it',
+      ['It needs a special case for the head', 'It cannot be removed', 'The sentinel itself is removed'],
+      'With a sentinel, the first real node is `sentinel.next`, so removing it changes `prev.next` like any other node. No `self.head` to special-case.');
+    for (;;) {
+      const nxt = T.nx(prev);
+      if (nxt === null) { T.at(3, 'Is `prev.next` None? **Yes**: the end.'); break; }
+      T.at(3, `Is \`prev.next\` None? It is ${T.nm(nxt)}: no.`, { loop: 'walk', focus: prev });
+      const hit = T.val(nxt) === value;
+      T.at(4, `Does \`prev.next\` hold ${C(value)}? It holds ${C(T.val(nxt))}: ${hit ? '**yes**.' : 'no.'}`, hit ? { hot: ['n' + prev], focus: nxt } : { loop: 'walk', focus: nxt });
+      if (hit) {
+        T.setNext(prev, T.nx(nxt));
+        T.at(5, `Bypass it: ${T.nm(prev)}.next now refers to ${T.nm(T.nx(nxt))}.`);
+        T.size = T.size - 1;
+        T.at(6, `\`self._size\` goes down to ${T.size}.`);
+        return T.ret(true, 7, 'Return True. One loop handled every position.');
+      }
+      prev = nxt; T.set('prev', R(prev)); T.hop();
+      T.at(8, `\`prev\` moves along: ${T.nm(prev)}.`, { loop: 'walk' });
+    }
+    return T.ret(false, 9, 'Not found: return False.');
+  },
+  probes: stdProbes('sentinel'),
+});
+
+
+/* ==== a doubly linked list (not in dsa/: written for this demo) ======= */
+const D_NODE = `class Node:
+    __slots__ = ("prev", "value", "next")
+
+    def __init__(self, value, prev=None, next=None):
+        self.prev = prev
+        self.value = value
+        self.next = next`;
+
+const D_PUSH_FRONT = `def push_front(self, value):
+    node = Node(value, None, self.head)
+    if self.head is None:
+        self.tail = node                     # the only node is also the last
+    else:
+        self.head.prev = node
+    self.head = node
+    self._size += 1`;
+function dPushFront(T, value) {
+  T.call('push_front', [['self', SELF], ['value', value]], `push_front(${pyrepr(value)})`);
+  const head = T.Fid('head');
+  const id = T.newNode(value, { next: head });
+  T.set('node', R(id));
+  T.at(2, `Make the new node: \`prev\` is \`None\` (nothing will be before it) and \`next\` is ${head === null ? '`None`' : 'the current first node, ' + T.nm(head)}.`, head === null ? {} : { hot: ['p' + head] });
+  T.at(3, head === null ? 'Is the list empty? **Yes.**' : 'Is the list empty? No.', head === null ? { hot: ['ftail'] } : { hot: ['p' + head] });
+  if (head === null) {
+    T.setF('tail', R(id));
+    T.at(4, 'The only node is also the last: `self.tail` refers to it.', { hot: ['fhead'] });
+  } else {
+    T.ask('A singly linked push_front changed two references. How many does this one change?', 'Three: node.next, the old head\'s prev, and self.head',
+      ['Two, the same as before', 'Four', 'One per node in the list'],
+      'Every link now goes both ways, so the old first node must point back at the new node too. Still no walking: O(1).');
+    T.setPrev(head, id);
+    T.at(6, `The old first node points back at the new node: ${T.nm(head)}.prev = the new node.`, { hot: ['fhead'] });
+  }
+  T.setF('head', R(id));
+  T.at(7, '`self.head` refers to the new node.');
+  T.size = T.size + 1;
+  T.at(8, `\`self._size\` goes up to ${T.size}.`);
+  return T.ret(null, 8, 'push_front returns None.');
+}
+def({
+  id: 'd_push_front', group: 'doubly', kind: 'doubly', title: 'push_front: one more link to keep',
+  blurb: 'Same idea as the singly linked list, but the old first node must now point back at the new one.',
+  code: D_PUSH_FRONT, py: 'doubly',
+  params: { values: valList([2, 3, 4], 0, 7), value: valP(1) },
+  strip: listStrip('doubly', ['dl.push_front(', 'value', ')']),
+  run: (T, p) => dPushFront(T, p.value),
+  probes: stdProbes('doubly'),
+});
+
+const D_APPEND = `def append(self, value):
+    node = Node(value, self.tail, None)
+    if self.tail is None:
+        self.head = node
+    else:
+        self.tail.next = node
+    self.tail = node                         # no walk: O(1)
+    self._size += 1`;
+function dAppend(T, value) {
+  T.call('append', [['self', SELF], ['value', value]], `append(${pyrepr(value)})`);
+  const tail = T.Fid('tail');
+  const id = T.newNode(value, { prev: tail });
+  T.set('node', R(id));
+  T.at(2, `Make the new node: its \`prev\` is ${tail === null ? '`None`' : 'the current last node, ' + T.nm(tail)}, and its \`next\` is \`None\`.`);
+  T.at(3, tail === null ? 'Is the list empty? **Yes.**' : 'Is the list empty? No.', tail === null ? { hot: ['fhead'] } : { hot: ['n' + tail] });
+  if (tail === null) {
+    T.setF('head', R(id));
+    T.at(4, 'The only node is also the first: `self.head` refers to it.', { hot: ['ftail'] });
+  } else {
+    T.ask('How many nodes does this append walk past to find the end?', 'None: self.tail refers to the last node', [`${T.size - 1}, like the singly linked append`, 'Half of them', 'One'],
+      'The `tail` reference makes the last node as easy to reach as the first: O(1).');
+    T.setNext(tail, id);
+    T.at(6, `The old last node points forward at the new node.`, { hot: ['ftail'] });
+  }
+  T.setF('tail', R(id));
+  T.at(7, '`self.tail` moves to the new node. No walk anywhere: O(1).');
+  T.size = T.size + 1;
+  T.at(8, `\`self._size\` goes up to ${T.size}.`);
+  return T.ret(null, 8, 'append returns None.');
+}
+def({
+  id: 'd_append', group: 'doubly', kind: 'doubly', title: 'append: O(1) with the tail',
+  blurb: 'The tail reference means the end is as close as the front.',
+  code: D_APPEND, py: 'doubly',
+  params: { values: valList([1, 2, 3, 4], 0, 7), value: valP(5) },
+  strip: listStrip('doubly', ['dl.append(', 'value', ')']),
+  run: (T, p) => dAppend(T, p.value),
+  probes: stdProbes('doubly'),
+});
+
+const D_INSERT = `def insert_at(self, index, value):
+    if not 0 <= index <= self._size:
+        raise IndexError(index)
+    if index == 0:
+        self.push_front(value)
+        return
+    if index == self._size:
+        self.append(value)
+        return
+    following = self.head
+    for _ in range(index):                   # stop AT the node that moves right
+        following = following.next
+    before = following.prev
+    node = Node(value)
+    node.prev = before                       # link 1
+    node.next = following                    # link 2
+    before.next = node                       # link 3
+    following.prev = node                    # link 4
+    self._size += 1`;
+const D_BACKWARD = `def backward(self):
+    out, node = [], self.tail
+    while node is not None:
+        out.append(node.value)
+        node = node.prev
+    return out`;
+const D_INSERT_BUG = D_INSERT.split('\n').filter(l => !l.includes('link 4')).join('\n') + '\n\n' + D_BACKWARD;
+
+function dInsertAt(T, index, value, bug) {
+  T.call('insert_at', [['self', SELF], ['index', index], ['value', value]], `insert_at(${index}, ${pyrepr(value)})`);
+  const size = T.size, ok = 0 <= index && index <= size;
+  T.at(2, `Check the position: is \`0 <= ${index} <= ${size}\`? ${ok ? 'Yes.' : '**No.**'}`);
+  if (!ok) { T.at(3, `Raise \`IndexError(${index})\`.`); throw new PyErr('IndexError', String(index), { why: `The valid positions are 0 to ${size}.` }); }
+  T.at(4, index === 0 ? 'Is `index == 0`? **Yes.**' : 'Is `index == 0`? No.');
+  if (index === 0) {
+    const head = T.Fid('head'), id = T.newNode(value, { next: head });
+    if (head === null) T.setF('tail', R(id)); else T.setPrev(head, id);
+    T.setF('head', R(id)); T.size = T.size + 1;
+    T.at(5, '`self.push_front(value)` runs in one step here; step through it in its own scenario.', { focus: id });
+    T.at(6, '`return`.');
+    return T.ret(null, 6, 'insert_at returns None.');
+  }
+  T.at(7, index === size ? `Is \`index == self._size\`? **Yes**: the new node goes at the end.` : `Is \`index == self._size\`? No: ${index} is not ${size}.`);
+  if (index === size) {
+    const tail = T.Fid('tail'), id = T.newNode(value, { prev: tail });
+    T.setNext(tail, id); T.setF('tail', R(id)); T.size = T.size + 1;
+    T.at(8, '`self.append(value)` runs in one step here; step through it in its own scenario.', { focus: id });
+    T.at(9, '`return`.');
+    return T.ret(null, 9, 'insert_at returns None.');
+  }
+  let f = T.Fid('head');
+  T.set('following', R(f));
+  T.at(10, `\`following\` starts at the first node. This time we stop ON the node that will move right, because it can tell us the node before it.`);
+  for (let k = 0; k < index; k++) {
+    T.set('_', k);
+    T.at(11, `Loop: \`_\` is ${k}, from \`range(${index})\`.`, { loop: 'walk' });
+    f = T.nx(f); T.set('following', R(f)); T.hop();
+    T.at(12, `\`following\` moves to ${T.nm(f)}.`, { loop: 'walk' });
+  }
+  const b = T.pv(f);
+  T.set('before', R(b));
+  T.at(13, `\`before = following.prev\`: ${T.nm(b)}. The new node goes between ${T.nm(b)} and ${T.nm(f)}.`);
+  const id = T.newNode(value);
+  T.set('node', R(id));
+  T.at(14, 'Make the new node, with no links yet.', { hot: ['p' + id] });
+  T.ask('Four links must be set. Which two can go first, safely, in any order?', 'The new node\'s own prev and next',
+    ['before.next and following.prev', 'before.next and node.next', 'following.prev and node.prev'],
+    'Setting the new node\'s own links changes nothing in the list yet. Once `node.prev` and `node.next` are set, `before.next` and `following.prev` can be redirected without losing anything, because `before` and `following` are held in variables.');
+  T.setPrev(id, b);
+  T.at(15, `Link 1: \`node.prev\` = ${T.nm(b)}.`, { hot: ['n' + id] });
+  T.setNext(id, f);
+  T.at(16, `Link 2: \`node.next\` = ${T.nm(f)}. The list has still not changed.`, { hot: ['n' + b] });
+  T.setNext(b, id);
+  T.at(17, `Link 3: \`before.next\` = the new node. Walking forwards now passes through it.`, bug ? {} : { hot: ['p' + f] });
+  if (!bug) {
+    T.setPrev(f, id);
+    T.at(18, `Link 4: \`following.prev\` = the new node. Walking backwards passes through it too.`);
+  }
+  T.size = T.size + 1;
+  T.at(bug ? 18 : 19, `\`self._size\` goes up to ${T.size}.${bug ? ` But look at ${T.nm(f)}: its \`prev\` still refers to ${T.nm(b)}.` : ''}`, bug ? { hot: ['p' + f] } : {});
+  return T.ret(null, bug ? 18 : 19, 'insert_at returns None.');
+}
+def({
+  id: 'd_insert_middle', group: 'doubly', kind: 'doubly', title: 'insert_at in the middle: four links',
+  blurb: 'Walk to the node that moves right, take the node before it from its prev, and set four links: the new node\'s two first.',
+  code: D_INSERT, py: 'doubly',
+  params: { values: valList([1, 2, 3, 4], 0, 7), index: intP(2, -2, 9), value: valP(99) },
+  strip: listStrip('doubly', ['dl.insert_at(', 'index', ', ', 'value', ')']),
+  run: (T, p) => dInsertAt(T, p.index, p.value, false),
+  probes: stdProbes('doubly'),
+  summary: T => ` ${plural(T.counters.hops, 'hop')}, ${plural(T.counters.links, 'link')} set.`,
+});
+
+const D_POP_FRONT = `def pop_front(self):
+    if self.head is None:
+        raise IndexError("pop from empty list")
+    node = self.head
+    self.head = node.next
+    if self.head is None:
+        self.tail = None                     # the list is now empty
+    else:
+        self.head.prev = None                # nothing comes before the new first node
+    self._size -= 1
+    return node.value`;
+def({
+  id: 'd_pop_front', group: 'doubly', kind: 'doubly', title: 'pop_front: O(1), and cut the link back',
+  blurb: 'Move the head on, then make sure the new first node no longer points back at the removed one.',
+  code: D_POP_FRONT, py: 'doubly',
+  params: { values: valList([1, 2, 3, 4], 0, 7) },
+  strip: listStrip('doubly', ['dl.pop_front()']),
+  run: (T) => {
+    T.call('pop_front', [['self', SELF]], 'pop_front()');
+    const head = T.Fid('head');
+    T.at(2, head === null ? 'Is the list empty? **Yes.**' : 'Is the list empty? No.');
+    if (head === null) { T.at(3, 'Raise IndexError.'); throw new PyErr('IndexError', 'pop from empty list', { why: 'There is no first node.' }); }
+    T.set('node', R(head));
+    T.at(4, `\`node\` holds on to the first node, so we can return its value at the end.`, { hot: ['fhead'] });
+    const nh = T.nx(head);
+    T.setF('head', R(nh));
+    T.at(5, `\`self.head\` moves to ${T.nm(nh)}.`, nh === null ? { hot: ['ftail'] } : { hot: ['p' + nh] });
+    T.at(6, nh === null ? 'Is the list now empty? **Yes.**' : 'Is the list now empty? No.', nh === null ? { hot: ['ftail'] } : { hot: ['p' + nh] });
+    if (nh === null) { T.setF('tail', null); T.at(7, '`self.tail` becomes `None` too.'); }
+    else {
+      T.ask(`What would go wrong if line 9 were left out?`, 'Walking backwards would still reach the removed node',
+        ['Nothing: the head has moved, so the node is gone', 'pop_front would become O(n)', 'self.tail would be wrong'],
+        `${T.name(nh)}.prev would still refer to the removed node. A backward walk from the tail would end on it, and the node could never be freed while the list lives.`);
+      T.setPrev(nh, null);
+      T.at(9, `${T.nm(nh)}.prev becomes \`None\`: nothing comes before the first node.`);
+    }
+    T.size = T.size - 1;
+    T.at(10, `\`self._size\` goes down to ${T.size}.`);
+    return T.ret(T.val(head), 11, `Return ${C(T.val(head))}. When this frame ends, \`node\` is gone, and so is the last reference to the old node.`);
+  },
+  probes: stdProbes('doubly'),
+});
+
+const D_POP_BACK = `def pop_back(self):
+    if self.tail is None:
+        raise IndexError("pop from empty list")
+    node = self.tail
+    self.tail = node.prev                    # no walk: tail.prev is the new last node
+    if self.tail is None:
+        self.head = None
+    else:
+        self.tail.next = None
+    self._size -= 1
+    return node.value`;
+const D_POP_BACK_BUG = D_POP_BACK.split('\n').filter((l, i) => i !== 7 && i !== 8).join('\n');
+function dPopBack(T, bug) {
+  T.call('pop_back', [['self', SELF]], 'pop_back()');
+  const tail = T.Fid('tail');
+  T.at(2, tail === null ? 'Is the list empty? **Yes.**' : 'Is the list empty? No.');
+  if (tail === null) { T.at(3, 'Raise IndexError.'); throw new PyErr('IndexError', 'pop from empty list', { why: 'There is no last node.' }); }
+  T.set('node', R(tail));
+  T.at(4, '`node` holds on to the last node.', { hot: ['ftail'] });
+  if (!bug && T.size >= 2) T.ask('A singly linked list needs O(n) to remove its last node. Why is this one O(1)?', 'tail.prev is the node before the last: no walk to find it',
+    ['Python stores the list in an array underneath', 'Because _size is kept up to date', 'It is not: pop_back still walks from the head'],
+    'To remove the last node you must change the node BEFORE it. A singly linked list must walk to find that node; here it is `self.tail.prev`.');
+  const nt = T.pv(tail);
+  if (bug && nt !== null) T.ask(`After this pop_back, which reference will still lead to ${T.name(tail)}?`, `${T.name(nt)}.next`,
+    ['None: it is unreachable', 'self.tail', `${T.name(nt)}.prev`],
+    `The tail moves back to ${T.name(nt)}, but nothing sets ${T.name(nt)}.next to None. A forward walk from the head still reaches the removed node.`);
+  T.setF('tail', R(nt));
+  T.at(5, `\`self.tail\` moves back to ${T.nm(nt)}.`, nt === null ? { hot: ['fhead'] } : { hot: ['n' + nt] });
+  T.at(6, nt === null ? 'Is the list now empty? **Yes.**' : 'Is the list now empty? No.', nt === null ? { hot: ['fhead'] } : (bug ? {} : { hot: ['n' + nt] }));
+  if (nt === null) { T.setF('head', null); T.at(7, '`self.head` becomes `None` too.'); }
+  else if (!bug) { T.setNext(nt, null); T.at(9, `${T.nm(nt)}.next becomes \`None\`: it is the last node now.`); }
+  T.size = T.size - 1;
+  T.at(bug ? 8 : 10, `\`self._size\` goes down to ${T.size}.${bug && nt !== null ? ` But ${T.nm(nt)}.next still refers to the removed node.` : ''}`, bug && nt !== null ? { hot: ['n' + nt] } : {});
+  return T.ret(T.val(tail), bug ? 9 : 11, `Return ${C(T.val(tail))}.`);
+}
+def({
+  id: 'd_pop_back', group: 'doubly', kind: 'doubly', title: 'pop_back: O(1), thanks to prev',
+  blurb: 'The node before the last one is tail.prev, so removing from the end needs no walk.',
+  code: D_POP_BACK, py: 'doubly',
+  params: { values: valList([1, 2, 3, 4], 0, 7) },
+  strip: listStrip('doubly', ['dl.pop_back()']),
+  run: (T) => dPopBack(T, false),
+  probes: stdProbes('doubly'),
+});
+
+const D_REMOVE_NODE = `def remove_node(self, node):
+    if node.prev is None:                    # node is the head
+        self.head = node.next
+    else:
+        node.prev.next = node.next
+    if node.next is None:                    # node is the tail
+        self.tail = node.prev
+    else:
+        node.next.prev = node.prev
+    self._size -= 1`;
+function dRemoveNode(T, nid, o, top) {
+  T.call('remove_node', [['self', SELF], ['node', R(nid)]], `remove_node(${T.name(nid)})`, null, o + 1);
+  const p = T.pv(nid), n = T.nx(nid);
+  T.at(o + 2, p === null ? 'Is `node.prev` None? **Yes**: it is the first node.' : `Is \`node.prev\` None? No, it is ${T.nm(p)}.`, { hot: [p === null ? 'fhead' : 'n' + p], focus: nid });
+  if (top) T.ask('How many nodes must remove_node walk past to find the node before this one?', 'None: node.prev is the node before it',
+    ['All the nodes before it', 'One', 'All of them'],
+    'In a singly linked list you must walk from the head to find the predecessor. Here it is `node.prev`: removing a node you hold is O(1).');
+  if (p === null) { T.setF('head', R(n)); T.at(o + 3, `\`self.head\` skips to ${T.nm(n)}.`); }
+  else { T.setNext(p, n); T.at(o + 5, `\`node.prev.next\` skips it: ${T.nm(p)}.next = ${T.nm(n)}.`); }
+  T.at(o + 6, n === null ? 'Is `node.next` None? **Yes**: it is the last node.' : `Is \`node.next\` None? No, it is ${T.nm(n)}.`, { hot: [n === null ? 'ftail' : 'p' + n], focus: nid });
+  if (n === null) { T.setF('tail', R(p)); T.at(o + 7, `\`self.tail\` moves back to ${T.nm(p)}.`); }
+  else { T.setPrev(n, p); T.at(o + 9, `\`node.next.prev\` skips it: ${T.nm(n)}.prev = ${T.nm(p)}.`); }
+  T.size = T.size - 1;
+  T.at(o + 10, `\`self._size\` goes down to ${T.size}. The removed node still has its own two links, but nothing in the list leads to it.`);
+  return T.ret(null, o + 10, 'remove_node returns None.');
+}
+const D_REMOVE = `def remove(self, value):
+    node = self.head
+    while node is not None:
+        if node.value == value:
+            self.remove_node(node)
+            return True
+        node = node.next
+    return False
+
+` + D_REMOVE_NODE;
+const dRemoveDef = (id, title, value, blurb) => def({
+  id, group: 'doubly', kind: 'doubly', title, blurb, code: D_REMOVE, py: 'doubly',
+  params: { values: valList([1, 2, 3, 4], 0, 7), value: valP(value) },
+  strip: listStrip('doubly', ['dl.remove(', 'value', ')']),
+  run: (T, p) => {
+    const value = p.value;
+    T.call('remove', [['self', SELF], ['value', value]], `remove(${pyrepr(value)})`);
+    let node = T.Fid('head');
+    T.set('node', R(node));
+    T.at(2, 'Start at the first node. No need to trail a `prev` behind: each node knows its own `prev`.');
+    for (;;) {
+      if (node === null) { T.at(3, 'Is `node` None? **Yes**: the end.'); break; }
+      T.at(3, `Is \`node\` None? No, it is ${T.nm(node)}.`, { loop: 'walk', focus: node });
+      const hit = T.val(node) === value;
+      T.at(4, `Does it hold ${C(value)}? ${hit ? '**Yes.**' : 'No.'}`, hit ? { focus: node } : { loop: 'walk', focus: node });
+      if (hit) {
+        T.at(5, 'Hand the node itself to `remove_node`.');
+        dRemoveNode(T, node, 9, true);
+        T.at(6, 'Back in remove.');
+        return T.ret(true, 6, 'Return True.');
+      }
+      node = T.nx(node); T.set('node', R(node)); T.hop();
+      T.at(7, `\`node\` moves to ${T.nm(node)}.`, { loop: 'walk' });
+    }
+    return T.ret(false, 8, 'Not found: return False.');
+  },
+  probes: stdProbes('doubly'),
+  summary: T => ` ${plural(T.counters.hops, 'hop')} to find it; the removal itself is O(1).`,
+});
+dRemoveDef('d_remove_middle', 'remove(value) in the middle', 3, 'Find the node, then remove_node unlinks it from both sides: two links change.');
+dRemoveDef('d_remove_head', 'remove(value) at the head', 1, 'The first node has no prev, so the head reference changes instead.');
+dRemoveDef('d_remove_tail', 'remove(value) at the tail', 4, 'The last node has no next, so the tail reference changes instead.');
+
+def({
+  id: 'd_remove_node', group: 'doubly', kind: 'doubly', title: 'remove_node(node): O(1) when you hold the node',
+  blurb: 'nth(dl, k) is a helper that walks k nodes from the head. Once you hold a node, removing it needs no walk at all.',
+  code: D_REMOVE_NODE, py: 'doubly',
+  params: { values: valList([1, 2, 3, 4], 1, 7), k: intP(2, 0, 6) },
+  strip: listStrip('doubly', ['node = nth(dl, ', 'k', ')', '\n', 'dl.remove_node(node)']),
+  check: p => p.k < p.values.length || `k must be 0 to ${p.values.length - 1}: the list has ${p.values.length} nodes.`,
+  setup: (T, p) => { let id = T.Fid('head'); for (let i = 0; i < p.k; i++) id = T.nx(id); T.set('node', R(id), T.mod); },
+  run: (T, p) => dRemoveNode(T, idOf(T.mod.locals.find(l => l[0] === 'node')[1]), 0, true),
+  probes: stdProbes('doubly'),
+});
+
+/* ==== goes wrong ======================================================= */
+const W_SPLICE = `def insert_at(self, index, value):
+    if not 0 <= index <= self._size:
+        raise IndexError(index)
+    if index == 0:
+        self.push_front(value)
+        return
+    prev = self.head
+    for _ in range(index - 1):
+        prev = prev.next
+    new = Node(value)
+    prev.next = new
+    new.next = prev.next
+    self._size += 1`;
+def({
+  id: 'w_splice_order', group: 'wrong', kind: 'singly', title: 'Splice in the wrong order: the rest is lost',
+  blurb: 'The same two links as insert_at, set in the other order. No error is raised.',
+  code: W_SPLICE, py: 'w_splice', bugLines: [11, 12],
+  params: { values: valList([1, 2, 3, 4], 2, 7), index: intP(2, 1, 6), value: valP(99) },
+  check: p => p.index < p.values.length || `For this demo, index must be 1 to ${p.values.length - 1}, so that nodes come after the gap.`,
+  strip: listStrip('singly', ['ll.insert_at(', 'index', ', ', 'value', ')']),
+  run: (T, p) => sInsertAt(T, p.index, p.value, 'order'),
+  probes: (T) => [['len(ll)', T => T.size], ['ll[-1]', T => getItem(T, -1)]],
+  finale: (T, p) => `\`len(ll)\` says ${T.size}, and \`ll[-1]\`, the last value, is ${C(getItem(T, -1))} instead of ${C(p.values[p.values.length - 1])}: the walk goes round the cycle. \`print(ll)\` would never finish. Fix: set \`new.next = prev.next\` FIRST, while \`prev.next\` still refers to the rest of the list.`,
+});
+
+const W_OFF = S_INSERT.split('\n').slice(0, 11).join('\n').replace('range(index - 1):', 'range(index):    ');
+def({
+  id: 'w_off_by_one', group: 'wrong', kind: 'singly', title: 'Off by one: stopping ON the node, not before it',
+  blurb: 'The comment says "stop at the node BEFORE the gap". The loop does not.',
+  code: W_OFF, py: 'w_off', bugLines: [8],
+  params: { values: valList([1, 2, 3, 4], 1, 7), index: intP(2, 1, 8), value: valP(99) },
+  strip: listStrip('singly', ['ll.insert_at(', 'index', ', ', 'value', ')']),
+  run: (T, p) => sInsertAt(T, p.index, p.value, 'off'),
+  probes: (T, p) => [['ll', T => reprList(T)], ['ll.find(' + pyrepr(p.value) + ')', T => findIndex(T, p.value)]],
+  finale: (T, p) => T.values().length > T.size || p.index >= p.values.length ? `With \`index == len(ll)\`, \`prev\` walks off the end onto \`None\` and the method crashes. Fix: \`range(index - 1)\`, so \`prev\` stops at index ${p.index - 1}.`
+    : `The new value is at index ${findIndex(T, p.value)}, not ${p.index}. Fix: \`range(index - 1)\`, so \`prev\` stops at index ${p.index - 1}, the node before the gap.`,
+});
+
+const W_NOHEAD = S_REMOVE.split('\n').filter((l, i) => i < 3 || i > 6).join('\n');
+def({
+  id: 'w_remove_head', group: 'wrong', kind: 'singly', title: 'remove with no head case: the first node stays',
+  blurb: 'Only the loop: it always changes prev.next. Try to remove the first value.',
+  code: W_NOHEAD, py: 'w_nohead', bugLines: [4],
+  params: { values: valList([1, 2, 3, 4], 1, 7), value: valP(1) },
+  strip: listStrip('singly', ['ll.remove(', 'value', ')']),
+  run: (T, p) => sRemove(T, p.value, false, 'nohead'),
+  probes: stdProbes('singly'),
+  finale: (T, p) => p.values[0] === p.value ? `remove said False, but ${C(p.value)} is the first value. The loop only ever looks at \`prev.next\`, and no node's \`next\` refers to the first node. Fix: check \`self.head.value\` first and move \`self.head\` (or use a sentinel).` : 'This value was not in the first node, so the bug did not show. Try the first value.',
+});
+
+const W_SIZE = S_APPEND.split('\n').slice(0, 9).join('\n');
+def({
+  id: 'w_forgot_size', group: 'wrong', kind: 'singly', title: 'Forgetting _size: len lies',
+  blurb: 'append links the node in correctly, and then forgets one line.',
+  code: W_SIZE, py: 'w_size', bugLines: [9],
+  params: { values: valList([1, 2, 3, 4], 0, 7), value: valP(5) },
+  strip: listStrip('singly', ['ll.append(', 'value', ')']),
+  run: (T, p) => sAppend(T, p.value, 'nosize'),
+  probes: (T, p) => [['ll', T => reprList(T)], ['len(ll)', T => T.size], [`ll[${p.values.length}]`, T => getItem(T, p.values.length)]],
+  finale: (T, p) => `The nodes hold ${p.values.length + 1} values but \`len(ll)\` says ${T.size}, and \`ll[${p.values.length}]\` raises IndexError although the value is there: \`__getitem__\` trusts \`_size\`. Fix: \`self._size += 1\` at the end.`,
+});
+
+const W_REVERSE = S_REVERSE.split('\n').filter(l => !l.includes('following')).join('\n').replace('# turn this link round', '# turn this link round').split('\n');
+W_REVERSE.splice(4, 0, '        prev, current = current, current.next');
+const W_REV = W_REVERSE.join('\n');
+def({
+  id: 'w_reverse_lost', group: 'wrong', kind: 'singly', fixed: true, title: 'reverse without following: the list is lost',
+  blurb: 'Two references instead of three. It looks shorter, and it runs without an error.',
+  code: W_REV, py: 'w_reverse', bugLines: [4, 5],
+  params: { values: valList([1, 2, 3, 4], 0, 7) },
+  strip: listStrip('singly', ['ll.reverse()']),
+  run: (T) => sReverse(T, true),
+  probes: stdProbes('singly'),
+  finale: (T, p) => p.values.length >= 2 ? `The list is now \`${reprList(T).raw}\` but \`len(ll)\` still says ${T.size}. After line 4 turned the first link round, \`current.next\` led backwards, so the loop stopped and the other nodes became unreachable. Fix: save \`following = current.next\` before changing it.` : 'With fewer than two nodes there is nothing to lose. Try a longer list.',
+});
+
+const W_CRASH = S_APPEND.replace('while current.next is not None:     # walk to the last node: O(n)', 'while current is not None:');
+function wAppendCrash(T, value) {
+  T.call('append', [['self', SELF], ['value', value]], `append(${pyrepr(value)})`);
+  const id = T.newNode(value);
+  T.set('node', R(id));
+  T.at(2, 'Make the new node.');
+  const head = T.Fid('head');
+  T.at(3, head === null ? 'Is the list empty? **Yes.**' : 'Is the list empty? No.');
+  if (head === null) {
+    T.setF('head', R(id)); T.at(4, 'The new node becomes the first node. (The bug is in the other branch: try a list with values.)', { focus: id });
+  } else {
+    let cur = head;
+    T.set('current', R(cur));
+    T.at(6, '`current` starts at the first node.');
+    T.ask('This loop stops when `current` is None. Where will `current` be when the loop ends?', '`None`: past the last node',
+      ['On the last node', 'On the first node', 'On the new node'],
+      'The loop keeps going while `current` is a node, so it ends only once `current` has stepped past the last node onto `None`. Line 9 then needs `current.next`.');
+    for (;;) {
+      if (cur === null) { T.at(7, 'Is `current` None? **Yes**: the loop stops, one step too late.'); break; }
+      T.at(7, `Is \`current\` None? No, it is ${T.nm(cur)}.`, { loop: 'walk', focus: cur });
+      cur = T.nx(cur); T.set('current', R(cur)); T.hop();
+      T.at(8, cur === null ? '`current` moves past the last node: it is now `None`.' : `\`current\` moves to ${T.nm(cur)}.`, { loop: 'walk' });
+    }
+    T.at(9, '`current.next = node`, but `current` is `None`, and `None` has no attribute `next`.');
+    throw new PyErr('AttributeError', "'NoneType' object has no attribute 'next' and no __dict__ for setting new attributes", { why: 'To change the last node you must stop ON it: `while current.next is not None`. (Python 3.13 prints the long message; older versions stop after the word next.)' });
+  }
+  T.size = T.size + 1;
+  T.at(10, `\`self._size\` goes up to ${T.size}.`);
+  return T.ret(null, 10, 'append returns None.');
+}
+def({
+  id: 'w_append_crash', group: 'wrong', kind: 'singly', title: 'Walking one step too far: AttributeError',
+  blurb: 'The loop condition is the one from find. append needs a different one.',
+  code: W_CRASH, py: 'w_crash', bugLines: [7],
+  params: { values: valList([1, 2, 3], 0, 7), value: valP(4) },
+  strip: listStrip('singly', ['ll.append(', 'value', ')']),
+  run: (T, p) => wAppendCrash(T, p.value),
+  probes: stdProbes('singly'),
+  finale: (T, p) => p.values.length ? 'The node was never linked in, and `_size` did not change: the exception left the method before line 10.' : 'An empty list takes the other branch, so it works. Try a list with values.',
+});
+
+function dBackward(T) {
+  const o = 19;
+  T.call('backward', [['self', SELF]], 'backward()', null, o + 1);
+  const out = []; let node = T.Fid('tail');
+  T.set('out', []); T.set('node', R(node));
+  T.at(o + 2, 'Start at the tail and follow the `prev` links.');
+  for (;;) {
+    if (node === null) { T.at(o + 3, 'Is `node` None? **Yes**: the front.'); break; }
+    T.at(o + 3, `Is \`node\` None? No, it is ${T.nm(node)}.`, { loop: 'back', focus: node });
+    out.push(T.val(node)); T.set('out', out.slice());
+    T.at(o + 4, `Add ${C(T.val(node))}: out is ${C(out)}.`, { loop: 'back', hot: ['p' + node] });
+    node = T.pv(node); T.set('node', R(node)); T.hop();
+    T.at(o + 5, node === null ? '`node.prev` is `None`.' : `Follow \`prev\` to ${T.nm(node)}.`, { loop: 'back' });
+  }
+  return T.ret(out.slice(), o + 6, `Return ${C(out)}.`);
+}
+def({
+  id: 'w_dll_prev', group: 'wrong', kind: 'doubly', title: 'Doubly: forgetting link 4, the way back skips the node',
+  blurb: 'Three of the four links are set. Walking forwards looks perfect. Then the shell walks backwards.',
+  code: D_INSERT_BUG, py: 'w_dll_prev', bugLines: [17],
+  params: { values: valList([1, 2, 3, 4], 2, 7), index: intP(2, 1, 6), value: valP(99) },
+  check: p => (p.index >= 1 && p.index < p.values.length) || `For this demo, index must be 1 to ${p.values.length - 1}: a gap with nodes on both sides.`,
+  strip: listStrip('doubly', ['dl.insert_at(', 'index', ', ', 'value', ')']),
+  run: (T, p) => {
+    dInsertAt(T, p.index, p.value, true);
+    T.probe('dl', () => reprList(T));
+    T.prompt('dl.backward()');
+    T.at(0, `Forwards, \`dl\` shows ${C(p.value)} in place. Now walk backwards with \`dl.backward()\`.`);
+    dBackward(T);
+  },
+  probes: (T) => [['len(dl)', T => T.size]],
+  finale: (T, p) => `Forwards the list has ${T.size} values; backwards only ${T.backValues().length}, and ${C(p.value)} is missing: the node after the gap still points back at the node before the gap, past the new node. Fix: \`following.prev = node\`. In a doubly linked list every change comes in pairs.`,
+});
+
+def({
+  id: 'w_dll_pop_back', group: 'wrong', kind: 'doubly', title: 'Doubly: pop_back without cutting next',
+  blurb: 'The tail moves back, the value comes out, and len is right. Print the list.',
+  code: D_POP_BACK_BUG, py: 'w_dll_pop', bugLines: [6, 7],
+  params: { values: valList([1, 2, 3, 4], 2, 7) },
+  strip: listStrip('doubly', ['dl.pop_back()']),
+  run: (T) => dPopBack(T, true),
+  probes: stdProbes('doubly'),
+  finale: (T, p) => `\`len(dl)\` is ${T.size} and \`backward()\` shows ${T.size} values, but the forward walk still shows ${C(p.values[p.values.length - 1])}: the new last node's \`next\` was never set to \`None\`. Fix: \`self.tail.next = None\` in the else branch.`,
+});
+
+
+/* Build the full trace for one scenario and its inputs. */
+function shellLines(sc, p) {
+  return sc.strip.map(part => (part in (sc.params || {})) ? pyrepr(p[part]) : part).join('').split('\n');
+}
+function build(sc, p) {
+  const T = new Tracer(sc, p);
+  setupList(T, sc.kind, p.values);
+  if (sc.setup) sc.setup(T, p);
+  T.counters.links = 0;
+  const lines = shellLines(sc, p);
+  lines.forEach(l => T.prompt(l));
+  T.snap(`Ready: \`${lines[0]}\` has built the list. Press **Step** to run \`${lines[lines.length - 1]}\`.`);
+  let failed = false;
+  try { sc.run(T, p); } catch (e) { if (e instanceof PyErr) { T.raise(e); failed = true; } else throw e; }
+  if (sc.summary && !failed) T.steps[T.steps.length - 1].msg += sc.summary(T, p);
+  if (sc.probes) {
+    for (const [cmd, fn] of sc.probes(T, p)) T.probe(cmd, () => fn(T));
+    T.stack[0].status = 'active'; T.stack[0].line = 0; T.stack[0].note = '';
+    T.snap(sc.finale ? '**What went wrong?** ' + sc.finale(T, p) : 'The shell checks the result: what a walk along the list finds, and what `len` says.' + (sc.kind === 'doubly' ? ' `backward()` walks the `prev` links from the tail; both directions must agree.' : ''),
+      { kind: sc.group === 'wrong' ? 'err' : '' });
+  }
+  return T;
+}
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const md = s => esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+const KW = new Set(['def', 'class', 'if', 'return', 'for', 'in', 'not', 'is', 'None', 'else', 'and', 'or', 'True', 'False', 'while', 'raise']);
+const BI = new Set(['print', 'len', 'str', 'range', 'IndexError', 'Node']);
+function highlight(line) {
+  const re = /(#.*$)|([fF]?"(?:[^"\\]|\\.)*"|[fF]?'(?:[^'\\]|\\.)*')|(\b\d+\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m, html = '', prev = '';
+  while ((m = re.exec(line))) {
+    if (m[1]) html += `<span class="t-com">${esc(m[1])}</span>`;
+    else if (m[2]) html += `<span class="t-str">${esc(m[2])}</span>`;
+    else if (m[3]) html += `<span class="t-num">${m[3]}</span>`;
+    else if (m[4]) {
+      const w = m[4];
+      if (prev === 'def' || prev === 'class') html += `<span class="t-fn">${w}</span>`;
+      else if (KW.has(w)) html += `<span class="t-kw">${w}</span>`;
+      else if (BI.has(w)) html += `<span class="t-bi">${w}</span>`;
+      else html += esc(w);
+      prev = w; continue;
+    } else html += esc(m[5]);
+    if (m[5] && /\S/.test(m[5])) prev = m[5];
+  }
+  return html;
+}
+
+const state = { sc: null, params: {}, T: null, idx: 0, answered: new Map(), quiz: true, timer: null, prevSnap: null, nudge: '', pic: null };
+
+function initPicker() {
+  const sel = $('scenario');
+  for (const g in GROUPS) {
+    const og = document.createElement('optgroup'); og.label = GROUPS[g];
+    for (const sc of SCENARIOS.filter(s => s.group === g)) {
+      const o = document.createElement('option'); o.value = sc.id; o.textContent = sc.title;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  sel.addEventListener('change', () => loadScenario(sel.value));
+}
+
+function loadScenario(id) {
+  stop();
+  const sc = SCENARIOS.find(s => s.id === id) || SCENARIOS[0];
+  state.sc = sc;
+  $('scenario').value = sc.id;
+  state.params = {};
+  for (const k in sc.params) state.params[k] = structuredClone(sc.params[k].def);
+  const kind = sc.group === 'wrong' ? 'wrong' : sc.group === 'tricks' ? 'cost' : 'works';
+  $('badges').innerHTML = `<span class="badge ${kind}">${esc(GROUPS[sc.group])}</span>` +
+    (sc.kind === 'doubly' ? `<span class="badge ex">Written for this demo: not in dsa/</span>` : sc.kind === 'singly' && sc.group !== 'wrong' ? `<span class="badge ex">dsa/linked_list.py: exercise solution</span>` : '');
+  $('scTitle').textContent = sc.title;
+  $('scBlurb').textContent = sc.blurb;
+  $('callerr').textContent = '';
+  renderCallStrip();
+  rebuild();
+  try { localStorage.setItem('linked-list-lab-scenario', sc.id); } catch (e) {}
+}
+
+function renderCallStrip() {
+  const sc = state.sc, box = $('callstrip');
+  box.innerHTML = '<span class="ps">&gt;&gt;&gt;</span>';
+  for (const part of sc.strip) {
+    if (part === '\n') { box.insertAdjacentHTML('beforeend', '<span class="br"></span><span class="ps">&gt;&gt;&gt;</span>'); continue; }
+    if (part in sc.params) {
+      const inp = document.createElement('input');
+      inp.id = 'param-' + part; inp.value = pyrepr(state.params[part]); inp.spellcheck = false;
+      inp.setAttribute('aria-label', part);
+      inp.size = Math.max(2, inp.value.length);
+      inp.addEventListener('input', () => { inp.size = Math.max(2, inp.value.length); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyParams(); } e.stopPropagation(); });
+      inp.addEventListener('change', applyParams);
+      box.appendChild(inp);
+    } else {
+      const s = document.createElement('span'); s.innerHTML = highlight(part); box.appendChild(s);
+    }
+  }
+  const run = document.createElement('button'); run.className = 'btn run'; run.textContent = 'Run';
+  run.addEventListener('click', applyParams); box.appendChild(run);
+}
+
+function parsePy(text) {
+  const j = text.trim().replace(/'/g, '"').replace(/\bNone\b/g, 'null').replace(/\bTrue\b/g, 'true').replace(/\bFalse\b/g, 'false');
+  return JSON.parse(j);
+}
+function applyParams() {
+  const sc = state.sc, next = {}; let err = '';
+  for (const k in sc.params) {
+    const spec = sc.params[k], inp = $('param-' + k);
+    inp.classList.remove('bad');
+    try {
+      if (spec.type === 'int') {
+        if (!/^\s*-?\d+\s*$/.test(inp.value)) throw new Error(`${k} must be a whole number.`);
+        const v = parseInt(inp.value, 10);
+        if (v < spec.min || v > spec.max) throw new Error(`For this demo, ${k} must be between ${spec.min} and ${spec.max}.`);
+        next[k] = v;
+      } else if (spec.type === 'value') {
+        let v; try { v = parsePy(inp.value); } catch (e) { throw new Error(`${k} must be a number, like 99, or a short string, like 'x'.`); }
+        if (!((typeof v === 'number' && Number.isInteger(v) && Math.abs(v) < 1000) || (typeof v === 'string' && v.length <= 4))) throw new Error(`${k} must be a whole number below 1000, or a string of up to 4 characters.`);
+        next[k] = v;
+      } else {
+        let v; try { v = parsePy(inp.value); } catch (e) { throw new Error(`${k} must be a Python list, like ${pyrepr(spec.def)}.`); }
+        if (!Array.isArray(v)) throw new Error(`${k} must be a list.`);
+        if (v.length < spec.minLen || v.length > spec.maxLen) throw new Error(`For this demo, the list must have ${spec.minLen} to ${spec.maxLen} values.`);
+        const ok = spec.check ? spec.check(v) : true;
+        if (ok !== true) throw new Error(ok);
+        next[k] = v;
+      }
+    } catch (e) { inp.classList.add('bad'); err = e.message; }
+  }
+  if (!err && sc.check) { const ok = sc.check(next); if (ok !== true) err = ok; }
+  $('callerr').textContent = err;
+  if (err) return;
+  state.params = next;
+  for (const k in next) { const inp = $('param-' + k); inp.value = pyrepr(next[k]); inp.size = Math.max(2, inp.value.length); }
+  rebuild();
+}
+
+function rebuild() {
+  stop();
+  state.T = build(state.sc, state.params);
+  state.idx = 0; state.answered = new Map(); state.prevSnap = null;
+  picSetup();
+  $('scrub').max = state.T.steps.length - 1;
+  render();
+}
+
+/* ---------- navigation ---------- */
+const snapAt = i => state.T.steps[i];
+const pendingQ = () => { const s = snapAt(state.idx); return state.quiz && s.q && !state.answered.has(state.idx); };
+function go(i) {
+  const N = state.T.steps.length;
+  i = Math.max(0, Math.min(N - 1, i));
+  if (i === state.idx) return false;
+  state.prevSnap = snapAt(state.idx);
+  state.idx = i;
+  state.nudge = '';
+  render();
+  return true;
+}
+function guard() {
+  if (pendingQ()) { state.nudge = 'Answer the question first (keys A–D), or press Reveal.'; $('nudge').textContent = state.nudge; return false; }
+  return true;
+}
+function step() { if (!guard()) { stop(); return false; } return go(state.idx + 1); }
+function back() { stop(); go(state.idx - 1); }
+function skipLoop() {
+  if (!guard()) return;
+  stop();
+  const S = state.T.steps, lp = S[state.idx].loop, d = S[state.idx].depth;
+  let j = state.idx + 1;
+  if (lp) while (j < S.length && S[j].loop === lp && S[j].depth === d) j++;
+  go(j);
+}
+function stepOut() {
+  if (!guard()) return;
+  stop();
+  const S = state.T.steps, d = S[state.idx].depth;
+  let j = state.idx + 1;
+  while (j < S.length && S[j].depth >= d && d > 0) j++;
+  go(j);
+}
+function play() {
+  if (state.timer) { stop(); return; }
+  if (state.idx >= state.T.steps.length - 1) go(0);
+  $('bPlay').innerHTML = 'Pause <kbd>P</kbd>'; $('bPlay').classList.add('on');
+  const tick = () => {
+    if (!step() || state.idx >= state.T.steps.length - 1 || pendingQ()) { stop(); return; }
+    state.timer = setTimeout(tick, delay());
+  };
+  state.timer = setTimeout(tick, Math.min(400, delay()));
+}
+function stop() {
+  if (state.timer) clearTimeout(state.timer);
+  state.timer = null;
+  $('bPlay').innerHTML = 'Play <kbd>P</kbd>'; $('bPlay').classList.remove('on');
+}
+const delay = () => [2600, 2000, 1500, 1150, 900, 700, 520, 380, 260, 160][+$('speed').value - 1];
+
+function answer(k) {
+  const s = snapAt(state.idx);
+  if (!s.q || state.answered.has(state.idx)) return;
+  state.answered.set(state.idx, k);
+  state.nudge = '';
+  renderNarr();
+  $('nudge').textContent = '';
+}
+
+/* ---------- rendering ---------- */
+function render() {
+  const s = snapAt(state.idx);
+  renderCode(s);
+  renderNarr();
+  renderVars(s);
+  renderPic(s);
+  renderOut(s);
+  renderTransport(s);
+  scrollCode();
+}
+/* Keep the running line in view (after the narration has taken its space). */
+function scrollCode() {
+  const box = $('code'), cur = box.querySelector('.ln.cur, .ln.ret, .ln.errl');
+  if (!cur) return;
+  const r = cur.getBoundingClientRect(), br = box.getBoundingClientRect();
+  if (r.top < br.top + 4 || r.bottom > br.bottom - 4) box.scrollTop += r.top - br.top - br.height / 2 + r.height / 2;
+}
+
+function renderCode(s) {
+  const lines = state.sc.code.split('\n');
+  const frames = s.stack.slice(1), top = s.stack[s.stack.length - 1];
+  const waiting = {};
+  for (const f of frames) if (f !== top && f.status === 'waiting') (waiting[f.line] = waiting[f.line] || []).push(f);
+  const errLine = s.kind === 'err' && frames.length ? frames[frames.length - 1].line : 0;
+  const last = state.idx === state.T.steps.length - 1;
+  const bugs = last && state.sc.bugLines ? new Set(state.sc.bugLines) : new Set();
+  let html = '';
+  lines.forEach((ln, i) => {
+    const no = i + 1;
+    let cls = '';
+    const tags = [];
+    if (top.fn !== '<module>' && top.line === no) {
+      if (top.status === 'returning') { cls = 'ret'; tags.push(`<span class="tag r">returns ${esc(clip(pyrepr(top.ret), 22))}</span>`); }
+      else if (top.status === 'error') { cls = 'errl'; tags.push(`<span class="tag e">error here</span>`); }
+      else { cls = 'cur'; tags.push(`<span class="tag a">${esc(clip(top.label, 26))}</span>`); }
+    } else if (errLine === no) cls = 'errl';
+    if (waiting[no]) { if (!cls) cls = 'waitl'; tags.push(`<span class="tag w">${esc(clip(waiting[no][0].label, 24))} paused</span>`); }
+    if (bugs.has(no)) { cls += ' bug'; tags.push('<span class="tag e">bug</span>'); }
+    html += `<div class="ln ${cls}"><span class="no">${no}</span><span class="src">${highlight(ln) || ' '}</span><span class="tags">${tags.join('')}</span></div>`;
+  });
+  const box = $('code');
+  box.innerHTML = html;
+  $('lineInfo').textContent = top.fn === '<module>' ? '' : `${top.label} · line ${top.line}`;
+}
+
+function renderNarr() {
+  const s = snapAt(state.idx), box = $('narr');
+  let html = `<div class="say ${s.kind === 'err' ? 'err' : ''}">${md(s.msg)}</div>`;
+  if (s.q && state.quiz) {
+    const chosen = state.answered.get(state.idx);
+    const done = chosen !== undefined && chosen !== -2;
+    html += `<div class="qcard" role="group" aria-label="Question"><div class="qlabel">What happens next?</div><div class="qtext">${md(s.q.text)}</div><div class="choices">`;
+    s.q.choices.forEach((c, k) => {
+      let cls = '';
+      if (done) { if (k === s.q.answer) cls = 'right'; else if (k === chosen) cls = 'wrong'; }
+      html += `<button class="choice ${cls}" data-k="${k}" ${done ? 'disabled' : ''}><span class="k">${'ABCD'[k]}</span><span>${md(c)}</span></button>`;
+    });
+    html += `</div>`;
+    if (done) {
+      const verdict = chosen === -1 ? 'Answer:' : chosen === s.q.answer ? 'Correct.' : `Not quite. The answer is ${'ABCD'[s.q.answer]}.`;
+      html += `<div class="why"><b>${verdict}</b> ${md(s.q.why)}</div>`;
+    } else {
+      html += `<div class="qactions"><button class="btn" id="qReveal">Reveal <kbd>V</kbd></button><button class="btn" id="qSkip">Skip question</button></div>`;
+    }
+    html += `</div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+  scrollCode();
+  const rv = $('qReveal'); if (rv) rv.addEventListener('click', () => answer(-1));
+  const sk = $('qSkip'); if (sk) sk.addEventListener('click', () => { state.answered.set(state.idx, -2); step(); });
+}
+
+function nodeName(s, id) {
+  const nd = s.heap[id];
+  return nd.sent ? 'sentinel' : `Node(${pyrepr(nd.v)})`;
+}
+function showVal(s, v) {
+  if (isRef(v)) return '→ ' + nodeName(s, v.n);
+  if (v && v.self) return `→ the ${KINDS[state.sc.kind].obj} object`;
+  if (v && v.obj) return `→ ${KINDS[state.sc.kind].cls} object`;
+  return pyrepr(v);
+}
+function renderVars(s) {
+  const box = $('vars'), kind = KINDS[state.sc.kind];
+  const prev = state.prevSnap;
+  const prevIds = new Set((prev ? prev.stack : []).map(f => f.id));
+  const was = (fid, name) => {
+    if (!prev) return undefined;
+    if (fid === 'obj') { const e = prev.fields.find(x => x[0] === name); return e ? JSON.stringify(e[1]) : undefined; }
+    const f = prev.stack.find(x => x.id === fid); if (!f) return undefined;
+    const e = f.locals.find(x => x[0] === name); return e ? JSON.stringify(e[1]) : undefined;
+  };
+  const row = (fid, n, v) => {
+    const old = was(fid, n), chg = old !== undefined && old !== JSON.stringify(v);
+    return `<span class="k ${n.includes('(') ? 'tmp' : ''}">${esc(n === '(new node)' ? 'new node' : n)}</span><span class="v ${isRef(v) ? 'ref' : ''} ${chg ? 'chg' : ''}">${esc(clip(showVal(s, v), 60))}</span>`;
+  };
+  let html = `<div class="frame obj"><div class="fh"><span class="fname">${esc(kind.obj)}: ${esc(kind.cls)} object</span><span class="chip">on the heap</span></div><div class="locals">` +
+    s.fields.map(([n, v]) => row('obj', n, v)).join('') + `</div></div>`;
+  for (let k = s.stack.length - 1; k >= 0; k--) {
+    const f = s.stack[k], isTop = k === s.stack.length - 1;
+    let cls = (f.fn === '<module>' ? 'module ' : '') + f.status;
+    if (prev && !prevIds.has(f.id) && f.fn !== '<module>') cls += ' new';
+    let chip;
+    if (f.fn === '<module>') chip = f.status === 'error' ? 'error' : isTop ? (state.idx === 0 ? 'ready' : 'shell') : 'waiting';
+    else if (f.status === 'active') chip = `running · line ${f.line}`;
+    else if (f.status === 'waiting') chip = `paused · line ${f.line}`;
+    else if (f.status === 'returning') chip = `returns ${clip(pyrepr(f.ret), 16)}`;
+    else chip = 'abandoned';
+    const locals = f.locals.map(([n, v]) => row(f.id, n, v)).join('');
+    html += `<div class="frame ${cls}"><div class="fh"><span class="fname">${f.fn === '<module>' ? '&lt;module&gt;' : esc(f.label)}</span><span class="chip">${esc(chip)}</span></div>` +
+      (locals ? `<div class="locals">${locals}</div>` : '') + (f.note ? `<div class="fnote">${esc(f.note)}</div>` : '') + `</div>`;
+  }
+  box.innerHTML = html;
+  $('varInfo').textContent = s.depth ? `${plural(s.depth, 'method')} running` : '';
+}
+
+/* ---------- the picture ---------- */
+const GEO = { s: { W: 88, H: 40, valW: 58, colW: 132 }, d: { W: 110, H: 40, pW: 28, valW: 54, colW: 156 } };
+const REFNAMES = new Set(['prev', 'current', 'following', 'node', 'before', 'new', '(new node)']);
+const TAGH = 18;
+
+/* Which references point at which node, in one snapshot. */
+function refsOf(s) {
+  const above = [], below = [];
+  for (const [n, v] of s.fields) if (n !== '_size' && (isRef(v) || v === null)) above.push({ key: 'f:' + n, label: n, id: idOf(v), self: true, hk: 'f' + n });
+  s.stack.forEach((f, k) => f.locals.forEach(([n, v]) => {
+    if (isRef(v) || (v === null && REFNAMES.has(n)))
+      below.push({ key: `L${f.id}:${n}`, label: n === '(new node)' ? 'new node' : n, id: idOf(v), tmp: n === '(new node)', outer: k < s.stack.length - 1 });
+  }));
+  return { above, below };
+}
+function picSetup() {
+  const T = state.T, dbl = !!KINDS[state.sc.kind].dbl, g = dbl ? GEO.d : GEO.s;
+  let minX = 0, maxX = 0, row1 = false, stack = 1, arcUp = false, arcDown = false;
+  for (const s of T.steps) {
+    for (const id in s.pos) { const p = s.pos[id]; minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); if (p.row) row1 = true; }
+    const r = refsOf(s);
+    if ([...r.above, ...r.below].some(t => t.id === null)) maxX = Math.max(maxX, s.chain.length);
+    const per = {}; r.below.forEach(t => { per[t.id] = (per[t.id] || 0) + 1; stack = Math.max(stack, per[t.id]); });
+    for (const nd of s.heap) {
+      const a = s.pos[nd.id]; if (!a) continue;
+      const n = nd.next === null ? null : s.pos[nd.next], p = nd.prev === null ? null : s.pos[nd.prev];
+      if (n && n.row === a.row && n.x <= a.x) arcUp = true;
+      if (dbl && p && p.row === a.row && p.x >= a.x) arcDown = true;
+    }
+  }
+  const BELOW = stack * (TAGH + 2) + 10 + (arcDown ? 30 : 0);
+  const PAD = 18, TOP = 32 + (arcUp ? 34 : 0);
+  const row1Y = TOP + g.H + BELOW + 30;
+  const H = (row1 ? row1Y + g.H + stack * (TAGH + 2) + 10 : TOP + g.H + BELOW);
+  const W = PAD * 2 + (maxX - minX) * g.colW + g.W + (dbl ? 0 : 20);
+  const box = $('picbox');
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="The nodes and the references to them">
+    <defs>${['n:var(--ink)', 'p:var(--hit)', 'hot:var(--accent)', 'chg:var(--done)'].map(m => { const [k, c] = m.split(':'); return `<marker id="mk-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:${c}"/></marker>`; }).join('')}</defs>
+    <g class="lyr-a"></g><g class="lyr-n"></g><g class="lyr-t"></g></svg>`;
+  const svg = box.querySelector('svg');
+  svg.style.minWidth = Math.round(W * 0.6) + 'px';      /* narrow screens scroll the picture, not the page */
+  state.pic = { g, dbl, minX, PAD, TOP, row1Y, svg, la: svg.querySelector('.lyr-a'), ln: svg.querySelector('.lyr-n'), lt: svg.querySelector('.lyr-t'), els: new Map() };
+}
+function renderPic(s) {
+  const P = state.pic, g = P.g, dbl = P.dbl;
+  const X = x => P.PAD + (x - P.minX) * g.colW, Y = row => (row ? P.row1Y : P.TOP);
+  const seen = new Set();
+  const prevLen = state.prevSnap && state.prevSnap.heap.length <= s.heap.length && state.idx > 0 ? state.prevSnap.heap.length : s.heap.length;
+  const put = (layer, key, tag, fn) => {
+    let el = P.els.get(key), fresh = false;
+    if (!el) { el = document.createElementNS(SVGNS, tag); fresh = true; }
+    fn(el, fresh);
+    if (fresh) { layer.appendChild(el); P.els.set(key, el); }
+    seen.add(key);
+    return el;
+  };
+  const garbage = new Set(s.garbage), hot = new Set(s.hot), chg = new Set(s.chg);
+  const refd = new Set();
+  const { above, below } = refsOf(s);
+  below.forEach(t => { if (t.id !== null) refd.add(t.id); });
+  const noneX = s.chain.length;
+
+  /* nodes */
+  for (const nd of s.heap) {
+    const p = s.pos[nd.id]; if (!p) continue;
+    const cls = ['nd', refd.has(nd.id) ? 'ref' : '', s.focus === nd.id ? 'focus' : '', nd.sent ? 'sent' : '', garbage.has(nd.id) ? 'garbage' : '',
+                 nd.id >= prevLen ? 'fresh' : ''].join(' ');
+    put(P.ln, 'N' + nd.id, 'g', (el, fresh) => {
+      el.setAttribute('class', cls + (fresh && state.idx > 0 ? ' born' : ''));
+      el.style.transform = `translate(${X(p.x)}px, ${Y(p.row)}px)`;
+      const H = g.H, W = g.W;
+      let h = `<title>${esc(nd.sent ? 'the sentinel node' : 'Node(' + pyrepr(nd.v) + ')')}</title><rect class="box" x="0" y="0" width="${W}" height="${H}" rx="5"/>`;
+      const slash = (x1, x2) => `<line class="none" x1="${x1 + 5}" y1="${H - 6}" x2="${x2 - 5}" y2="6"/>`;
+      const label = nd.sent ? 'sentinel' : clip(pyrepr(nd.v), 5);
+      if (dbl) {
+        h += `<line class="div" x1="${g.pW}" y1="0" x2="${g.pW}" y2="${H}"/><line class="div" x1="${g.pW + g.valW}" y1="0" x2="${g.pW + g.valW}" y2="${H}"/>`;
+        h += `<text class="v" x="${g.pW + g.valW / 2}" y="${H / 2 + 6}" text-anchor="middle">${esc(label)}</text>`;
+        h += nd.prev === null ? slash(0, g.pW) : `<circle class="dot p" cx="${g.pW / 2}" cy="26" r="3.5"/>`;
+        h += nd.next === null ? slash(g.pW + g.valW, W) : `<circle class="dot" cx="${g.pW + g.valW + g.pW / 2}" cy="14" r="3.5"/>`;
+      } else {
+        h += `<line class="div" x1="${g.valW}" y1="0" x2="${g.valW}" y2="${H}"/>`;
+        h += `<text class="v" x="${g.valW / 2}" y="${H / 2 + 6}" text-anchor="middle">${esc(label)}</text>`;
+        h += nd.next === null ? slash(g.valW, W) : `<circle class="dot" cx="${g.valW + (W - g.valW) / 2}" cy="${H / 2}" r="3.5"/>`;
+      }
+      if (garbage.has(nd.id)) h += `<text class="gone" x="${W / 2}" y="-7" text-anchor="middle">unreachable</text>`;
+      el.innerHTML = h;
+    });
+  }
+
+  /* arrows */
+  const arrow = (srcId, kind) => {
+    const nd = s.heap[srcId], to = kind === 'n' ? nd.next : nd.prev;
+    const ps = s.pos[srcId], pt = to === null ? null : s.pos[to];
+    if (to === null || !ps || !pt) return;
+    const key = kind + srcId, sx = X(ps.x), sy = Y(ps.row), tx = X(pt.x), ty = Y(pt.row), same = ps.row === pt.row;
+    let Px, Py, Qx, Qy, c1x, c1y, c2x, c2y;
+    const lift = 34 + Math.min(14, Math.abs(tx - sx) * 0.04);
+    if (kind === 'n') {
+      Px = sx + (dbl ? g.pW + g.valW + g.pW / 2 : g.valW + (g.W - g.valW) / 2); Py = sy + (dbl ? 14 : g.H / 2);
+      Qx = tx - 1; Qy = ty + (dbl ? 14 : g.H / 2);
+      if (same && Qx > Px + 10) { c1x = Px + (Qx - Px) / 3; c1y = Py; c2x = Px + 2 * (Qx - Px) / 3; c2y = Qy; }
+      else if (same) { Qx = tx + g.W * 0.84; Qy = ty - 1; c1x = Px + 30; c1y = Py - lift - 14; c2x = Qx + (Qx > Px ? -10 : 10); c2y = Qy - lift; }
+      else { c1x = Px + 48; c1y = Py; c2x = Qx - 48; c2y = Qy; }
+    } else {
+      Px = sx + g.pW / 2; Py = sy + 26; Qx = tx + g.W + 1; Qy = ty + 26;
+      if (same && Qx < Px - 10) { c1x = Px - (Px - Qx) / 3; c1y = Py; c2x = Px - 2 * (Px - Qx) / 3; c2y = Qy; }
+      else if (same) { c1x = Px - 40; c1y = Py + lift; c2x = Qx + 40; c2y = Qy + lift; }
+      else { c1x = Px - 48; c1y = Py; c2x = Qx + 48; c2y = Qy; }
+    }
+    const d = `M${Px},${Py} C${c1x},${c1y} ${c2x},${c2y} ${Qx},${Qy}`;
+    const st = hot.has(key) ? 'hot' : chg.has(key) ? 'chg' : '';
+    put(P.la, 'A' + key, 'path', el => {
+      el.setAttribute('class', `ar ${kind === 'p' ? 'p' : ''} ${st} ${garbage.has(srcId) ? 'garbage' : ''}`);
+      el.setAttribute('d', d);
+      el.style.d = `path("${d}")`;
+      el.setAttribute('marker-end', `url(#mk-${st || kind})`);
+    });
+  };
+  for (const nd of s.heap) { arrow(nd.id, 'n'); if (dbl) arrow(nd.id, 'p'); }
+
+  /* references: head/tail above their node, variables below */
+  const anchor = id => (id === null ? { x: X(noneX), y: Y(0), none: true } : { x: X(s.pos[id].x), y: Y(s.pos[id].row) });
+  const tagW = t => t.label.length * 7.9 + 14;
+  const groupsA = new Map(), groupsB = new Map();
+  above.forEach(t => { const k = String(t.id); (groupsA.get(k) || groupsA.set(k, []).get(k)).push(t); });
+  below.forEach(t => { const k = String(t.id); (groupsB.get(k) || groupsB.set(k, []).get(k)).push(t); });
+  let needNone = false;
+  const drawTag = (t, x, y, up, first) => {
+    if (t.id === null) needNone = true;
+    const w = tagW(t);
+    const cls = ['tg', t.self ? 'self' : '', t.tmp ? 'tmp' : '', t.id === null ? 'isnone' : '', t.hk && hot.has(t.hk) ? 'hot' : '', t.hk && chg.has(t.hk) ? 'chg' : ''].join(' ');
+    put(P.lt, 'T' + t.key, 'g', el => {
+      el.setAttribute('class', cls);
+      el.style.opacity = t.outer ? '.55' : '1';
+      el.style.transform = `translate(${x}px, ${y}px)`;
+      const conn = up ? `<line x1="0" y1="${TAGH}" x2="0" y2="${TAGH + 7}"/>` : first ? `<line x1="0" y1="-7" x2="0" y2="0"/>` : '';
+      el.innerHTML = `${conn}<rect x="${-w / 2}" y="0" width="${w}" height="${TAGH}" rx="4"/><text x="0" y="${TAGH - 5}" text-anchor="middle">${esc(t.label)}</text>`;
+    });
+  };
+  for (const [k, ts] of groupsA) {
+    const a = anchor(ts[0].id), cx = a.x + (a.none ? 22 : g.W / 2);
+    const total = ts.reduce((s2, t) => s2 + tagW(t) + 6, -6);
+    let x = cx - total / 2;
+    ts.forEach(t => { const w = tagW(t); drawTag(t, x + w / 2, a.y - TAGH - 7, true); x += w + 6; });
+  }
+  for (const [k, ts] of groupsB) {
+    const a = anchor(ts[0].id), cx = a.x + (a.none ? 22 : g.W / 2);
+    ts.forEach((t, i) => drawTag(t, cx, a.y + g.H + 7 + i * (TAGH + 2), false, i === 0));
+  }
+  put(P.lt, 'NONE', 'g', el => {
+    el.setAttribute('class', 'nonemark');
+    el.style.display = needNone ? '' : 'none';
+    el.innerHTML = `<text x="${X(noneX) + 22}" y="${Y(0) + g.H / 2 + 5}" text-anchor="middle">None</text>`;
+  });
+
+  for (const [k, el] of P.els) if (!seen.has(k)) { el.remove(); P.els.delete(k); }
+
+  /* the counts under the picture */
+  const sent = s.fields.some(f => f[0] === 'sentinel');
+  const chain = s.chain, lastId = chain[chain.length - 1];
+  const cycle = chain.length && s.heap[lastId].next !== null;
+  const reach = chain.length - (sent ? 1 : 0);
+  const size = (s.fields.find(f => f[0] === '_size') || [])[1];
+  $('viewMeta').innerHTML = `${cycle ? '<b style="color:var(--err)">cycle!</b> ' : ''}reachable from ${sent ? 'the sentinel' : 'head'}: <b>${reach}</b>${cycle ? '+' : ''} · _size: <b style="${size !== reach || cycle ? 'color:var(--err)' : ''}">${size}</b>`;
+  $('legend').innerHTML = `<span><i style="border-color:var(--ink)"></i>next</span>` + (dbl ? `<span><i style="border-color:var(--hit)"></i>prev</span>` : '') +
+    `<span><i style="border-color:var(--accent);border-top-style:dashed"></i>about to change</span><span><i style="border-color:var(--done)"></i>just changed</span>` +
+    `<span><i class="box" style="border-color:var(--wait);background:var(--wait-bg)"></i>held by a variable</span><span>╱ = None</span>` +
+    (s.garbage.length ? `<span style="opacity:.6"><i class="box" style="border-color:var(--ink);border-style:dashed"></i>unreachable: Python frees it</span>` : '');
+}
+
+function renderOut(s) {
+  const prevLen = state.prevSnap && state.prevSnap !== s ? state.prevSnap.out.length : s.out.length;
+  const forward = state.prevSnap && state.prevSnap.out.length <= s.out.length;
+  $('out').innerHTML = s.out.map((o, i) => `<span class="${o.k} ${forward && i >= prevLen ? 'new' : ''}">${esc(o.t)}</span>`).join('\n');
+  $('out').scrollTop = $('out').scrollHeight;
+}
+
+function renderTransport(s) {
+  const N = state.T.steps.length;
+  $('scrub').value = state.idx;
+  $('pos').textContent = `step ${state.idx} / ${N - 1}`;
+  $('bBack').disabled = state.idx === 0;
+  $('bStep').disabled = state.idx >= N - 1;
+  $('bOver').disabled = state.idx >= N - 1 || !s.loop;
+  $('bOut').disabled = state.idx >= N - 1 || s.depth === 0;
+  const c = s.counters;
+  $('stats').innerHTML = `<span title="How many times a walker moved one node along">Hops <b>${c.hops}</b></span><span title="References changed: next, prev, head, tail">Links changed <b>${c.links}</b></span>`;
+  $('nudge').textContent = state.nudge;
+}
+
+/* ---------- controls ---------- */
+function setTheme(t) {
+  if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('linked-list-lab-theme', t || ''); } catch (e) {}
+}
+function wire() {
+  $('bStep').addEventListener('click', () => { stop(); step(); });
+  $('bBack').addEventListener('click', back);
+  $('bOver').addEventListener('click', skipLoop);
+  $('bOut').addEventListener('click', stepOut);
+  $('bPlay').addEventListener('click', play);
+  $('bRestart').addEventListener('click', () => { stop(); go(0); });
+  $('scrub').addEventListener('input', e => { stop(); go(+e.target.value); });
+  $('bQuiz').addEventListener('click', () => {
+    state.quiz = !state.quiz;
+    $('bQuiz').innerHTML = `Questions: ${state.quiz ? 'on' : 'off'} <kbd>Q</kbd>`;
+    $('bQuiz').classList.toggle('on', state.quiz);
+    state.nudge = ''; renderNarr(); $('nudge').textContent = '';
+  });
+  $('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(dark ? 'light' : 'dark');
+  });
+  $('fsBtn').addEventListener('click', () => {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); }
+    } catch (e) {}
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+    if (e.target.tagName === 'SELECT') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    const s = snapAt(state.idx);
+    if (s.q && state.quiz && !state.answered.has(state.idx)) {
+      const map = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+      if (k in map && map[k] < s.q.choices.length) { e.preventDefault(); answer(map[k]); return; }
+      if (k === 'v') { e.preventDefault(); answer(-1); return; }
+    }
+    if (k === 'arrowright' || k === ' ') { e.preventDefault(); stop(); step(); }
+    else if (k === 'arrowleft') { e.preventDefault(); back(); }
+    else if (k === 'o') skipLoop();
+    else if (k === 'u') stepOut();
+    else if (k === 'p') play();
+    else if (k === 'r') { stop(); go(0); }
+    else if (k === 'e' || k === 'end') { stop(); go(state.T.steps.length - 1); }
+    else if (k === 'q') $('bQuiz').click();
+    else if (k === 'f') $('fsBtn').click();
+  });
+}
+
+/* Self-check: open the page as linked-list-lab.html#selftest to build every
+   scenario with its default input and a few edge inputs, render every step,
+   and print one JSON line per run (tools compare the shell lines with Python). */
+const SELFTEST_EXTRA = {
+  push_front: [{ values: [] }], append: [{ values: [] }, { values: [7] }],
+  insert_middle: [{ index: 7 }, { index: -1 }, { index: 1 }], insert_front: [{ values: [] }], insert_end: [{ values: [1] , index: 1 }],
+  pop_front: [{ values: [] }, { values: [9] }], remove_middle: [{ values: [] }, { value: 4 }], remove_missing: [{ values: [5] }],
+  find: [{ value: 5 }, { value: 7 }, { values: [] }], getitem: [{ index: -1 }, { index: 5 }, { index: -6 }, { index: 0 }],
+  reverse: [{ values: [] }, { values: [1] }], append_tail: [{ values: [] }],
+  remove_sentinel: [{ value: 3 }, { value: 9 }, { values: [] }],
+  d_push_front: [{ values: [] }], d_append: [{ values: [] }],
+  d_insert_middle: [{ index: 0 }, { index: 4 }, { index: 1 }, { index: 3 }, { index: 9 }],
+  d_pop_front: [{ values: [1] }, { values: [] }], d_pop_back: [{ values: [1] }, { values: [] }],
+  d_remove_middle: [{ value: 9 }, { values: [1], value: 1 }], d_remove_node: [{ k: 0 }, { k: 3 }, { values: [7], k: 0 }],
+  w_splice_order: [{ index: 1 }, { index: 3 }], w_off_by_one: [{ index: 4 }, { index: 1 }], w_remove_head: [{ value: 3 }],
+  w_forgot_size: [{ values: [] }], w_reverse_lost: [{ values: [1] }], w_append_crash: [{ values: [] }],
+  w_dll_prev: [{ index: 1 }, { index: 3 }], w_dll_pop_back: [{ values: [1, 2] }],
+};
+function selftest() {
+  const lines = [];
+  for (const sc of SCENARIOS) {
+    const base = {}; for (const k in sc.params) base[k] = sc.params[k].def;
+    for (const p of [base, ...(SELFTEST_EXTRA[sc.id] || []).map(e => Object.assign({}, base, e))]) {
+      try {
+        if (sc.check && sc.check(p) !== true) { lines.push(JSON.stringify({ id: sc.id, params: p, skipped: sc.check(p) })); continue; }
+        const T = build(sc, p);
+        const shell = T.out.map(o => o.k === 'err' ? o.t.split('\n').pop() : o.t);
+        const qs = T.steps.filter(x => x.q).length;
+        const nlines = sc.code.split('\n').length;
+        const badLine = T.steps.some(x => x.line > nlines || x.stack.some(f => f.line > nlines));
+        state.sc = sc; state.T = T; state.params = p; state.prevSnap = null; state.idx = 0;
+        picSetup();
+        for (let i = 0; i < T.steps.length; i++) { state.prevSnap = i ? T.steps[i - 1] : null; state.idx = i; render(); }
+        lines.push(JSON.stringify({ id: sc.id, py: sc.py, params: p, steps: T.steps.length, hops: T.counters.hops, links: T.counters.links, questions: qs, badLine, shell, code: sc.code }));
+      } catch (e) { lines.push(JSON.stringify({ id: sc.id, params: p, crash: e.message + ' ' + (e.stack || '').split('\n')[1] })); }
+    }
+  }
+  const pre = $('selftest'); pre.hidden = false; pre.textContent = lines.join('\n');
+}
+
+initPicker();
+wire();
+try { const t = localStorage.getItem('linked-list-lab-theme'); if (t) setTheme(t); } catch (e) {}
+const themeArg = /[#&]theme=(light|dark)/.exec(location.hash); if (themeArg) setTheme(themeArg[1]);
+let startId = 'insert_middle';
+try { startId = localStorage.getItem('linked-list-lab-scenario') || startId; } catch (e) {}
+const hashId = location.hash.slice(1).split('&')[0];
+if (hashId && SCENARIOS.some(s => s.id === hashId)) startId = hashId;
+loadScenario(startId);
+const stepArg = /[#&]step=(\d+)/.exec(location.hash);
+if (stepArg) { state.quiz = location.hash.includes('quiz') ; go(+stepArg[1]); }
+if (location.hash === '#selftest') selftest();
+</script>
+</body>
+</html>
