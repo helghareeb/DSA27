@@ -20,6 +20,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Recursion Lab](https://helghareeb.github.io/DSA27/lectures/03-recursion/recursion-lab.html)** | Interactive: step through recursion, watch the call stack and the recursion tree, answer *what happens next?*, and see nine ways recursion goes wrong. Offline copy: [`recursion-lab.html`](lectures/03-recursion/recursion-lab.html). |
 | **[Lecture 04 — Dynamic Arrays](lectures/04-dynamic-arrays/lecture.md)** | Growing by copying, why doubling works, and amortised analysis. |
 | **[Lecture 05 — Linked Lists](lectures/05-linked-lists/lecture.md)** | Nodes and references, the traversal loop, and the mirror image of the array. |
+| **[Linked List Lab](https://helghareeb.github.io/DSA27/lectures/05-linked-lists/linked-list-lab.html)** | Interactive: step through singly and doubly linked lists — insert at the front, middle and end, delete, find, reverse — watch every reference and link change, and see eight ways it goes wrong. Offline copy: [`linked-list-lab.html`](lectures/05-linked-lists/linked-list-lab.html). |
 | **[Lecture 06 — Stacks](lectures/06-stacks/lecture.md)** | LIFO, two honest implementations, brackets, postfix and shunting-yard. |
 | **[Lecture 07 — Queues](lectures/07-queues/lecture.md)** | FIFO, the O(n) dequeue measured, the ring buffer, and a queue from two stacks. |
 | **[Lecture 08 — Searching](lectures/08-searching/lecture.md)** | Linear and binary search, bounds, jump, exponential and interpolation search — measured. |
