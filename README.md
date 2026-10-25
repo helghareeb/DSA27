@@ -34,7 +34,7 @@ Dynamic programming is included as enrichment.
 | [Lecture 04 — Dynamic Arrays](docs/lectures/04-dynamic-arrays/lecture.md) | [handout PDF](docs/pdf/DSA27-L04-handout.pdf) · [slides PDF](docs/pdf/DSA27-L04-slides.pdf) · [interactive demo](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html) |
 | [Lecture 05 — Linked Lists](docs/lectures/05-linked-lists/lecture.md) | [handout PDF](docs/pdf/DSA27-L05-handout.pdf) · [slides PDF](docs/pdf/DSA27-L05-slides.pdf) · [interactive demo](https://helghareeb.github.io/DSA27/lectures/05-linked-lists/linked-list-lab.html) |
 | [Lecture 06 — Stacks](docs/lectures/06-stacks/lecture.md) | [handout PDF](docs/pdf/DSA27-L06-handout.pdf) · [slides PDF](docs/pdf/DSA27-L06-slides.pdf) · [interactive demo](https://helghareeb.github.io/DSA27/lectures/06-stacks/stack-lab.html) |
-| [Lecture 07 — Queues](docs/lectures/07-queues/lecture.md) | [handout PDF](docs/pdf/DSA27-L07-handout.pdf) · [slides PDF](docs/pdf/DSA27-L07-slides.pdf) |
+| [Lecture 07 — Queues](docs/lectures/07-queues/lecture.md) | [handout PDF](docs/pdf/DSA27-L07-handout.pdf) · [slides PDF](docs/pdf/DSA27-L07-slides.pdf) · [interactive demo](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html) |
 | [Lecture 08 — Searching](docs/lectures/08-searching/lecture.md) | [handout PDF](docs/pdf/DSA27-L08-handout.pdf) · [slides PDF](docs/pdf/DSA27-L08-slides.pdf) |
 | [Lecture 09 — Basic Sorting](docs/lectures/09-sorting-basic/lecture.md) | [handout PDF](docs/pdf/DSA27-L09-handout.pdf) · [slides PDF](docs/pdf/DSA27-L09-slides.pdf) |
 | [Lecture 10 — Advanced Sorting](docs/lectures/10-sorting-advanced/lecture.md) | [handout PDF](docs/pdf/DSA27-L10-handout.pdf) · [slides PDF](docs/pdf/DSA27-L10-slides.pdf) |

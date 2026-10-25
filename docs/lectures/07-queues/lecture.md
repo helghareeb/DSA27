@@ -17,7 +17,8 @@ lang: en
 > one line of arithmetic.
 >
 > Slides: `DSA27-L07-slides.pdf` · Code: `dsa/queue.py` ·
-> Tests: `tests/test_stack_queue.py` (the queue half)
+> Tests: `tests/test_stack_queue.py` (the queue half) ·
+> Interactive demo: [Queue Lab](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html)
 
 :::
 
@@ -403,7 +404,7 @@ pass for both classes, and one of them is quadratic. Plot your own with the
 
 :::
 
-## Four queues, compared
+## Five designs, compared
 
 | | enqueue | dequeue | memory |
 |---|---|---|---|
@@ -488,6 +489,56 @@ draws a deque on a ring, step by step.
 most **urgent** item rather than the oldest one. The ADT has the same two
 operations, but a completely different structure underneath, the heap. Same
 name, different contract.
+
+:::
+
+## Watch it run: the Queue Lab
+
+[**Queue Lab**](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html) — open it in any browser.
+
+- The code, the variables and the block drawn as a **strip and as a ring**
+- `SlowQueue` shifting on every dequeue; the head index that **crawls**
+- The ring buffer: this lecture's trace, a **wrap**, a ring that **grows**
+- Full or empty; the linked queue; a queue from **two stacks**
+- Josephus, binary numbers, a moving average, a deque on a ring
+- *What happens next?* — answer before you step
+- Ten scenarios that **go wrong**: no `%`, a naive grow, a stale `tail`…
+
+::: {.handout-only}
+
+The Queue Lab is the demo used in the lecture. It runs every design in this
+handout, step by step: the line that runs, every variable, and the storage. A
+`CircularQueue` is drawn twice, as the `Array` it really is and as a ring, so
+you can see `head` move, the tail wrap round to slot 0, and the freed slots
+being reused. Counters keep the slot writes and shifts, so `SlowQueue` shows its
+cost.
+
+- **Online:** <https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html>
+- **Offline:** open `docs/lectures/07-queues/queue-lab.html` from your copy of
+  the repository. It is a single file and needs no installation.
+
+How to use it:
+
+- Pick a scenario at the top. Change the capacity, the values or the list of
+  operations in the `>>>` line and press **Run**.
+- **Step** (→) moves one step and **Back** (←) undoes it. **Skip loop** (O)
+  runs the rest of a loop in one step; **Step out** (U) finishes the current
+  method. **Play** (P) runs on its own.
+- At the key moments the demo stops with a question. Answer it (A–D) **before**
+  you look; that is where the learning happens.
+
+What to try, in order: `SlowQueue`'s dequeue and the crawling head; the
+capacity-4 trace from the slides, then Homework 7's trace (do it on paper
+first); growing a wrapped ring next to the naive grow; the head-and-tail ring
+that cannot tell full from empty; the linked queue next to the stale `tail`; the
+two-stack queue next to pouring on every dequeue. For each broken scenario, find
+the bug in the code **before** you step.
+
+The `SlowQueue` and `CircularQueue` scenarios show code that solves this week's
+exercise in `dsa/queue.py`, and the applications solve question-bank
+challenges. Write your own version first. The linked queue, the crawling queue,
+the head-and-tail ring and the deque were written for the demo; there is no
+exercise for them.
 
 :::
 

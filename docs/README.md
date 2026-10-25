@@ -24,6 +24,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Lecture 06 — Stacks](lectures/06-stacks/lecture.md)** | LIFO, two honest implementations, brackets, postfix and shunting-yard. |
 | **[Stack Lab](https://helghareeb.github.io/DSA27/lectures/06-stacks/stack-lab.html)** | Interactive: step through push, pop and a resize, balanced brackets, postfix evaluation and shunting-yard, watch every stack grow and shrink, and see nine ways it goes wrong. Offline copy: [`stack-lab.html`](lectures/06-stacks/stack-lab.html). |
 | **[Lecture 07 — Queues](lectures/07-queues/lecture.md)** | FIFO, the O(n) dequeue measured, the ring buffer, and a queue from two stacks. |
+| **[Queue Lab](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html)** | Interactive: step through the slow queue, the ring buffer (drawn as a ring), growing a ring, the linked queue and a queue from two stacks, watch head and tail wrap, and see ten ways it goes wrong. Offline copy: [`queue-lab.html`](lectures/07-queues/queue-lab.html). |
 | **[Lecture 08 — Searching](lectures/08-searching/lecture.md)** | Linear and binary search, bounds, jump, exponential and interpolation search — measured. |
 | **[Lecture 09 — Basic Sorting](lectures/09-sorting-basic/lecture.md)** | Bubble, selection and insertion sort as generators you can animate; counting sort and the n log n lower bound. |
 | **[Lecture 10 — Advanced Sorting](lectures/10-sorting-advanced/lecture.md)** | Merge sort, quicksort and its pivots, heap sort — and the worst case measured. |
