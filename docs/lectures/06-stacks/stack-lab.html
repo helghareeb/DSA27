@@ -1,0 +1,2612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stack Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen classroom console. Code on the left; the picture of the stack on the right,
+   with the variables and the shell under it; transport bar along the bottom. */
+:root {
+  --bg: #e9edf2;
+  --panel: #ffffff;
+  --panel-2: #f4f6f9;
+  --ink: #142033;
+  --muted: #5a6679;
+  --line: #d3d9e2;
+  --accent: #c76a00;        /* the running line, the link about to change: a highlighter */
+  --accent-bg: #ffefcc;
+  --wait: #3456c7;          /* references held in variables */
+  --wait-bg: #e6ecfc;
+  --done: #23803a;          /* a link that just changed */
+  --done-bg: #e2f4e6;
+  --err: #c92a3a;
+  --err-bg: #fde4e7;
+  --hit: #0b7a8a;           /* prev links in a doubly linked list */
+  --hit-bg: #dcf3f6;
+  --kw: #8a2bb8; --str: #237a3a; --num: #b4520b; --com: #7b8798; --fn: #1d5fd0;
+  --shadow: 0 1px 2px rgba(20,32,51,.06), 0 4px 14px rgba(20,32,51,.06);
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-code: "JetBrains Mono", Consolas, "Cascadia Mono", ui-monospace, monospace;
+  --code-size: clamp(13px, 1.02vw, 19px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d121a; --panel: #151c27; --panel-2: #1b2431; --ink: #e5eaf2; --muted: #95a1b4; --line: #2a3546;
+    --accent: #f3a43a; --accent-bg: #3b2a0e; --wait: #8ea6ff; --wait-bg: #1d2747; --done: #5fd07a; --done-bg: #15301d;
+    --err: #ff7a86; --err-bg: #3d1820; --hit: #4fd2e2; --hit-bg: #123338;
+    --kw: #d39bff; --str: #8ad79a; --num: #ffb86b; --com: #7d8aa0; --fn: #7fb0ff;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d121a; --panel: #151c27; --panel-2: #1b2431; --ink: #e5eaf2; --muted: #95a1b4; --line: #2a3546;
+  --accent: #f3a43a; --accent-bg: #3b2a0e; --wait: #8ea6ff; --wait-bg: #1d2747; --done: #5fd07a; --done-bg: #15301d;
+  --err: #ff7a86; --err-bg: #3d1820; --hit: #4fd2e2; --hit-bg: #123338;
+  --kw: #d39bff; --str: #8ad79a; --num: #ffb86b; --com: #7d8aa0; --fn: #7fb0ff;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  display: flex; flex-direction: column;
+  padding-inline: 16px; padding-block: 10px;
+  gap: 10px;
+}
+body, code, pre, .mono, svg text, input { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+code, pre, .mono { font-family: var(--f-code); }
+button, select, input { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- top bar ---------- */
+.top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand b { font-size: 22px; letter-spacing: -.01em; }
+.brand span { color: var(--muted); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.picker { display: flex; align-items: center; gap: 8px; flex: 1 1 320px; min-width: 0; }
+.picker select {
+  flex: 1 1 auto; min-width: 0; max-width: 560px;
+  padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel);
+  font-size: 16px; font-weight: 700;
+}
+.top .tools { display: flex; gap: 6px; }
+
+/* ---------- main grid ---------- */
+main {
+  flex: 1 1 auto; min-height: 0;
+  display: grid; gap: 10px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .56fr) minmax(0, .62fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "code pic pic" "code vars shell";
+}
+.code-pane { grid-area: code; } .pic-pane { grid-area: pic; } .vars-pane { grid-area: vars; } .shell-pane { grid-area: shell; }
+.pane {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden;
+}
+.pane-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 8px 12px; border-bottom: 1px solid var(--line);
+  font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.pane-head .meta { text-transform: none; letter-spacing: 0; font-weight: 400; font-family: var(--f-code); font-size: 12px; text-align: right; }
+
+/* ---------- code pane ---------- */
+.about { padding: 8px 14px 0; display: flex; flex-direction: column; gap: 4px; }
+.about h1 { margin: 0; font-size: 20px; line-height: 1.2; text-wrap: balance; }
+.about p { margin: 0; color: var(--muted); font-size: 14px; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.badge.works { background: var(--done-bg); color: var(--done); }
+.badge.wrong { background: var(--err-bg); color: var(--err); }
+.badge.cost { background: var(--accent-bg); color: var(--accent); }
+.badge.ex { background: var(--wait-bg); color: var(--wait); }
+
+.callstrip {
+  margin: 8px 14px 0; padding: 6px 10px; border-radius: 8px; background: var(--panel-2);
+  font-family: var(--f-code); font-size: var(--code-size);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
+}
+.callstrip .ps { color: var(--muted); margin-right: 6px; }
+.callstrip .br { flex-basis: 100%; height: 0; }
+.callstrip input {
+  font-family: var(--f-code); font-size: inherit; padding: 1px 6px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--num);
+  min-width: 2.5ch; max-width: 100%; field-sizing: content;
+}
+.callstrip input.bad { border-color: var(--err); background: var(--err-bg); }
+.callstrip .run { margin-left: auto; }
+.callerr { margin: 4px 14px 0; color: var(--err); font-size: 13px; min-height: 0; }
+
+.code {
+  margin: 8px 14px; padding: 6px 0; border-radius: 8px; border: 1px solid var(--line);
+  font-family: var(--f-code); font-size: var(--code-size); line-height: 1.45;
+  overflow: auto; flex: 0 1 auto; min-height: 110px;
+}
+.ln { display: flex; align-items: center; min-width: max-content; padding-right: 10px; position: relative; }
+.ln .no { width: 3ch; text-align: right; color: var(--com); padding-right: 12px; flex: 0 0 auto; user-select: none; }
+.ln .src { white-space: pre; flex: 0 0 auto; }
+.ln .tags { display: flex; gap: 4px; margin-left: 14px; flex: 0 0 auto; }
+.ln .tag { font-family: var(--f-body); font-size: 12px; font-weight: 700; padding: 0 7px; border-radius: 999px; line-height: 1.6; }
+.ln .tag.w { background: var(--wait-bg); color: var(--wait); }
+.ln .tag.a { background: var(--accent); color: var(--panel); }
+.ln .tag.r { background: var(--done); color: var(--panel); }
+.ln .tag.e { background: var(--err); color: var(--panel); }
+.ln.cur { background: var(--accent-bg); box-shadow: inset 4px 0 0 var(--accent); }
+.ln.ret { background: var(--done-bg); box-shadow: inset 4px 0 0 var(--done); }
+.ln.errl { background: var(--err-bg); box-shadow: inset 4px 0 0 var(--err); }
+.ln.waitl { box-shadow: inset 4px 0 0 var(--wait); }
+.ln.bug .no { color: var(--err); font-weight: 700; }
+.t-kw { color: var(--kw); font-weight: 600; } .t-str { color: var(--str); } .t-num { color: var(--num); }
+.t-com { color: var(--com); font-style: italic; } .t-fn { color: var(--fn); font-weight: 700; } .t-bi { color: var(--fn); }
+
+.narr { margin: 0 14px 12px; flex: 1 0 100px; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.say { font-size: clamp(15px, 1.15vw, 21px); line-height: 1.45; max-width: 62ch; }
+.say code, .qtext code, .choice code, .why code { font-size: .92em; background: var(--panel-2); padding: 0 4px; border-radius: 4px; }
+.say.err { color: var(--err); }
+.narr:has(.qcard) .say { font-size: clamp(14px, 1.0vw, 18px); }
+.narr:has(.qcard) { flex-basis: 52%; }
+
+/* question card */
+.qcard { border: 2px solid var(--accent); border-radius: 10px; padding: 12px 14px; background: var(--panel); display: flex; flex-direction: column; gap: 10px; }
+.qlabel { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.qtext { font-size: clamp(16px, 1.3vw, 23px); font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.choice {
+  display: flex; gap: 10px; align-items: flex-start; text-align: left;
+  padding: 7px 11px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2); cursor: pointer;
+  font-size: clamp(14px, 1.0vw, 18px); line-height: 1.3;
+}
+.choice:hover { border-color: var(--accent); }
+.choice .k { font-family: var(--f-code); font-weight: 700; color: var(--accent); flex: 0 0 auto; }
+.choice.right { border-color: var(--done); background: var(--done-bg); }
+.choice.wrong { border-color: var(--err); background: var(--err-bg); }
+.choice[disabled] { cursor: default; }
+.why { font-size: clamp(14px, 1.05vw, 19px); line-height: 1.45; padding: 8px 12px; border-radius: 8px; background: var(--panel-2); }
+.why b { color: var(--done); }
+.qactions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- references pane ---------- */
+.varwrap { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.frame {
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--panel);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.frame .fh { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.frame .fname { font-family: var(--f-code); font-weight: 700; font-size: clamp(13px, .95vw, 17px); overflow-wrap: anywhere; }
+.frame .chip { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.frame .locals { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 10px; row-gap: 1px; font-family: var(--f-code); font-size: clamp(13px, .92vw, 16px); }
+.frame .locals .k { color: var(--muted); }
+.frame .locals .v { overflow-wrap: anywhere; }
+.frame .locals .tmp { font-style: italic; }
+.frame .locals .ref { color: var(--wait); font-weight: 600; }
+.frame .locals .chg { background: var(--done-bg); border-radius: 4px; }
+.frame .fnote { font-size: 13px; color: var(--muted); }
+.frame.obj { border-color: var(--ink); border-width: 1.5px; }
+.frame.obj .chip { background: var(--panel-2); color: var(--muted); }
+.frame.active { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 1px var(--accent); }
+.frame.active .chip { background: var(--accent); color: var(--panel); }
+.frame.waiting { border-color: var(--wait); }
+.frame.waiting .chip { background: var(--wait-bg); color: var(--wait); }
+.frame.returning { border-color: var(--done); background: var(--done-bg); box-shadow: 0 0 0 1px var(--done); }
+.frame.returning .chip { background: var(--done); color: var(--panel); }
+.frame.error { border-color: var(--err); background: var(--err-bg); }
+.frame.error .chip { background: var(--err); color: var(--panel); }
+.frame.module { background: var(--panel-2); border-style: dashed; }
+.frame.module .chip { background: var(--line); color: var(--muted); }
+.frame.new { animation: push .32s ease-out; }
+@keyframes push { from { transform: translateY(-10px); opacity: .2; } to { transform: none; opacity: 1; } }
+.varfoot { padding: 6px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+/* ---------- picture pane ---------- */
+.views { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.picbox { flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: safe center; overflow-x: auto; }
+.picbox svg { display: block; max-width: 100%; max-height: 100%; width: 100%; height: auto; }
+svg text { font-family: var(--f-code); }
+.nd { transition: transform .38s ease, opacity .38s ease; }
+.nd rect.box { fill: var(--panel-2); stroke: var(--ink); stroke-width: 1.6; }
+.nd line.div { stroke: var(--ink); stroke-width: 1.2; }
+.nd text.v { fill: var(--ink); font-size: 17px; font-weight: 700; }
+.nd line.none { stroke: var(--muted); stroke-width: 1.4; }
+.nd circle.dot { fill: var(--ink); }
+.nd circle.dot.p { fill: var(--hit); }
+.nd.ref rect.box { stroke: var(--wait); stroke-width: 2.4; fill: var(--wait-bg); }
+.nd.focus rect.box { stroke: var(--accent); stroke-width: 3; fill: var(--accent-bg); }
+.nd.fresh rect.box { stroke: var(--done); stroke-width: 2.6; }
+.nd.sent rect.box { fill: var(--line); stroke-dasharray: 5 3; }
+.nd.sent text.v { fill: var(--muted); font-size: 12px; font-weight: 400; }
+.nd.garbage { opacity: .38; }
+.nd.garbage rect.box { stroke-dasharray: 4 3; }
+.nd text.gone { fill: var(--err); font-size: 11px; font-weight: 700; font-family: var(--f-body); }
+.nd.born { animation: pop .34s ease-out; }
+@keyframes pop { from { opacity: 0; } to { opacity: 1; } }
+.ar { fill: none; stroke: var(--ink); stroke-width: 1.8; transition: d .38s ease, opacity .3s; }
+.ar.p { stroke: var(--hit); }
+.ar.hot { stroke: var(--accent); stroke-width: 3.2; stroke-dasharray: 7 4; }
+.ar.chg { stroke: var(--done); stroke-width: 3.2; }
+.ar.garbage { opacity: .3; }
+.tg { transition: transform .38s ease, opacity .3s; }
+.tg rect { fill: var(--wait-bg); stroke: var(--wait); stroke-width: 1.2; }
+.tg text { fill: var(--wait); font-size: 12.5px; font-weight: 700; }
+.tg line { stroke: var(--wait); stroke-width: 1.4; }
+.tg.self rect { fill: var(--ink); stroke: var(--ink); }
+.tg.self text { fill: var(--panel); }
+.tg.self line { stroke: var(--ink); }
+.tg.tmp rect { fill: var(--panel); stroke-dasharray: 3 2; }
+.tg.tmp text { font-style: italic; }
+.tg.hot rect { fill: var(--accent); stroke: var(--accent); }
+.tg.hot text { fill: var(--panel); }
+.tg.hot line { stroke: var(--accent); stroke-width: 2.4; }
+.tg.chg rect { fill: var(--done); stroke: var(--done); }
+.tg.chg text { fill: var(--panel); }
+.tg.isnone rect { fill: var(--panel); stroke: var(--muted); stroke-dasharray: 3 2; }
+.tg.isnone text { fill: var(--muted); }
+.tg.isnone line { stroke: var(--muted); }
+.nonemark text { fill: var(--muted); font-size: 13px; }
+/* the array block */
+.blk { transition: transform .42s ease, opacity .38s ease; }
+.blk.born { animation: pop .34s ease-out; }
+.blk.garbage { opacity: .38; }
+.blk text.bh { fill: var(--muted); font-size: 12px; font-weight: 700; font-family: var(--f-body); }
+.slot rect { fill: var(--panel); stroke: var(--line); stroke-width: 1.3; stroke-dasharray: 4 3; }
+.slot.used rect { fill: var(--panel-2); stroke: var(--ink); stroke-dasharray: none; stroke-width: 1.6; }
+.slot.top rect { stroke-width: 2.4; }
+.slot.hot rect { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 3; stroke-dasharray: none; }
+.slot.chg rect { fill: var(--done-bg); stroke: var(--done); stroke-width: 3; stroke-dasharray: none; }
+.slot text.v { fill: var(--ink); font-size: 16px; font-weight: 700; }
+.slot text.nv { fill: var(--muted); font-size: 11px; opacity: .7; }
+.slot text.ix { fill: var(--muted); font-size: 12px; }
+/* the application view */
+.cell { transition: transform .38s ease; }
+.cell rect { fill: var(--panel-2); stroke: var(--line); stroke-width: 1.3; }
+.cell text { fill: var(--ink); font-size: 15px; font-weight: 700; }
+.cell.past text { fill: var(--muted); font-weight: 400; }
+.cell.cur rect { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 3; }
+.cell.out rect { fill: var(--panel); stroke: var(--ink); stroke-width: 1.5; }
+.cell.chg rect { fill: var(--done-bg); stroke: var(--done); stroke-width: 3; }
+.cell.born { animation: pop .34s ease-out; }
+.pc { transition: transform .38s ease; }
+.pc rect { fill: var(--wait-bg); stroke: var(--wait); stroke-width: 1.5; }
+.pc text { fill: var(--ink); font-size: 15px; font-weight: 700; }
+.pc.top rect { stroke-width: 2.6; }
+.pc.hot rect { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 3; }
+.pc.chg rect { fill: var(--done-bg); stroke: var(--done); stroke-width: 3; }
+.pc.born, .slot.born { animation: drop .36s ease-out; }
+@keyframes drop { from { transform: translateY(-26px); opacity: 0; } }
+.pilebase path { fill: none; stroke: var(--muted); stroke-width: 2; }
+.pilebase text, .lab text { fill: var(--muted); font-size: 12.5px; font-weight: 700; font-family: var(--f-body); }
+.toptxt text { fill: var(--wait); font-size: 12px; font-weight: 700; font-family: var(--f-body); }
+.toptxt { transition: transform .38s ease; }
+.note text { fill: var(--ink); font-size: 15px; font-weight: 700; }
+.note .nk { fill: var(--muted); font-weight: 400; }
+.endmark text { fill: var(--accent); }
+.ghost .gin { animation: flyout 1.1s ease-out forwards; }
+.ghost rect { fill: var(--err-bg); stroke: var(--err); stroke-width: 1.4; }
+.ghost text { fill: var(--err); font-size: 12.5px; font-weight: 700; }
+@keyframes flyout { 0% { transform: translateY(14px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-8px); opacity: .85; } }
+.tg { transition: transform .38s ease, opacity .3s; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 18px; height: 0; display: inline-block; border-top: 3px solid; }
+.legend i.box { width: 12px; height: 12px; border-radius: 3px; border: 2px solid; }
+
+.out { margin: 0; padding: 8px 12px; overflow: auto; font-size: clamp(13px, .92vw, 16px); line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; flex: 1 1 auto; }
+.out .prompt { color: var(--muted); } .out .ret { color: var(--done); font-weight: 700; } .out .err { color: var(--err); } .out .print { color: var(--ink); }
+.out .ret.new, .out .err.new { background: var(--accent-bg); }
+
+/* ---------- transport ---------- */
+.transport {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; box-shadow: var(--shadow);
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel-2);
+  font-weight: 700; font-size: 14px; white-space: nowrap;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+.btn.on { background: var(--wait-bg); border-color: var(--wait); color: var(--wait); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.btn kbd { font-family: var(--f-code); font-size: 11px; font-weight: 400; opacity: .75; }
+.group { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.scrub { display: flex; align-items: center; gap: 8px; flex: 1 1 200px; min-width: 160px; }
+.scrub input { flex: 1 1 auto; min-width: 0; accent-color: var(--accent); }
+.scrub .pos { font-family: var(--f-code); font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.stats b { color: var(--ink); font-family: var(--f-code); font-size: 15px; font-variant-numeric: tabular-nums; }
+.speed { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.speed input { width: 90px; accent-color: var(--accent); }
+.nudge { color: var(--err); font-size: 13px; font-weight: 700; }
+
+@media (max-width: 1150px) {
+  html, body { height: auto; }
+  main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "pic pic" "code vars" "code shell"; }
+  .pic-pane { min-height: 340px; }
+  .code-pane { min-height: 620px; }
+  .vars-pane, .shell-pane { max-height: 420px; }
+  .transport { position: sticky; bottom: 0; z-index: 2; }
+}
+@media (max-width: 760px) {
+  main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "code" "pic" "vars" "shell"; }
+  .code-pane { min-height: 0; }
+  .pic-pane { min-height: 260px; }
+  .narr { flex-basis: auto; }
+  .vars-pane, .shell-pane { max-height: 60vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame.new, .nd.born, .pc.born, .cell.born, .blk.born, .ghost .gin { animation: none; }
+  .nd, .ar, .tg, .blk, .cell, .pc, .toptxt { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>Stack Lab</b><span>DSA27 · Lecture 06</span></div>
+  <div class="picker">
+    <label for="scenario" class="mono" style="color:var(--muted);font-size:13px">Scenario</label>
+    <select id="scenario"></select>
+  </div>
+  <div class="tools">
+    <button class="btn" id="themeBtn" title="Switch light / dark">Theme</button>
+    <button class="btn" id="fsBtn" title="Full screen (F)">Full screen</button>
+  </div>
+</header>
+
+<main>
+  <section class="pane code-pane">
+    <div class="pane-head"><span>Code</span><span class="meta" id="lineInfo"></span></div>
+    <div class="about">
+      <div class="badges" id="badges"></div>
+      <h1 id="scTitle"></h1>
+      <p id="scBlurb"></p>
+    </div>
+    <div class="callstrip" id="callstrip"></div>
+    <div class="callerr" id="callerr"></div>
+    <div class="code" id="code"></div>
+    <div class="narr" id="narr"></div>
+  </section>
+
+  <section class="pane pic-pane">
+    <div class="pane-head"><span id="viewTitle">The stack</span><span class="meta" id="viewMeta"></span></div>
+    <div class="views" id="views">
+      <div class="picbox" id="picbox"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section class="pane vars-pane">
+    <div class="pane-head"><span>Variables</span><span class="meta" id="varInfo"></span></div>
+    <div class="varwrap" id="vars"></div>
+    <div class="varfoot">Each call gets its own <b>frame</b> on Python's call stack: the newest frame is on top, and it returns first.</div>
+  </section>
+
+  <section class="pane shell-pane">
+    <div class="pane-head"><span>Python shell</span></div>
+    <pre class="out" id="out"></pre>
+  </section>
+</main>
+
+<footer class="transport">
+  <div class="group">
+    <button class="btn" id="bRestart" title="Back to the start (R)">Restart <kbd>R</kbd></button>
+    <button class="btn" id="bBack" title="One step back (Left arrow)">Back <kbd>&larr;</kbd></button>
+    <button class="btn primary" id="bStep" title="One step (Right arrow or Space)">Step <kbd>&rarr;</kbd></button>
+    <button class="btn" id="bOver" title="Run the rest of this loop in one step (O)">Skip loop <kbd>O</kbd></button>
+    <button class="btn" id="bOut" title="Finish this method and go back to its caller (U)">Step out <kbd>U</kbd></button>
+    <button class="btn" id="bPlay" title="Play / pause (P)">Play <kbd>P</kbd></button>
+  </div>
+  <div class="speed"><label for="speed">Speed</label><input type="range" id="speed" min="1" max="10" value="5"></div>
+  <div class="scrub"><input type="range" id="scrub" min="0" max="0" value="0" aria-label="Jump to step"><span class="pos" id="pos"></span></div>
+  <button class="btn on" id="bQuiz" title="Pause on questions (Q)">Questions: on <kbd>Q</kbd></button>
+  <div class="stats" id="stats"></div>
+  <span class="nudge" id="nudge"></span>
+</footer>
+
+<pre id="selftest" hidden></pre>
+
+<script>
+/* =====================================================================
+   ENGINE. Every scenario is a JavaScript mirror of the Python shown on
+   screen. It runs once, and the Tracer records a snapshot at every step,
+   so Back and the scrubber are just an index into that list.
+   The world `T.w` is what the picture draws: an array block, a chain of
+   nodes, or the stacks, tokens and output of an application.
+   ===================================================================== */
+
+class PyErr extends Error {
+  constructor(type, msg, extra) { super(msg); this.type = type; this.extra = extra || {}; }
+}
+
+const SELF = { self: 'obj' };                  // self inside a Stack method
+const ITEMS = { self: 'items' };               // self inside a DynamicArray method
+const PF = x => ({ f: x });                    // a Python float (JS numbers are Python ints here)
+const isF = v => !!(v && typeof v === 'object' && v.f !== undefined);
+const num = v => (isF(v) ? v.f : v);
+
+function pyfloat(x) {
+  if (Number.isNaN(x)) return 'nan';
+  if (!Number.isFinite(x)) return x > 0 ? 'inf' : '-inf';
+  if (Number.isInteger(x) && Math.abs(x) < 1e16) return x.toFixed(1);
+  let s = String(x);
+  if (s.includes('e')) s = s.replace(/e([+-])(\d)$/, 'e$10$2');
+  return s;
+}
+function pyrepr(v) {
+  if (v === null || v === undefined) return 'None';
+  if (typeof v === 'string') return "'" + v.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  if (typeof v === 'boolean') return v ? 'True' : 'False';
+  if (Array.isArray(v)) return '[' + v.map(pyrepr).join(', ') + ']';
+  if (isF(v)) return pyfloat(v.f);
+  if (v && v.self) return 'self';
+  if (v && v.obj) return v.obj;
+  if (v && v.pile) return 'Stack';
+  return String(v);
+}
+const C = v => '`' + pyrepr(v) + '`';           // a value, as code, in a message
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1) + '…' : s;
+const plural = (k, w) => k + ' ' + w + (k === 1 ? '' : 's');
+const nth = k => k + (k % 100 >= 11 && k % 100 <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][k % 10] || 'th');
+
+/* Join several Python functions into one code pane and remember where each starts. */
+function compose(...parts) {
+  const o = {}; let code = '', at = 0;
+  for (const [name, src] of parts) {
+    if (code) { code += '\n\n'; at += 1; }
+    o[name] = at;
+    code += src;
+    at += src.split('\n').length;
+  }
+  return { code, o, src: parts.map(p => p[2] || p[0]) };
+}
+
+class Tracer {
+  constructor(sc, p) {
+    this.sc = sc; this.p = p;
+    this.codeLines = sc.code.split('\n');
+    this.steps = []; this.ids = 0;
+    this.w = null;
+    this.fx = {};
+    this.out = [];
+    this.queue = [];
+    this.counters = { push: 0, pop: 0, shift: 0, copy: 0, links: 0 };
+    this.stack = [{ id: 0, fn: '<module>', label: '<module>', line: 0, locals: [], status: 'active', note: '' }];
+  }
+  get top() { return this.stack[this.stack.length - 1]; }
+  get depth() { return this.stack.length - 1; }
+  get mod() { return this.stack[0]; }
+
+  /* ---- frames ---- */
+  set(name, val, frame) {
+    const L = (frame || this.top).locals, e = L.find(x => x[0] === name);
+    if (e) e[1] = val; else L.push([name, val]);
+  }
+  get(name) { const e = this.top.locals.find(x => x[0] === name); return e ? e[1] : undefined; }
+  unset(name, frame) { const f = frame || this.top; f.locals = f.locals.filter(x => x[0] !== name); }
+
+  snap(msg, opt) {
+    opt = opt || {};
+    if (this.steps.length > 3000) throw new Error('too many steps');
+    this.steps.push(structuredClone({
+      line: this.top.line, stack: this.stack, depth: this.depth, w: this.w,
+      out: this.out, counters: this.counters, fx: Object.assign({}, this.fx, opt.fx || {}),
+      msg, kind: opt.kind || '', q: null, loop: opt.loop || null
+    }));
+    this.fx = {};
+  }
+  at(line, msg, opt) { const f = this.top; f.line = line; f.status = 'active'; this.snap(msg, opt); }
+
+  /* A question about what happens NEXT, shown on the step just recorded. */
+  ask(text, correct, distractors, why) {
+    const seen = new Set([String(correct)]), opts = [String(correct)];
+    for (const d of distractors) { const s = String(d); if (!seen.has(s) && opts.length < 4) { seen.add(s); opts.push(s); } }
+    let h = 0; for (const ch of text) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const order = opts.map((o, i) => [o, (h ^ (i * 2654435761)) >>> 0 ^ (i * 7919)]).sort((a, b) => a[1] - b[1]).map(x => x[0]);
+    this.steps[this.steps.length - 1].q = { text, choices: order, answer: order.indexOf(String(correct)), why };
+  }
+
+  call(fn, args, label, msg, line) {
+    const caller = this.top;
+    caller.status = 'waiting';
+    caller.note = 'waiting for ' + label;
+    const f = { id: ++this.ids, fn, label, line: line || 1, locals: args.map(a => [a[0], a[1]]), status: 'active', note: '' };
+    this.stack.push(f);
+    this.snap(msg || `Call \`${label}\`. Python makes a new frame for it, with its own local variables.`);
+    return f;
+  }
+
+  /* opt.inner: the call sits inside a bigger expression, so the shell prints nothing yet. */
+  ret(val, line, msg, opt) {
+    opt = opt || {};
+    const f = this.top;
+    f.line = line; f.status = 'returning'; f.ret = val;
+    this.snap(msg || `Return ${C(val)}.`);
+    this.stack.pop();
+    const c = this.top;
+    c.status = 'active';
+    const none = val === null || val === undefined;
+    if (c.fn === '<module>') {
+      this.lastRet = val;
+      if (!none && !opt.inner) this.out.push({ k: 'ret', t: pyrepr(val), fresh: true });
+      c.note = none ? 'finished' : 'result: ' + pyrepr(val);
+      if (opt.inner) this.snap(opt.after || `\`${f.label}\` is finished and its frame is gone. Its result, ${C(val)}, is handed straight on.`);
+      else this.snap(`\`${f.label}\` is finished and its frame is gone, with all its local variables. What it changed in the stack stays.` +
+                (none ? '' : ` The shell prints the result, ${C(val)}.`) + (opt.extra || ''));
+    } else {
+      c.note = none ? `${f.label} finished` : `${f.label} returned ${pyrepr(val)}`;
+      this.snap(opt.after || `\`${f.label}\` is finished. \`${c.label}\` carries on from line ${c.line}.`);
+    }
+    return val;
+  }
+
+  /* An exception: every frame on the stack is abandoned. */
+  raise(e) {
+    const frames = this.stack.slice(1);
+    for (const f of frames) f.status = 'error';
+    if (frames.length) this.top.note = `${e.type}: ${e.message}`;
+    const tb = ['Traceback (most recent call last):', '  File "<stdin>", line 1, in <module>'];
+    for (const f of frames) tb.push(`  File "lab.py", line ${f.line}, in ${f.fn}\n    ${(this.codeLines[f.line - 1] || '').trim()}`);
+    tb.push(`${e.type}: ${e.message}`);
+    this.out.push({ k: 'err', t: tb.join('\n'), fresh: true });
+    this.snap(`**${e.type}: ${e.message}.** ${e.extra.why || ''}`, { kind: 'err' });
+    this.stack = [this.stack[0]];
+    this.stack[0].status = 'error';
+    this.stack[0].note = `${e.type}: no result`;
+  }
+
+  /* One traced shell line: print it, run its mirror, and survive a Python error. */
+  cmd(fn) {
+    const line = this.queue.shift();
+    this.prompt(line);
+    this.mod.status = 'active'; this.mod.note = '';
+    if (this.w && this.w.nodes) this.dropGarbage();
+    try { fn(line); } catch (e) { if (!(e instanceof PyErr)) throw e; this.raise(e); this.failed = true; }
+  }
+  /* A line at the shell prompt whose work is not traced. */
+  prompt(text) { this.out.push({ k: 'prompt', t: '>>> ' + text }); }
+  probe(text, fn) {
+    this.prompt(text);
+    try {
+      const v = fn();
+      if (v !== null && v !== undefined) this.out.push({ k: 'ret', t: typeof v === 'object' && v.raw ? v.raw : pyrepr(v), fresh: true });
+    } catch (e) {
+      if (!(e instanceof PyErr)) throw e;
+      this.out.push({ k: 'err', t: `Traceback (most recent call last):\n  ...\n${e.type}: ${e.message}`, fresh: true });
+    }
+  }
+  say(msg, opt) { this.mod.line = 0; this.snap(msg, opt); }
+
+  /* ---- application stacks: a pile drawn as values only ---- */
+  pile(key) { return this.w.piles.find(p => p.key === key); }
+  push(key, v) { this.pile(key).vals.push(v); this.counters.push++; this.fx.pushed = key; }
+  pop(key) {
+    const P = this.pile(key);
+    if (!P.vals.length) throw new PyErr('IndexError', 'pop from empty stack', { why: `\`${P.label}\` is empty, and \`Stack.pop\` refuses to invent a value.` });
+    const v = P.vals.pop(); this.counters.pop++; this.fx.popped = { key, v }; return v;
+  }
+  peekP(key) {
+    const P = this.pile(key);
+    if (!P.vals.length) throw new PyErr('IndexError', 'peek at empty stack', { why: `\`${P.label}\` is empty, so there is no top to look at.` });
+    this.fx.peeked = key;
+    return P.vals[P.vals.length - 1];
+  }
+  dropGarbage() {}
+}
+
+/* Python's == between two values of this demo (numbers, strings, floats). */
+const pyeq = (a, b) => (typeof num(a) === 'number' && typeof num(b) === 'number') ? num(a) === num(b) : a === b;
+
+/* ---------------------------------------------------------------------
+   Scenarios. `code` is exactly what students see. The mirror calls
+   T.at(line, ...) with the line numbers of that code. `strip` is the
+   editable shell input: plain text, parameter names, and '\n' between
+   shell lines. The last `traced` shell lines are traced (default 1).
+   `src` names the Python function behind each block of code, so the
+   self-check can compare the page with the real source.
+   --------------------------------------------------------------------- */
+const SCENARIOS = [];
+const def = sc => { if (sc.parts) { const c = compose(...sc.parts); sc.code = c.code; sc.o = c.o; sc.src = c.src; } SCENARIOS.push(sc); };
+const GROUPS = {
+  array: 'Stack on your DynamicArray',
+  linked: 'Stack on a linked list',
+  brackets: 'Balanced brackets',
+  postfix: 'Evaluating postfix',
+  infix: 'Infix to postfix (shunting-yard)',
+  more: 'The call stack, undo and redo',
+  wrong: 'Goes wrong',
+};
+const valList = (dflt, min, max) => ({ type: 'list', def: dflt, minLen: min === undefined ? 0 : min, maxLen: max || 7,
+  check: v => v.every(x => (typeof x === 'number' && Number.isInteger(x) && Math.abs(x) < 1000) || (typeof x === 'string' && x.length <= 4)) || 'Use whole numbers (or short strings) only.' });
+const intP = (dflt, min, max) => ({ type: 'int', def: dflt, min, max });
+const valP = dflt => ({ type: 'value', def: dflt });
+const textP = (dflt, check) => ({ type: 'text', def: dflt, check });
+
+
+/* ==== the stack on a DynamicArray: dsa/stack.py on dsa/dynamic_array.py ==== */
+
+/* Build Stack(values) the way __init__ would, without tracing it:
+   DynamicArray() starts with one slot and doubles when full. */
+function setupBlock(T, cls, values) {
+  const w = { type: 'block', cls, obj: 's', block: [null], cap: 1, size: 0, resizes: 0, newBlock: null, old: null,
+              bid: 0, newBid: null, nextId: 1, front: cls === 'FrontStack' };
+  for (const v of values) {
+    if (w.size === w.cap) quietGrow(w, w.cap * 2);
+    if (w.front) { for (let i = w.size; i > 0; i--) w.block[i] = w.block[i - 1]; w.block[0] = v; }
+    else w.block[w.size] = v;
+    w.size++;
+  }
+  T.w = w;
+  T.set('s', { obj: 's' }, T.mod);
+}
+function quietGrow(w, capacity) {
+  const b = Array(capacity).fill(null);
+  for (let i = 0; i < w.size; i++) b[i] = w.block[i];
+  w.block = b; w.cap = capacity; w.bid = w.nextId++; w.resizes++;
+  return w.size;
+}
+const blockVals = w => w.block.slice(0, w.size);
+const topIx = w => (w.front ? 0 : w.size - 1);
+function reprStack(T) {
+  const w = T.w, vals = blockVals(w), name = w.cls === 'FrontStack' ? 'FrontStack' : 'Stack';
+  if (!vals.length) return { raw: name + '([])' };
+  return { raw: `${name}(${pyrepr(vals)})  # top = ${pyrepr(w.block[topIx(w)])}` };
+}
+const blockProbes = (cap) => () => {
+  const P = [['s', T => reprStack(T)], ['len(s)', T => T.w.size]];
+  if (cap) P.push(['s._items._capacity', T => T.w.cap]);
+  return P;
+};
+
+/* ---- the course code, exactly as in the solutions ---- */
+const S_PUSH = `def push(self, value):
+    self._items.append(value)                # the top is the END of the array`;
+const S_POP = `def pop(self):
+    if len(self._items) == 0:
+        raise IndexError("pop from empty stack")
+    return self._items.pop()`;
+const S_PEEK = `def peek(self):
+    if len(self._items) == 0:
+        raise IndexError("peek at empty stack")
+    return self._items[len(self._items) - 1]`;
+const DA_APPEND = `def append(self, value):
+    if self._size == self._capacity:
+        self._resize(self._capacity * self.growth)
+    self._block[self._size] = value
+    self._size += 1`;
+const DA_RESIZE = `def _resize(self, capacity):
+    block = make_block(capacity)
+    for i in range(self._size):
+        block[i] = self._block[i]
+    self._block = block
+    self._capacity = capacity
+    self.resize_count += 1`;
+const DA_POP = `def pop(self, index=-1):
+    if self._size == 0:
+        raise IndexError("pop from empty DynamicArray")
+    if index < 0:
+        index += self._size
+    if not 0 <= index < self._size:
+        raise IndexError("index out of range")
+    value = self._block[index]
+    for i in range(index, self._size - 1):
+        self._block[i] = self._block[i + 1]
+    self._size -= 1
+    self._block[self._size] = None
+    return value`;
+const DA_GETITEM = `def __getitem__(self, index):
+    if index < 0:
+        index += self._size               # -1 means the last USED slot
+    if not 0 <= index < self._size:
+        raise IndexError(index)
+    return self._block[index]`;
+const DA_INSERT = `def insert_at(self, index, value):
+    if not 0 <= index <= self._size:
+        raise IndexError(index)
+    if self._size == self._capacity:
+        self._resize(self._capacity * self.growth)
+    for i in range(self._size, index, -1):
+        self._block[i] = self._block[i - 1]
+    self._block[index] = value
+    self._size += 1`;
+/* written for the demo: three stacks that go wrong */
+const F_PUSH = `def push(self, value):
+    self._items.insert_at(0, value)          # every item shifts right`;
+const F_POP = `def pop(self):
+    if len(self._items) == 0:
+        raise IndexError("pop from empty stack")
+    return self._items.pop(0)                # every item shifts left`;
+const N_POP = `def pop(self):
+    if len(self._items) == 0:
+        return None                          # instead of raising IndexError
+    return self._items.pop()`;
+const PP_PEEK = `def peek(self):
+    return self._items.pop()                 # reads the top... and removes it`;
+
+/* ---- DynamicArray methods, traced line by line ---- */
+function daAppend(T, value, ask) {
+  const o = T.sc.o.append, w = T.w;
+  T.call('append', [['self', ITEMS], ['value', value]], `append(${pyrepr(value)})`,
+    `\`push\` calls \`self._items.append(${pyrepr(value)})\`. A new frame: in it, \`self\` is the DynamicArray, not the Stack.`, o + 1);
+  const full = w.size === w.cap;
+  T.at(o + 2, `Is the block full? \`_size\` is ${w.size} and \`_capacity\` is ${w.cap}: ${full ? '**yes**, every slot is in use.' : `no, slot ${w.size} is free.`}`, { fx: { hot: full ? [] : [w.size] } });
+  if (!full && ask) T.ask(`Which slot will \`append\` write ${C(value)} into?`, `Slot ${w.size}`, [`Slot 0`, `Slot ${w.cap}`, `Slot ${Math.max(0, w.size - 1)}`, `Slot ${w.size + 1}`],
+    `Slot ${w.size}: \`_size\` is ${w.size}, so slots 0 to ${w.size - 1} are used and slot ${w.size} is the first free one. The index is known at once, with no search: O(1).`);
+  if (full) {
+    if (ask) T.ask(`The block is full. \`_resize\` will copy the values into a bigger block. How many values will it copy?`, w.size, [1, 2 * w.size, 0],
+      `All ${w.size} of them: that copy is what makes this one push O(n). Doubling puts the next copy twice as far away, so over many pushes the average stays O(1): amortised.`);
+    T.at(o + 3, `Grow first: \`_resize(${w.cap} * 2)\`. The capacity doubles.`);
+    daResize(T, w.cap * 2);
+  }
+  const at = w.size;
+  w.block[at] = value;
+  T.at(o + 4, `\`self._block[${at}] = ${pyrepr(value)}\`: the value goes into slot ${at}, the first free one. Nothing else moves.`, { fx: { chg: [at], pushed: true } });
+  w.size++;
+  T.at(o + 5, `\`_size\` goes up to ${w.size}. Slot ${at} holds the new top of the stack.`);
+  return T.ret(null, o + 5, 'append returns None.');
+}
+
+function daResize(T, capacity) {
+  const o = T.sc.o._resize, w = T.w;
+  T.call('_resize', [['self', ITEMS], ['capacity', capacity]], `_resize(${capacity})`, null, o + 1);
+  w.newBlock = Array(capacity).fill(null); w.newBid = w.nextId++;
+  T.set('block', { blk: 'new' });
+  T.at(o + 2, `\`make_block(${capacity})\` allocates a new block of ${capacity} empty slots. The old block is still \`self._block\`.`);
+  for (let i = 0; i < w.size; i++) {
+    T.set('i', i);
+    T.at(o + 3, `\`i\` is ${i}.`, { loop: 'copy', fx: { oldHot: [i] } });
+    w.newBlock[i] = w.block[i]; T.counters.copy++;
+    T.at(o + 4, `Copy slot ${i}: ${C(w.block[i])} goes into slot ${i} of the new block.`, { loop: 'copy', fx: { copy: i } });
+  }
+  T.at(o + 3, `The loop is over: ${plural(w.size, 'value')} copied, one by one. This is the O(n) part.`);
+  w.old = { block: w.block, cap: w.cap, bid: w.bid };
+  w.block = w.newBlock; w.bid = w.newBid; w.newBlock = null; w.newBid = null;
+  T.at(o + 5, `\`self._block = block\`: the DynamicArray now uses the new block. Nothing refers to the old one any more, so Python frees it.`);
+  w.cap = capacity;
+  T.at(o + 6, `\`_capacity\` is now ${capacity}.`);
+  w.resizes++;
+  w.old = null;
+  T.at(o + 7, `\`resize_count\` goes up to ${w.resizes}.`);
+  return T.ret(null, o + 7, '_resize returns None.');
+}
+
+function daPop(T, index, ask) {
+  const o = T.sc.o.dapop, w = T.w, label = index === -1 ? 'pop()' : `pop(${index})`;
+  T.call('pop', [['self', ITEMS], ['index', index]], label,
+    `Call \`self._items.${label}\`. A new frame: in it, \`self\` is the DynamicArray${index === -1 ? ', and `index` takes its default, -1' : ''}.`, o + 1);
+  const size = w.size;
+  T.at(o + 2, `Is the array empty? \`_size\` is ${size}: ${size === 0 ? '**yes**.' : 'no.'}`);
+  if (size === 0) {
+    T.at(o + 3, 'Raise `IndexError`: there is nothing to pop.');
+    throw new PyErr('IndexError', 'pop from empty DynamicArray', { why: 'The DynamicArray refuses to pop from an empty block. Nobody checked before calling it.' });
+  }
+  if (index < 0) {
+    T.at(o + 4, `\`index\` is ${index}: negative, so it counts from the end.`);
+    index += size; T.set('index', index);
+    T.at(o + 5, `\`index += self._size\`: ${index - size} + ${size} = ${index}, the last used slot.`);
+  } else T.at(o + 4, `\`index\` is ${index}: not negative.`);
+  T.at(o + 6, `Is \`0 <= ${index} < ${size}\`? Yes.`);
+  const value = w.block[index];
+  T.set('value', value);
+  T.at(o + 8, `Read slot ${index}: \`value\` is ${C(value)}.`, { fx: { hot: [index] } });
+  const n = size - 1 - index;
+  if (n === 0) {
+    T.at(o + 9, `\`range(${index}, ${size - 1})\` is empty: the value came from the LAST slot, so nothing has to move. That is why the top lives at the end.`);
+  } else {
+    if (ask) T.ask(`How many times will line ${o + 10}, the shift, run?`, n, [1, 0, size],
+      `Every value above slot ${index} moves down one slot to close the gap: ${n} of them. Popping at index 0 costs O(n).`);
+    for (let i = index; i < size - 1; i++) {
+      T.set('i', i);
+      T.at(o + 9, `\`i\` is ${i}.`, { loop: 'shift' });
+      w.block[i] = w.block[i + 1]; T.counters.shift++;
+      T.at(o + 10, `Shift: the value in slot ${i + 1}, ${C(w.block[i])}, moves down into slot ${i}.`, { loop: 'shift', fx: { shift: [i + 1, i], chg: [i] } });
+    }
+    T.at(o + 9, `The loop is over: ${plural(n, 'value')} moved down one slot.`);
+  }
+  w.size--;
+  T.at(o + 11, `\`_size\` goes down to ${w.size}.`);
+  w.block[w.size] = null;
+  T.at(o + 12, `Clear slot ${w.size}, which is no longer used, so the block does not keep the value alive.`, { fx: { chg: [w.size] } });
+  T.fx.popped = { v: value, at: index };
+  return T.ret(value, o + 13, `Return ${C(value)}.`);
+}
+
+function daGetItem(T, index) {
+  const o = T.sc.o.getitem, w = T.w;
+  T.call('__getitem__', [['self', ITEMS], ['index', index]], `__getitem__(${index})`,
+    `\`self._items[${index}]\` calls the DynamicArray's \`__getitem__(${index})\`.`, o + 1);
+  T.at(o + 2, `Is \`index\` negative? It is ${index}: ${index < 0 ? 'yes.' : 'no.'}`);
+  if (index < 0) { index += w.size; T.set('index', index); T.at(o + 3, `\`index\` becomes ${index}.`); }
+  const ok = 0 <= index && index < w.size;
+  T.at(o + 4, `Is \`0 <= ${index} < ${w.size}\`? ${ok ? 'Yes.' : '**No.**'}`);
+  if (!ok) { T.at(o + 5, `Raise \`IndexError(${index})\`.`); throw new PyErr('IndexError', String(index)); }
+  T.at(o + 6, `Return slot ${index}: ${C(w.block[index])}. Reading a slot is O(1); nothing is removed.`, { fx: { hot: [index] } });
+  return T.ret(w.block[index], o + 6, `Return ${C(w.block[index])}.`);
+}
+
+function daInsertAt(T, index, value, ask) {
+  const o = T.sc.o.insert_at, w = T.w;
+  T.call('insert_at', [['self', ITEMS], ['index', index], ['value', value]], `insert_at(${index}, ${pyrepr(value)})`,
+    `Call \`self._items.insert_at(${index}, ${pyrepr(value)})\`: a new frame, where \`self\` is the DynamicArray.`, o + 1);
+  T.at(o + 2, `Is \`0 <= ${index} <= ${w.size}\`? Yes.`);
+  const full = w.size === w.cap;
+  T.at(o + 4, `Is the block full? \`_size\` is ${w.size}, \`_capacity\` is ${w.cap}: ${full ? '**yes**.' : 'no.'}`);
+  if (full) { T.at(o + 5, `Grow first: \`_resize(${w.cap} * 2)\`.`); daResize(T, w.cap * 2); }
+  const n = w.size - index;
+  if (n === 0) T.at(o + 6, `\`range(${w.size}, ${index}, -1)\` is empty: the array is empty, so nothing has to move.`);
+  else {
+    if (ask) T.ask(`To free slot ${index}, how many values must shift one slot to the right?`, n, [1, 0, n + 1],
+      `Every value in the stack: ${n}. Each push at index 0 shifts the whole stack, so it is O(n), and n pushes cost O(n²).`);
+    for (let i = w.size; i > index; i--) {
+      T.set('i', i);
+      T.at(o + 6, `\`i\` is ${i}, counting down.`, { loop: 'shift' });
+      w.block[i] = w.block[i - 1]; T.counters.shift++;
+      T.at(o + 7, `Shift: the value in slot ${i - 1}, ${C(w.block[i])}, moves up into slot ${i}.`, { loop: 'shift', fx: { shift: [i - 1, i], chg: [i] } });
+    }
+    T.at(o + 6, `The loop is over: ${plural(n, 'value')} moved up one slot, to free slot ${index}.`);
+  }
+  w.block[index] = value;
+  T.at(o + 8, `\`self._block[${index}] = ${pyrepr(value)}\`.`, { fx: { chg: [index], pushed: true } });
+  w.size++;
+  T.at(o + 9, `\`_size\` goes up to ${w.size}.`);
+  return T.ret(null, o + 9, 'insert_at returns None.');
+}
+
+/* ---- Stack methods ---- */
+function sPush(T, value, ask) {
+  const o = T.sc.o.push;
+  T.call('push', [['self', SELF], ['value', value]], `push(${pyrepr(value)})`, null, o + 1);
+  T.at(o + 2, `The top of the stack is the END of the array, so a push is an \`append\` on \`self._items\`.`);
+  daAppend(T, value, ask);
+  T.counters.push++;
+  return T.ret(null, o + 2, 'push returns None.');
+}
+function sPop(T, ask, bug, inner) {
+  const ro = inner ? { inner: true, after: '`pop` is finished, and its result goes straight into the expression.' } : undefined;
+  const o = T.sc.o.pop, w = T.w;
+  T.call('pop', [['self', SELF]], 'pop()', null, o + 1);
+  T.at(o + 2, `Is the stack empty? \`len(self._items)\` is ${w.size}: ${w.size === 0 ? '**yes**.' : 'no.'}`);
+  if (w.size === 0) {
+    if (bug === 'none') {
+      T.at(o + 3, 'Empty, so return `None`, quietly. No error, no warning.');
+      return T.ret(null, o + 3, 'pop returns None. The shell prints nothing at all for None.', ro);
+    }
+    T.at(o + 3, 'Raise `IndexError`: an empty stack has no top to give back.');
+    throw new PyErr('IndexError', 'pop from empty stack', { why: 'The contract says so, like `list.pop()` on an empty list. The error stops the program right here, where the mistake is.' });
+  }
+  if (ask) T.ask(`\`self._items\` holds ${pyrepr(blockVals(w))}. Which value will \`pop()\` return?`, pyrepr(w.block[w.size - 1]), [pyrepr(w.block[0]), 'None', pyrepr(w.size)].filter(x => x !== pyrepr(w.block[w.size - 1])),
+    'The top is the LAST slot of the array, so `pop()` with no index takes the most recent value: last in, first out.');
+  T.at(o + 4, `The top is the last slot: \`self._items.pop()\`, with no index, removes it.`);
+  const v = daPop(T, -1, false);
+  T.counters.pop++;
+  return T.ret(v, o + 4, `Return ${C(v)}: the value pushed most recently.`, ro);
+}
+function sPeek(T) {
+  const o = T.sc.o.peek, w = T.w;
+  T.call('peek', [['self', SELF]], 'peek()', null, o + 1);
+  T.at(o + 2, `Is the stack empty? \`len(self._items)\` is ${w.size}: ${w.size === 0 ? '**yes**.' : 'no.'}`);
+  if (w.size === 0) {
+    T.at(o + 3, 'Raise `IndexError`: there is no top to look at.');
+    throw new PyErr('IndexError', 'peek at empty stack', { why: 'Same contract as pop: an error, not a made-up value.' });
+  }
+  T.at(o + 4, `Read the last used slot, index \`len(self._items) - 1\` = ${w.size - 1}.`);
+  T.ask(`The stack holds ${plural(w.size, 'value')}. How many will it hold after this peek?`, w.size, [w.size - 1, 0, w.size + 1].filter(x => x >= 0),
+    'peek only reads the top through `__getitem__`. Nothing is removed, so the stack is unchanged.');
+  const v = daGetItem(T, w.size - 1);
+  return T.ret(v, o + 4, `Return ${C(v)}. Nothing was removed: the stack still holds ${plural(w.size, 'value')}.`);
+}
+
+/* The same methods with the DynamicArray work in one step (for sequences). */
+function flatPush(T, value) {
+  const o = T.sc.o.push, w = T.w;
+  T.call('push', [['self', SELF], ['value', value]], `push(${pyrepr(value)})`, null, o + 1);
+  let grew = 0;
+  if (w.size === w.cap) { grew = quietGrow(w, w.cap * 2); T.counters.copy += grew; }
+  w.block[w.size] = value; w.size++; T.counters.push++;
+  T.at(o + 2, (grew ? `The block was full, so \`append\` first doubled it to ${w.cap} slots (copying ${plural(grew, 'value')}). ` : '') +
+    `\`append\` writes ${C(value)} into slot ${w.size - 1}: the new top.`, { fx: { chg: [w.size - 1], pushed: true } });
+  return T.ret(null, o + 2, 'push returns None.');
+}
+function flatPop(T) {
+  const o = T.sc.o.pop, w = T.w;
+  T.call('pop', [['self', SELF]], 'pop()', null, o + 1);
+  T.at(o + 2, `Is the stack empty? \`len(self._items)\` is ${w.size}: ${w.size === 0 ? '**yes**.' : 'no.'}`);
+  if (w.size === 0) {
+    T.at(o + 3, 'Raise `IndexError`.');
+    throw new PyErr('IndexError', 'pop from empty stack', { why: 'The stack is empty: every value pushed has already been popped.' });
+  }
+  const v = w.block[w.size - 1];
+  w.size--; w.block[w.size] = null; T.counters.pop++;
+  T.at(o + 4, `\`self._items.pop()\` takes ${C(v)} from the last slot, ${w.size}. Nothing else moves.`, { fx: { chg: [w.size], popped: { v, at: w.size } } });
+  return T.ret(v, o + 4, `Return ${C(v)}.`);
+}
+function flatPeek(T) {
+  const o = T.sc.o.peek, w = T.w;
+  T.call('peek', [['self', SELF]], 'peek()', null, o + 1);
+  T.at(o + 2, `Is the stack empty? \`len(self._items)\` is ${w.size}: ${w.size === 0 ? '**yes**.' : 'no.'}`);
+  if (w.size === 0) { T.at(o + 3, 'Raise `IndexError`.'); throw new PyErr('IndexError', 'peek at empty stack'); }
+  const v = w.block[w.size - 1];
+  T.at(o + 4, `Read slot ${w.size - 1}, the top: ${C(v)}. It stays where it is.`, { fx: { hot: [w.size - 1] } });
+  return T.ret(v, o + 4, `Return ${C(v)}.`);
+}
+
+const pushParts = [['push', S_PUSH, 'Stack.push'], ['append', DA_APPEND, 'DynamicArray.append'], ['_resize', DA_RESIZE, 'DynamicArray._resize']];
+const popParts = [['pop', S_POP, 'Stack.pop'], ['dapop', DA_POP, 'DynamicArray.pop']];
+const sStrip = (cls, rest) => [`s = ${cls}(`, 'values', ')', '\n', ...rest];
+
+def({
+  id: 'lifo', group: 'array', world: 'block', cls: 'Stack', title: 'LIFO: push, push, pop, push, peek, pop, pop',
+  blurb: 'Seven calls on one stack. Every push lands on top and every pop takes from the top, so the values come out in reverse order.',
+  parts: [['push', S_PUSH, 'Stack.push'], ['pop', S_POP, 'Stack.pop'], ['peek', S_PEEK, 'Stack.peek']],
+  params: { a: valP('A'), b: valP('B'), c: valP('C') },
+  strip: ['s = Stack()', '\n', 's.push(', 'a', ')', '\n', 's.push(', 'b', ')', '\n', 's.pop()', '\n', 's.push(', 'c', ')', '\n', 's.peek()', '\n', 's.pop()', '\n', 's.pop()'],
+  traced: 7, setup: T => setupBlock(T, 'Stack', []),
+  run: (T, p) => {
+    T.cmd(() => flatPush(T, p.a));
+    T.cmd(() => flatPush(T, p.b));
+    T.cmd(() => {
+      T.say(`Two values are on the stack, ${C(p.b)} on top of ${C(p.a)}.`);
+      T.ask('Which value will `s.pop()` return?', pyrepr(p.b), [pyrepr(p.a), 'None', 'The bottom one'],
+        `The last value in is the first out: ${C(p.b)}, pushed most recently, is on top.`);
+      flatPop(T);
+    });
+    T.cmd(() => flatPush(T, p.c));
+    T.cmd(() => flatPeek(T));
+    T.cmd(() => flatPop(T));
+    T.cmd(() => {
+      T.say(`One value is left.`);
+      T.ask('What does this last `s.pop()` return?', pyrepr(p.a), [pyrepr(p.c), pyrepr(p.b), 'IndexError'],
+        `${C(p.a)} went in first, so it comes out last.`);
+      flatPop(T);
+    });
+  },
+  probes: blockProbes(false),
+  finaleMsg: (T, p) => `In: ${pyrepr(p.a)}, ${pyrepr(p.b)}, ${pyrepr(p.c)}. Out: ${pyrepr(p.b)}, ${pyrepr(p.c)}, ${pyrepr(p.a)}. Every value left in the reverse of the order it arrived, at its turn.`,
+});
+def({
+  id: 'push', group: 'array', world: 'block', cls: 'Stack', title: 'push: append at the end, O(1)',
+  blurb: 'The top is the last used slot, so push writes into the next free slot. Nothing moves.',
+  parts: pushParts, params: { values: valList([1, 2, 3], 0, 9), value: valP(4) },
+  strip: sStrip('Stack', ['s.push(', 'value', ')']), setup: (T, p) => setupBlock(T, 'Stack', p.values),
+  run: (T, p) => T.cmd(() => sPush(T, p.value, true)), probes: blockProbes(true),
+  summary: T => ` ${plural(T.counters.copy, 'value')} copied for this push.`,
+});
+def({
+  id: 'push_resize', group: 'array', world: 'block', cls: 'Stack', title: 'push when the block is full: resize',
+  blurb: 'Four values fill a block of four. The fifth push doubles the block first: one expensive push that pays for the next ones.',
+  parts: pushParts, params: { values: valList([1, 2, 3, 4], 0, 9), value: valP(5) },
+  strip: sStrip('Stack', ['s.push(', 'value', ')']), setup: (T, p) => setupBlock(T, 'Stack', p.values),
+  run: (T, p) => T.cmd(() => sPush(T, p.value, true)), probes: blockProbes(true),
+  summary: T => ` ${plural(T.counters.copy, 'value')} copied for this push. The next ${T.w.cap - T.w.size} pushes copy nothing.`,
+});
+def({
+  id: 'pop', group: 'array', world: 'block', cls: 'Stack', title: 'pop: take the last slot, O(1)',
+  blurb: 'pop() with no index takes the value in the last used slot. The shifting loop runs zero times.',
+  parts: popParts, params: { values: valList([1, 2, 3], 0, 9) },
+  strip: sStrip('Stack', ['s.pop()']), setup: (T, p) => setupBlock(T, 'Stack', p.values),
+  run: (T, p) => T.cmd(() => sPop(T, true)), probes: blockProbes(false),
+});
+def({
+  id: 'peek', group: 'array', world: 'block', cls: 'Stack', title: 'peek: look at the top, remove nothing',
+  blurb: 'peek reads the last used slot through __getitem__. The stack is the same afterwards.',
+  parts: [['peek', S_PEEK, 'Stack.peek'], ['getitem', DA_GETITEM, 'DynamicArray.__getitem__']], params: { values: valList([1, 2, 3], 0, 9) },
+  strip: sStrip('Stack', ['s.peek()']), setup: (T, p) => setupBlock(T, 'Stack', p.values),
+  run: (T, p) => T.cmd(() => sPeek(T)), probes: blockProbes(false),
+});
+def({
+  id: 'pop_empty', group: 'array', world: 'block', cls: 'Stack', title: 'pop until empty: IndexError',
+  blurb: 'One value, two pops. The second finds the stack empty and raises IndexError, as the contract says.',
+  parts: popParts, params: { values: valList([7], 0, 3) },
+  strip: sStrip('Stack', ['s.pop()', '\n', 's.pop()']), traced: 2, setup: (T, p) => setupBlock(T, 'Stack', p.values),
+  run: (T, p) => {
+    T.cmd(() => sPop(T, false));
+    T.cmd(() => {
+      if (T.w.size === 0) {
+        T.say('The stack is empty now.');
+        T.ask('What will this second `s.pop()` do?', 'Raise IndexError', ['Return None', `Return ${pyrepr(p.values[0])} again`, 'Return 0'],
+          '`Stack.pop` checks for an empty stack first and raises `IndexError`, like `list.pop()`. A `None` would travel on silently and fail somewhere far away.');
+      }
+      sPop(T, false);
+    });
+  },
+  probes: blockProbes(false),
+});
+def({
+  id: 'amortised', group: 'array', world: 'block', cls: 'Stack', title: 'n pushes: why push is amortised O(1)',
+  blurb: 'Push n values into an empty stack. The block doubles at 1, 2, 4, 8…, and the copies add up to less than n.',
+  parts: pushParts, params: { n: intP(9, 1, 16) },
+  strip: ['s = Stack()', '\n', 'for v in range(', 'n', '): s.push(v)'], setup: T => setupBlock(T, 'Stack', []),
+  run: (T, p) => T.cmd(() => {
+    let asked = false;
+    for (let v = 0; v < p.n; v++) {
+      T.set('v', v, T.mod);
+      T.say(`The loop at the shell: \`v\` is ${v}.`, { loop: 'pushes' });
+      const full = T.w.size === T.w.cap;
+      sPush(T, v, full && T.w.size >= 2 && !asked);
+      if (full && T.w.size >= 3) asked = true;
+    }
+  }),
+  probes: () => [['s', T => reprStack(T)], ['s._items._capacity', T => T.w.cap], ['s._items.resize_count', T => T.w.resizes]],
+  summary: (T, p) => ` **${p.n} pushes, ${T.counters.copy} copies in total**: fewer than ${p.n}, so less than one copy per push on average. That is amortised O(1).`,
+});
+
+/* ---- goes wrong: the top at index 0, a pop that returns None, a peek that pops ---- */
+function fPush(T, value) {
+  const o = T.sc.o.push;
+  T.call('push', [['self', SELF], ['value', value]], `push(${pyrepr(value)})`, null, o + 1);
+  T.at(o + 2, `This stack keeps its top at INDEX 0, so a push is \`insert_at(0, ${pyrepr(value)})\`.`);
+  daInsertAt(T, 0, value, true);
+  T.counters.push++;
+  return T.ret(null, o + 2, 'push returns None.');
+}
+function fPop(T) {
+  const o = T.sc.o.pop, w = T.w;
+  T.call('pop', [['self', SELF]], 'pop()', null, o + 1);
+  T.at(o + 2, `Is the stack empty? \`len(self._items)\` is ${w.size}: ${w.size === 0 ? '**yes**.' : 'no.'}`);
+  if (w.size === 0) { T.at(o + 3, 'Raise `IndexError`.'); throw new PyErr('IndexError', 'pop from empty stack'); }
+  T.at(o + 4, `The top is at index 0, so \`self._items.pop(0)\`.`);
+  const v = daPop(T, 0, true);
+  T.counters.pop++;
+  return T.ret(v, o + 4, `Return ${C(v)}.`);
+}
+def({
+  id: 'w_front_push', group: 'wrong', world: 'block', cls: 'FrontStack', title: 'Top at index 0: every push shifts the stack',
+  blurb: 'A correct stack, with the top in the wrong place. Each push moves every value one slot to the right: O(n).',
+  parts: [['push', F_PUSH, 'FrontStack.push'], ['insert_at', DA_INSERT, 'DynamicArray.insert_at'], ['_resize', DA_RESIZE, 'DynamicArray._resize']],
+  params: { values: valList([1, 2, 3], 0, 9), value: valP(4) },
+  strip: sStrip('FrontStack', ['s.push(', 'value', ')']), setup: (T, p) => setupBlock(T, 'FrontStack', p.values),
+  run: (T, p) => T.cmd(() => fPush(T, p.value)), probes: blockProbes(false), bugLines: [2],
+  finale: T => `Nothing. The result is a correct stack, and every test passes. But this one push moved ${plural(T.counters.shift, 'value')}; push number n moves n − 1, so n pushes cost O(n²). Compare **push: append at the end**, which moves none.`,
+});
+def({
+  id: 'w_front_pop', group: 'wrong', world: 'block', cls: 'FrontStack', title: 'Top at index 0: every pop shifts the stack',
+  blurb: 'pop(0) takes the top from slot 0, then moves every remaining value one slot down to close the gap.',
+  parts: [['pop', F_POP, 'FrontStack.pop'], ['dapop', DA_POP, 'DynamicArray.pop']],
+  params: { values: valList([1, 2, 3, 4], 0, 9) },
+  strip: sStrip('FrontStack', ['s.pop()']), setup: (T, p) => setupBlock(T, 'FrontStack', p.values),
+  run: (T, p) => T.cmd(() => fPop(T)), probes: blockProbes(false), bugLines: [4],
+  finale: T => `The right value came back, and the tests pass. But the pop moved ${plural(T.counters.shift, 'value')}. With the top at the end, as in **pop: take the last slot**, the same loop runs zero times.`,
+});
+def({
+  id: 'w_pop_none', group: 'wrong', world: 'block', cls: 'NoneStack', title: 'pop returns None when empty',
+  blurb: 'Instead of raising IndexError, this pop quietly returns None. The mistake surfaces later, somewhere else.',
+  parts: [['pop', N_POP, 'NoneStack.pop'], ['dapop', DA_POP, 'DynamicArray.pop']],
+  params: { values: valList([5], 0, 2, ) },
+  strip: sStrip('NoneStack', ['s.pop()', '\n', 's.pop()', '\n', 's.pop() * 2']), traced: 3, setup: (T, p) => setupBlock(T, 'NoneStack', p.values),
+  run: (T, p) => {
+    T.cmd(() => sPop(T, false, 'none'));
+    T.cmd(() => {
+      if (!T.w.size) {
+        T.say('The stack is empty now.');
+        T.ask('What will this `s.pop()` do?', 'Return None: the shell prints nothing', ['Raise IndexError', 'Return 0', 'Return the last value again'],
+          'This pop returns `None` for an empty stack, and the shell prints nothing for `None`. No error, no warning: the empty stack goes unnoticed.');
+      }
+      sPop(T, false, 'none');
+    });
+    T.cmd(() => {
+      const v = sPop(T, false, 'none', true);
+      if (v === null) {
+        T.say('Now Python computes `None * 2`.');
+        throw new PyErr('TypeError', "unsupported operand type(s) for *: 'NoneType' and 'int'", { why: 'The error is reported on the multiplication, not on the pop that caused it. In a real program the two can be hundreds of lines apart.' });
+      }
+      const r = typeof v === 'string' ? v + v : v * 2;
+      T.out.push({ k: 'ret', t: pyrepr(r), fresh: true });
+      T.say(`\`${pyrepr(v)} * 2\` is ${C(r)}.`);
+    });
+  },
+  probes: () => [['len(s)', T => T.w.size]], bugLines: [3],
+  finale: () => 'The empty stack said nothing: `s.pop()` printed nothing at all, because the shell does not print `None`. The program carried on until `None * 2` failed with a `TypeError`, far from the real cause. `IndexError` at the pop is the honest answer.',
+});
+def({
+  id: 'w_peek_pops', group: 'wrong', world: 'block', cls: 'PeekPopStack', title: 'peek that removes the top',
+  blurb: 'This peek returns the top, but with pop(). Look twice and you get two different answers.',
+  parts: [['peek', PP_PEEK, 'PeekPopStack.peek'], ['dapop', DA_POP, 'DynamicArray.pop']],
+  params: { values: valList([1, 2, 3], 1, 9) },
+  strip: sStrip('PeekPopStack', ['s.peek()', '\n', 's.peek()']), traced: 2, setup: (T, p) => setupBlock(T, 'PeekPopStack', p.values),
+  run: (T, p) => {
+    const once = () => {
+      const o = T.sc.o.peek;
+      T.call('peek', [['self', SELF]], 'peek()', null, o + 1);
+      T.at(o + 2, 'Return the top… by popping it.');
+      const v = daPop(T, -1, false);
+      return T.ret(v, o + 2, `Return ${C(v)}, and the stack is one value shorter.`);
+    };
+    T.cmd(once);
+    T.cmd(() => {
+      if (T.w.size) {
+        T.say('Nobody pushed or popped since the last peek.');
+        T.ask('What should this second `s.peek()` return?', `${pyrepr(T.w.size ? T.w.block[T.w.size - 1] : null)}, the value under the old top`, [`${pyrepr(p.values[p.values.length - 1])} again, the same top`, 'None', 'IndexError'],
+          `It *should* return ${pyrepr(p.values[p.values.length - 1])} again: peek must not change the stack. But the first peek popped it, so this one returns the value underneath. That is what the code will do.`);
+      }
+      once();
+    });
+  },
+  probes: () => [['len(s)', T => T.w.size]], bugLines: [2],
+  finale: (T, p) => `Two peeks, two different tops, and \`len(s)\` is ${T.w.size}, not ${p.values.length}. A peek must leave the stack as it was: read \`self._items[len(self._items) - 1]\` instead.`,
+});
+
+/* ==== a stack on a linked list: the top is the head (written for this demo) ==== */
+function setupNodes(T, values) {
+  const w = { type: 'nodes', cls: 'LinkedStack', obj: 's', nodes: [], head: null, size: 0, tmp: null };
+  for (const v of values) { w.nodes.push({ v, next: w.head }); w.head = w.nodes.length - 1; w.size++; }
+  T.w = w;
+  T.set('s', { obj: 's' }, T.mod);
+}
+Tracer.prototype.dropGarbage = function () {
+  const w = this.w, live = new Set();
+  for (let id = w.head; id !== null; id = w.nodes[id].next) live.add(id);
+  w.nodes.forEach((nd, id) => { if (!live.has(id)) nd.gone = true; });
+};
+function reprLinked(T) {
+  const w = T.w, vals = [];
+  for (let id = w.head; id !== null; id = w.nodes[id].next) vals.unshift(w.nodes[id].v);
+  return { raw: vals.length ? `LinkedStack(${pyrepr(vals)})  # top = ${pyrepr(w.nodes[w.head].v)}` : 'LinkedStack([])' };
+}
+const L_PUSH = `def push(self, value):
+    self._head = Node(value, self._head)     # the new node goes in front
+    self._size += 1`;
+const L_POP = `def pop(self):
+    if self._head is None:
+        raise IndexError("pop from empty stack")
+    value = self._head.value
+    self._head = self._head.next             # unlink the old top
+    self._size -= 1
+    return value`;
+const nodeName = (w, id) => (id === null ? 'None' : `Node(${pyrepr(w.nodes[id].v)})`);
+def({
+  id: 'l_push', group: 'linked', world: 'nodes', title: 'push: a new node in front of the head',
+  blurb: 'The top is the head. A push makes one node that points at the old head: O(1) in the worst case, no resize ever.',
+  code: L_PUSH, src: ['LinkedStack.push'], params: { values: valList([1, 2, 3], 0, 6), value: valP(4) },
+  strip: sStrip('LinkedStack', ['s.push(', 'value', ')']), setup: (T, p) => setupNodes(T, p.values),
+  run: (T, p) => T.cmd(() => {
+    const w = T.w, old = w.head;
+    T.call('push', [['self', SELF], ['value', p.value]], `push(${pyrepr(p.value)})`, null, 1);
+    w.nodes.push({ v: p.value, next: old }); const id = w.nodes.length - 1; w.tmp = id;
+    T.at(2, `The right-hand side first: \`Node(value, self._head)\` makes a node holding ${C(p.value)} whose \`next\` is ${old === null ? '`None`: the stack was empty' : `the current top, \`${nodeName(w, old)}\``}.`, { fx: { focus: id, hot: ['head'] } });
+    T.ask('The assignment now makes `self._head` refer to the new node. How many nodes must push walk past first?', 'None: it changes one reference', ['All of them, to reach the bottom', 'Just the old top', 'Half of them'],
+      'A push never walks. The new node is linked in front of the head, whatever the size of the stack: O(1), and no block to grow.');
+    w.head = id; w.tmp = null; T.counters.links++;
+    T.at(2, `\`self._head\` now refers to the new node: it is the top, and the old top is under it.`, { fx: { focus: id, chg: ['head'], pushed: true } });
+    w.size++; T.counters.push++;
+    T.at(3, `\`self._size\` goes up to ${w.size}.`);
+    return T.ret(null, 3, 'push returns None.');
+  }),
+  probes: () => [['s', T => reprLinked(T)], ['len(s)', T => T.w.size]],
+});
+def({
+  id: 'l_pop', group: 'linked', world: 'nodes', title: 'pop: move the head to the next node',
+  blurb: 'Take the value from the head node, then move the head one node along. The old top is unreachable, and Python frees it.',
+  code: L_POP, src: ['LinkedStack.pop'], params: { values: valList([1, 2, 3], 0, 6) },
+  strip: sStrip('LinkedStack', ['s.pop()']), setup: (T, p) => setupNodes(T, p.values),
+  run: (T, p) => T.cmd(() => {
+    const w = T.w, h = w.head;
+    T.call('pop', [['self', SELF]], 'pop()', null, 1);
+    T.at(2, `Is \`self._head\` None? ${h === null ? '**Yes**: the stack is empty.' : `No, it is \`${nodeName(w, h)}\`.`}`, { fx: { hot: ['head'] } });
+    if (h === null) { T.at(3, 'Raise `IndexError`.'); throw new PyErr('IndexError', 'pop from empty stack', { why: 'An empty linked stack has no head node, so there is no value to return.' }); }
+    T.set('value', w.nodes[h].v);
+    T.at(4, `\`value\` is ${C(w.nodes[h].v)}, read from the head node.`, { fx: { focus: h } });
+    T.ask('Line 5 moves `self._head` to the next node. What happens to the old top node?', 'Nothing refers to it, so Python frees it', ['It stays at the bottom of the stack', 'It must be deleted by hand', 'It becomes the new head'],
+      'Only `self._head` referred to the old top. Once the head moves on, the node is unreachable and Python frees it. `value` keeps a reference to the value, not to the node.');
+    w.head = w.nodes[h].next; T.counters.links++;
+    T.at(5, `\`self._head = self._head.next\`: the head moves to ${w.head === null ? '`None`, so the stack is empty' : `\`${nodeName(w, w.head)}\``}. Nothing refers to the old top node now.`, { fx: { chg: ['head'], popped: { v: w.nodes[h].v } } });
+    w.size--; T.counters.pop++;
+    T.at(6, `\`self._size\` goes down to ${w.size}.`);
+    return T.ret(w.nodes[h].v, 7, `Return ${C(w.nodes[h].v)}.`);
+  }),
+  probes: () => [['s', T => reprLinked(T)], ['len(s)', T => T.w.size]],
+});
+
+
+/* ==== applications: the stack as a tool ==================================
+   The Stack's own methods are not traced here: each push and pop is one
+   step, and the picture shows each stack as a pile of values. */
+
+function setupApp(T, o) {
+  T.w = Object.assign({ type: 'app', tape: null, tapeLabel: '', cur: -1, piles: [], out: null, outLabel: 'output', notes: [], obj: null }, o);
+}
+const pileOf = (key, label) => ({ key, label, vals: [] });
+const textCheck = max => v => (v.length <= max && /^[ -~]*$/.test(v) && !/['"\\]/.test(v)) || `Use up to ${max} plain characters, without quotes or backslashes.`;
+
+/* ---- balanced brackets ---- */
+const IS_BAL = `def is_balanced(text):
+    partner = {")": "(", "]": "[", "}": "{"}
+    openers = Stack()
+    for ch in text:
+        if ch in "([{":
+            openers.push(ch)
+        elif ch in partner:
+            if openers.is_empty():               # a closer with nothing open
+                return False
+            if openers.pop() != partner[ch]:     # the wrong partner
+                return False
+    return openers.is_empty()                    # nothing left open`;
+const IS_BAL_NO_PARTNER = `def is_balanced_no_partner(text):
+    openers = Stack()
+    for ch in text:
+        if ch in "([{":
+            openers.push(ch)
+        elif ch in ")]}":
+            if openers.is_empty():               # a closer with nothing open
+                return False
+            openers.pop()                        # any opener will do?
+    return openers.is_empty()                    # nothing left open`;
+const IS_BAL_NO_EMPTY = `def is_balanced_no_empty_check(text):
+    partner = {")": "(", "]": "[", "}": "{"}
+    openers = Stack()
+    for ch in text:
+        if ch in "([{":
+            openers.push(ch)
+        elif ch in partner:
+            if openers.pop() != partner[ch]:     # the wrong partner
+                return False
+    return openers.is_empty()                    # nothing left open`;
+const IS_BAL_NO_FINAL = IS_BAL.replace('def is_balanced(', 'def is_balanced_no_final_check(')
+  .replace('    return openers.is_empty()                    # nothing left open', '    return True                                  # ...and what is still open?');
+const BAL = {
+  ok: { fn: 'is_balanced', partner: 2, openers: 3, for: 4, ifOpen: 5, push: 6, elif: 7, ifEmpty: 8, retF1: 9, ifPop: 10, retF2: 11, ret: 12 },
+  no_partner: { fn: 'is_balanced_no_partner', partner: 0, openers: 2, for: 3, ifOpen: 4, push: 5, elif: 6, ifEmpty: 7, retF1: 8, popAny: 9, ret: 10 },
+  no_empty: { fn: 'is_balanced_no_empty_check', partner: 2, openers: 3, for: 4, ifOpen: 5, push: 6, elif: 7, ifEmpty: 0, ifPop: 8, retF2: 9, ret: 10 },
+  no_final: { fn: 'is_balanced_no_final_check', partner: 2, openers: 3, for: 4, ifOpen: 5, push: 6, elif: 7, ifEmpty: 8, retF1: 9, ifPop: 10, retF2: 11, ret: 12, alwaysTrue: true },
+};
+const PARTNER = { ')': '(', ']': '[', '}': '{' };
+
+function balanced(T, text, variant) {
+  const L = BAL[variant], w = T.w;
+  setupApp(T, { tape: [...text], tapeLabel: 'text', piles: [pileOf('openers', 'openers')] });
+  T.call(L.fn, [['text', text]], `${L.fn}(${pyrepr(text)})`, null, 1);
+  if (L.partner) { T.set('partner', { obj: '{")": "(", "]": "[", "}": "{"}' }); T.at(L.partner, '`partner` says which opener each closer needs.'); }
+  T.set('openers', { pile: 'openers' });
+  T.at(L.openers, '`openers` is an empty stack. It will hold every bracket that is open and not yet closed.');
+  let askedClose = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    T.w.cur = i; T.set('ch', ch);
+    T.at(L.for, `Next character: \`ch\` is ${C(ch)}.`, { loop: 'scan' });
+    if ('([{'.includes(ch)) {
+      T.at(L.ifOpen, `${C(ch)} is an opener.`, { loop: 'scan' });
+      T.push('openers', ch);
+      T.at(L.push, `Push ${C(ch)}: it is now the most recent open bracket, on top.`, { loop: 'scan' });
+      continue;
+    }
+    T.at(L.ifOpen, `${C(ch)} is not an opener.`, { loop: 'scan' });
+    const closer = ch in PARTNER;
+    T.at(L.elif, closer ? `${C(ch)} is a closer: it must close the most recent opener, the top of the stack.` : `${C(ch)} is not a bracket at all: ignore it.`, { loop: 'scan' });
+    if (!closer) continue;
+    const P = T.pile('openers').vals, top = P.length ? P[P.length - 1] : null;
+    if (!askedClose) {
+      askedClose = true;
+      const options = { match: `Pop ${pyrepr(top)}: it matches, carry on`, wrong: 'Return False: the wrong partner', none: 'Return False: nothing is open', anyPop: `Pop ${pyrepr(top)} and carry on`, crash: 'Raise IndexError: pop from an empty stack' };
+      let right, why;
+      if (top === null) {
+        if (L.ifEmpty) { right = options.none; why = `The stack is empty: ${C(ch)} closes something that was never opened.`; }
+        else { right = options.crash; why = 'This version never checks for an empty stack, so it pops anyway, and `Stack.pop` raises IndexError.'; }
+      } else if (variant === 'no_partner') { right = options.anyPop; why = `This version never compares the two brackets: it pops ${C(top)} whether it matches ${C(ch)} or not.`; }
+      else if (PARTNER[ch] === top) { right = options.match; why = `The partner of ${C(ch)} is ${C(PARTNER[ch])}, and that is on top: the pair is closed.`; }
+      else { right = options.wrong; why = `${C(ch)} needs ${C(PARTNER[ch])}, but the most recent opener is ${C(top)}.`; }
+      const alts = [options.match, options.wrong, options.none, options.crash].filter(x => x !== right);
+      T.ask(`\`ch\` is ${C(ch)} and the top of \`openers\` is ${top === null ? 'nothing: the stack is empty' : C(top)}. What will this code do?`, right, alts, why);
+    }
+    if (L.ifEmpty) {
+      T.at(L.ifEmpty, `Is \`openers\` empty? ${top === null ? '**Yes.**' : 'No.'}`, { loop: 'scan', fx: { peeked: 'openers' } });
+      if (top === null) {
+        T.at(L.retF1, `A closer with nothing open: unbalanced.`);
+        return T.ret(false, L.retF1, `Return \`False\`: ${C(ch)} at position ${i} closes nothing.`);
+      }
+    }
+    const got = T.pop('openers');
+    if (variant === 'no_partner') {
+      T.at(L.popAny, `Pop ${C(got)}, without looking at it.${PARTNER[ch] !== got ? ` It was the wrong partner for ${C(ch)}, and nobody noticed.` : ''}`, { loop: 'scan' });
+      continue;
+    }
+    const ok = PARTNER[ch] === got;
+    T.at(L.ifPop, `Pop ${C(got)}. The partner of ${C(ch)} is ${C(PARTNER[ch])}: ${ok ? 'a match.' : '**they differ**.'}`, { loop: 'scan' });
+    if (!ok) {
+      T.at(L.retF2, 'The wrong partner: unbalanced.');
+      return T.ret(false, L.retF2, `Return \`False\`: ${C(ch)} at position ${i} tried to close ${C(got)}.`);
+    }
+  }
+  T.w.cur = text.length;
+  const left = T.pile('openers').vals.length;
+  T.at(L.ret, `The text is over. ${left ? `${plural(left, 'bracket')} still open: ${T.pile('openers').vals.map(pyrepr).join(', ')}.` : 'Nothing is left open.'}`);
+  if (left) T.ask('The text is over, and `openers` is not empty. What will this code return?', L.alwaysTrue ? 'True' : 'False', [L.alwaysTrue ? 'False' : 'True', 'IndexError', 'None'],
+    L.alwaysTrue ? 'This version returns `True` after the loop without looking at the stack, so the unclosed opener goes unnoticed. The right answer would be `False`.'
+                 : 'Every opener left on the stack was never closed, so the text is unbalanced: `openers.is_empty()` is `False`.');
+  const res = L.alwaysTrue ? true : left === 0;
+  return T.ret(res, L.ret, `Return ${C(res)}.`);
+}
+const balScenario = (id, title, blurb, text, variant, extra) => def(Object.assign({
+  id, group: variant === 'ok' ? 'brackets' : 'wrong', world: 'app', title, blurb,
+  code: { ok: IS_BAL, no_partner: IS_BAL_NO_PARTNER, no_empty: IS_BAL_NO_EMPTY, no_final: IS_BAL_NO_FINAL }[variant], src: [BAL[variant].fn],
+  params: { text: textP(text, textCheck(16)) },
+  strip: [`${BAL[variant].fn}(`, 'text', ')'],
+  run: (T, p) => T.cmd(() => balanced(T, p.text, variant)),
+}, extra || {}));
+balScenario('bal_ok', 'Balanced: every closer meets its opener', 'Push each opener; each closer pops the most recent one, which must be its partner.', '(a[b]{c})', 'ok');
+balScenario('bal_cross', 'Unbalanced: the wrong partner', 'In ([)] the ) arrives while [ is the most recent opener. Check 1: the partner.', '([)]', 'ok');
+balScenario('bal_closer', 'Unbalanced: a closer with nothing open', 'In (a)) the second ) finds the stack empty. Check 2: not empty.', '(a))', 'ok');
+balScenario('bal_open', 'Unbalanced: left open at the end', 'In ((a) the text ends with ( still on the stack. Check 3: empty at the end.', '((a)', 'ok');
+balScenario('w_bal_partner', 'is_balanced without the partner check', 'Pops any opener for any closer. Most tests still pass; ([)] does not.', '([)]', 'no_partner',
+  { bugLines: [9], finale: (T, p) => `It returned ${pyrepr(T.lastRet)} for ${pyrepr(p.text)}. Without comparing the popped opener with the closer, only the COUNT of brackets is checked, not the order. \`([)]\` should be \`False\`.` });
+balScenario('w_bal_empty', 'is_balanced without the empty check', 'Pops without asking whether anything is open. A stray closer crashes it.', '())', 'no_empty',
+  { bugLines: [8], finale: () => 'A closer with nothing open should make the function return `False`. Without the check, `openers.pop()` meets an empty stack and the program stops with `IndexError` instead of an answer.' });
+balScenario('w_bal_final', 'is_balanced that forgets what is still open', 'Returns True after the loop, whatever is left on the stack. ( slips through.', '((a)', 'no_final',
+  { bugLines: [12], finale: (T, p) => `It returned ${pyrepr(T.lastRet)}. The loop only catches closers that go wrong; an opener that is never closed is still on the stack at the end, and only \`return openers.is_empty()\` sees it.` });
+
+/* ---- evaluating postfix: dsa/translation.py ---- */
+const EVAL = `def evaluate_postfix(tokens):
+    from dsa.stack import Stack
+
+    values = Stack()
+    for token in tokens:
+        if token in ("+", "-", "*", "/"):
+            if len(values) < 2:
+                raise ValueError(f"operator {token!r} needs two operands")
+            right = values.pop()                     # popped first: the RIGHT operand
+            left = values.pop()
+            if token == "+":
+                values.push(left + right)
+            elif token == "-":
+                values.push(left - right)
+            elif token == "*":
+                values.push(left * right)
+            else:
+                values.push(left / right)            # ZeroDivisionError on 0
+        else:
+            values.push(float(token) if "." in token else int(token))
+    if len(values) != 1:
+        raise ValueError("malformed postfix expression")
+    return values.pop()`;
+const EVAL_SWAPPED = EVAL.replace('def evaluate_postfix(', 'def evaluate_postfix_swapped(').replace('    from dsa.stack import Stack\n\n', '')
+  .replace('            right = values.pop()                     # popped first: the RIGHT operand\n            left = values.pop()',
+           '            left = values.pop()                      # popped first... the LEFT operand?\n            right = values.pop()');
+
+function pyNumber(token) {
+  if (token.includes('.')) {
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)$/.test(token)) throw new PyErr('ValueError', `could not convert string to float: ${pyrepr(token)}`);
+    return PF(parseFloat(token));
+  }
+  if (!/^[+-]?\d+$/.test(token)) throw new PyErr('ValueError', `invalid literal for int() with base 10: ${pyrepr(token)}`);
+  return parseInt(token, 10);
+}
+function arith(op, a, b) {
+  const fl = isF(a) || isF(b), x = num(a), y = num(b);
+  if (op === '/') {
+    if (y === 0) throw new PyErr('ZeroDivisionError', fl ? 'float division by zero' : 'division by zero', { why: 'Division by zero: the expression itself has no value.' });
+    return PF(x / y);
+  }
+  const r = op === '+' ? x + y : op === '-' ? x - y : x * y;
+  return fl ? PF(r) : r;
+}
+const OPS = ['+', '-', '*', '/'];
+
+function evalPostfix(T, tokens, swapped, o, opt) {
+  o = o || 0; opt = opt || {};
+  const L = n => o + (swapped && n >= 4 ? n - 2 : n), fn = swapped ? 'evaluate_postfix_swapped' : 'evaluate_postfix';
+  const w = T.w;
+  w.tape = tokens.slice(); w.tapeLabel = 'tokens'; w.cur = -1;
+  if (!T.pile('values')) w.piles.push(pileOf('values', 'values'));
+  T.call(fn, [['tokens', tokens.slice()]], `${fn}(${clip(pyrepr(tokens), 30)})`, opt.callMsg, L(1));
+  if (!swapped) T.at(L(2), 'Import the Stack class (inside the function, as in `dsa/translation.py`).');
+  T.set('values', { pile: 'values' });
+  T.at(L(4), '`values` is an empty stack: it will hold the numbers waiting for an operator.');
+  let asked = false;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    w.cur = i; T.set('token', token);
+    T.at(L(5), `Next token: ${C(token)}.`, { loop: 'scan' });
+    if (!OPS.includes(token)) {
+      T.at(L(6), `${C(token)} is not an operator.`, { loop: 'scan' });
+      const v = pyNumber(token);
+      T.push('values', v);
+      T.at(L(20), `A number: push ${C(v)}${isF(v) ? ' (a float, because it has a decimal point)' : ''}.`, { loop: 'scan' });
+      continue;
+    }
+    const n = T.pile('values').vals.length;
+    T.at(L(6), `${C(token)} is an operator. It needs the two most recent values.`, { loop: 'scan' });
+    T.at(L(7), `Are there at least 2 values? There ${n === 1 ? 'is' : 'are'} ${n}: ${n < 2 ? '**no**.' : 'yes.'}`, { loop: 'scan' });
+    if (n < 2 && !asked) {
+      asked = true;
+      T.ask(`${C(token)} needs two values, and the stack holds ${n}. What will happen?`, 'ValueError: the operator needs two operands', ['IndexError: pop from empty stack', `${pyrepr(token)} is pushed, to wait`, 'The missing value counts as 0'],
+        'The function checks `len(values) < 2` before popping, so the malformed input is reported as a `ValueError` with a clear message, not as a crash inside the stack.');
+    }
+    if (n < 2) {
+      T.at(L(8), `Raise \`ValueError\`: ${C(token)} has nothing to work on.`);
+      throw new PyErr('ValueError', `operator ${pyrepr(token)} needs two operands`, { why: 'The input is not valid postfix: an operator came before enough numbers.' });
+    }
+    const vals = T.pile('values').vals, a = vals[vals.length - 2], b = vals[vals.length - 1];
+    if (!asked && (token === '-' || token === '/')) {
+      asked = true;
+      const r1 = token === '-' ? `${pyrepr(a)} - ${pyrepr(b)}` : `${pyrepr(a)} / ${pyrepr(b)}`, r2 = token === '-' ? `${pyrepr(b)} - ${pyrepr(a)}` : `${pyrepr(b)} / ${pyrepr(a)}`;
+      T.ask(`The top is ${C(b)}, and under it ${C(a)}. Which calculation will this code do for ${C(token)}?`, swapped ? r2 : r1, [swapped ? r1 : r2, `${pyrepr(b)} ${token} ${pyrepr(b)}`],
+        swapped ? `This version calls the FIRST value popped (${pyrepr(b)}) \`left\`. But the first popped is the one pushed last: the RIGHT operand. So it computes ${r2}, which is wrong.`
+                : `The first value popped, ${C(b)}, was pushed last: it is the RIGHT operand. The second popped, ${C(a)}, is the LEFT one. So ${r1}.`);
+    }
+    if (!asked && (token === '+' || token === '*')) {
+      asked = true;
+      const r = pyrepr(arith(token, a, b)), alts = [pyrepr(arith(token === '+' ? '*' : '+', a, b)), pyrepr(b), pyrepr(a)].filter(x => x !== r);
+      T.ask(`${C(token)} arrives. The top is ${C(b)}, and under it ${C(a)}. What will be pushed?`, r, alts.concat(['Nothing: the operator is pushed']),
+        `${C(token)} pops the two most recent values, ${C(b)} and ${C(a)}, and pushes their result, ${r}. The operands are gone; the result waits for the next operator.`);
+    }
+    const first = T.pop('values');
+    T.set(swapped ? 'left' : 'right', first);
+    T.at(L(9), `Pop ${C(first)}, the most recent value, into \`${swapped ? 'left' : 'right'}\`.`, { loop: 'scan' });
+    const second = T.pop('values');
+    T.set(swapped ? 'right' : 'left', second);
+    T.at(L(10), `Pop ${C(second)} into \`${swapped ? 'right' : 'left'}\`.`, { loop: 'scan' });
+    const left = swapped ? first : second, right = swapped ? second : first;
+    const line = { '+': 12, '-': 14, '*': 16, '/': 18 }[token];
+    T.at(L({ '+': 11, '-': 13, '*': 15, '/': 17 }[token]), `The operator is ${C(token)}.`, { loop: 'scan' });
+    const r = arith(token, left, right);
+    T.push('values', r);
+    T.at(L(line), `\`${pyrepr(left)} ${token} ${pyrepr(right)}\` is ${C(r)}. Push the result: it waits for the next operator, like any number.`, { loop: 'scan' });
+  }
+  w.cur = tokens.length;
+  const n = T.pile('values').vals.length;
+  T.at(L(21), `The tokens are over. Is exactly one value left? There ${n === 1 ? 'is' : 'are'} ${n}: ${n === 1 ? 'yes, that is the answer.' : '**no**.'}`);
+  if (n > 1 && !asked) T.ask(`The tokens are over, and ${n} values are left. What will happen?`, 'ValueError: malformed postfix expression', [`Return ${pyrepr(T.pile('values').vals[n - 1])}, the top`, `Return the sum of the ${n} values`, 'IndexError'],
+    'A complete postfix expression leaves exactly one value. More than one means operators are missing, so the input is rejected with `ValueError`.');
+  if (n !== 1) {
+    T.at(L(22), 'Raise `ValueError`.');
+    throw new PyErr('ValueError', 'malformed postfix expression', { why: n ? `${plural(n, 'value')} are left, waiting for operators that never came.` : 'There were no tokens at all, so there is no answer.' });
+  }
+  const res = T.pop('values');
+  T.at(L(23), `Pop the answer, ${C(res)}.`);
+  return T.ret(res, L(23), `Return ${C(res)}.`, opt.ret);
+}
+
+/* Validation for token strings: up to 13 tokens, small numbers. */
+function tokensCheck(kind) {
+  return v => {
+    if (!/^[0-9a-z.+\-*/() ]*$/.test(v)) return 'Use numbers, + - * /, parentheses and spaces only.';
+    const t = v.split(/\s+/).filter(Boolean);
+    if (t.length > 13) return 'Use at most 13 tokens.';
+    if (t.some(x => x.length > 5)) return 'Keep each number to 5 characters.';
+    if (kind === 'postfix' && t.some(x => !OPS.includes(x) && !/^-?(\d+\.?\d*|\.\d+)$/.test(x))) return 'Postfix tokens are numbers and + - * /, separated by spaces.';
+    if (kind === 'infix' && t.some(x => !OPS.includes(x) && x !== '(' && x !== ')' && !/^(\d+\.?\d*|[a-z])$/.test(x))) return 'Tokens are numbers (or single letters), + - * /, ( and ), separated by spaces.';
+    return true;
+  };
+}
+const splitTokens = s => s.split(/\s+/).filter(Boolean);
+const pfScenario = (id, title, blurb, text, swapped, extra) => def(Object.assign({
+  id, group: swapped ? 'wrong' : 'postfix', world: 'app', title, blurb,
+  code: swapped ? EVAL_SWAPPED : EVAL, src: [swapped ? 'evaluate_postfix_swapped' : 'evaluate_postfix'],
+  params: { text: textP(text, tokensCheck('postfix')) },
+  strip: [`${swapped ? 'evaluate_postfix_swapped' : 'evaluate_postfix'}(`, 'text', '.split())'],
+  run: (T, p) => T.cmd(() => { setupApp(T, {}); evalPostfix(T, splitTokens(p.text), swapped); }),
+}, extra || {}));
+pfScenario('pf_eval', 'Postfix 3 4 2 * +: push numbers, apply operators', 'Each operator pops the two most recent values and pushes its result. One value is left: the answer.', '3 4 2 * +');
+pfScenario('pf_sub', 'Postfix 8 3 - 2 -: the operand order', 'The second value popped is the LEFT operand. For - and / that matters.', '8 3 - 2 -');
+pfScenario('pf_div', 'Postfix with / : a float result', '/ in Python always gives a float, even 8 / 2. Try 1 0 / for a ZeroDivisionError.', '7 2 / 4 *');
+pfScenario('pf_short', 'Malformed postfix: an operator too early', '3 + has an operator with only one value to work on: ValueError.', '3 +');
+pfScenario('pf_extra', 'Malformed postfix: values left over', '3 4 ends with two values and no operator: ValueError.', '3 4');
+pfScenario('w_pf_swapped', 'Postfix with the operands swapped', 'Calls the first value popped "left". + and * still work; - and / quietly do not.', '8 3 -', true,
+  { bugLines: [5], finale: (T, p) => `It returned ${pyrepr(T.lastRet)}. For ${pyrepr(p.text)} the answer should be ${pyrepr(T.sc.correct(p))}. Addition and multiplication do not care about the order, so a test with only + and * would pass. Only a test with - or / catches this.` ,
+    correct: p => { try { const vals = []; for (const t of splitTokens(p.text)) { if (OPS.includes(t)) { const b = vals.pop(), a = vals.pop(); vals.push(arith(t, a, b)); } else vals.push(pyNumber(t)); } return vals.length === 1 ? vals[0] : null; } catch (e) { return null; } } });
+
+/* ---- infix to postfix: the shunting-yard algorithm ---- */
+const INFIX = `def infix_to_postfix(tokens):
+    precedence = {"+": 1, "-": 1, "*": 2, "/": 2}
+    output, operators = [], Stack()
+    for token in tokens:
+        if token in precedence:
+            # higher OR EQUAL precedence leaves first: left associativity
+            while (not operators.is_empty() and operators.peek() in precedence
+                   and precedence[operators.peek()] >= precedence[token]):
+                output.append(operators.pop())
+            operators.push(token)
+        elif token == "(":
+            operators.push(token)
+        elif token == ")":
+            while operators.peek() != "(":
+                output.append(operators.pop())
+            operators.pop()                      # discard the "("
+        else:
+            output.append(token)                 # a number goes straight through
+    while not operators.is_empty():
+        output.append(operators.pop())
+    return output`;
+const INFIX_STRICT = INFIX.replace('def infix_to_postfix(', 'def infix_to_postfix_strict(')
+  .replace('# higher OR EQUAL precedence leaves first: left associativity', '# only strictly HIGHER precedence leaves first')
+  .replace('>= precedence[token]', '> precedence[token]');
+const PREC = { '+': 1, '-': 1, '*': 2, '/': 2 };
+
+function shunt(T, tokens, strict, o, opt) {
+  o = o || 0; opt = opt || {};
+  const L = n => o + n, fn = strict ? 'infix_to_postfix_strict' : 'infix_to_postfix', w = T.w;
+  w.tape = tokens.slice(); w.tapeLabel = 'tokens'; w.cur = -1;
+  w.piles.unshift(pileOf('operators', 'operators')); w.out = [];
+  T.call(fn, [['tokens', tokens.slice()]], `${fn}(${clip(pyrepr(tokens), 30)})`, opt.callMsg, L(1));
+  T.set('precedence', { obj: '{"+": 1, "-": 1, "*": 2, "/": 2}' });
+  T.at(L(2), '`precedence`: `*` and `/` bind tighter (2) than `+` and `-` (1).');
+  T.set('output', { list: true }); T.set('operators', { pile: 'operators' });
+  T.at(L(3), '`output` is an empty list, for the postfix result. `operators` is an empty stack: the siding where operators wait.');
+  const ops = () => T.pile('operators').vals, topOp = () => ops()[ops().length - 1];
+  let asked = false, askedParen = false;
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
+    w.cur = i; T.set('token', token);
+    T.at(L(4), `Next token: ${C(token)}.`, { loop: 'scan' });
+    if (token in PREC) {
+      T.at(L(5), `${C(token)} is an operator, with precedence ${PREC[token]}.`, { loop: 'scan' });
+      const t0 = topOp();
+      if (!asked && t0 in PREC) {
+        asked = true;
+        const pops = strict ? PREC[t0] > PREC[token] : PREC[t0] >= PREC[token];
+        const a = `Pop ${pyrepr(t0)} to the output, then push ${pyrepr(token)}`, b = `Push ${pyrepr(token)} on top of ${pyrepr(t0)}`;
+        T.ask(`${C(token)} arrives, and ${C(t0)} waits on top of the stack. What will this code do?`, pops ? a : b, [pops ? b : a, `Send ${pyrepr(token)} straight to the output`, 'Empty the whole stack first'],
+          pops ? `${C(t0)} has precedence ${PREC[t0]}, which is ${PREC[t0] > PREC[token] ? 'higher than' : 'equal to'} ${PREC[token]}${strict ? '' : ', and `>=` pops on equal too'}. Its operands are complete, so it leaves first.${PREC[t0] === PREC[token] ? ' That is left associativity: the earlier operator goes first.' : ''}`
+               : `${C(t0)} has precedence ${PREC[t0]}, ${PREC[t0] < PREC[token] ? 'lower than' : 'equal to'} ${PREC[token]}${strict && PREC[t0] === PREC[token] ? ', and `>` does not pop on equal' : ''}. It must wait: ${C(token)} goes on top of it.`);
+      }
+      for (;;) {
+        const t = topOp(), empty = !ops().length;
+        const isOp = !empty && t in PREC, go = isOp && (strict ? PREC[t] > PREC[token] : PREC[t] >= PREC[token]);
+        T.at(L(7), empty ? 'Is the stack empty? **Yes**: nothing waits, so the loop stops.'
+          : !isOp ? `The top is ${C(t)}: not an operator, so the loop stops. A \`(\` is a wall.`
+          : `The top is ${C(t)}, precedence ${PREC[t]}. Is ${PREC[t]} ${strict ? '>' : '>='} ${PREC[token]}? ${go ? '**Yes**: it leaves.' : 'No: the loop stops.'}`,
+          { loop: 'scan', fx: { peeked: empty ? null : 'operators' } });
+        if (!go) break;
+        const v = T.pop('operators'); w.out.push(v);
+        T.at(L(9), `Pop ${C(v)} to the output.`, { loop: 'scan', fx: { outNew: true } });
+      }
+      T.push('operators', token);
+      T.at(L(10), `Push ${C(token)}. It waits until its right operand is complete.`, { loop: 'scan' });
+    } else if (token === '(') {
+      T.at(L(5), `${C(token)} is not an operator.`, { loop: 'scan' });
+      T.at(L(11), 'An opening parenthesis.', { loop: 'scan' });
+      T.push('operators', token);
+      T.at(L(12), 'Push `(`: it marks where this group starts, and no operator below it can leave until the group is closed.', { loop: 'scan' });
+    } else if (token === ')') {
+      T.at(L(5), `${C(token)} is not an operator.`, { loop: 'scan' });
+      T.at(L(11), 'Not `(`.', { loop: 'scan' });
+      T.at(L(13), 'A closing parenthesis: the group is complete. Pop operators until its `(`.', { loop: 'scan' });
+      if (!askedParen && ops().includes('(')) {
+        askedParen = true;
+        const inside = []; for (let k = ops().length - 1; ops()[k] !== '('; k--) inside.push(ops()[k]);
+        const right = inside.length ? `Pop ${inside.map(pyrepr).join(', then ')} to the output, then drop the (` : 'Just drop the (: nothing is inside it';
+        T.ask(`\`)\` arrives. The stack holds ${pyrepr(ops())}, top on the right. What will this code do?`, right,
+          ['Push the ) on the stack', 'Pop everything on the stack to the output', 'Send the ) to the output'],
+          'Everything above the matching `(` belongs to the group that has just closed, so it leaves now, in stack order. The `(` itself is popped and thrown away: postfix needs no parentheses.');
+      }
+      for (;;) {
+        const t = T.peekP('operators');
+        T.at(L(14), `The top is ${C(t)}. ${t !== '(' ? 'Not `(` yet.' : 'It is the `(`: stop.'}`, { loop: 'scan' });
+        if (t === '(') break;
+        const v = T.pop('operators'); w.out.push(v);
+        T.at(L(15), `Pop ${C(v)} to the output.`, { loop: 'scan', fx: { outNew: true } });
+      }
+      T.pop('operators');
+      T.at(L(16), 'Pop the `(` and throw it away. Postfix needs no parentheses.', { loop: 'scan' });
+    } else {
+      T.at(L(5), `${C(token)} is not an operator.`, { loop: 'scan' });
+      T.at(L(11), 'Not `(`.', { loop: 'scan' });
+      T.at(L(13), 'Not `)`.', { loop: 'scan' });
+      w.out.push(token);
+      T.at(L(18), `A number: ${C(token)} goes straight to the output.`, { loop: 'scan', fx: { outNew: true } });
+    }
+  }
+  w.cur = tokens.length;
+  for (;;) {
+    const empty = !ops().length;
+    T.at(L(19), empty ? 'The tokens are over, and the stack is empty.' : `The tokens are over. ${plural(ops().length, 'operator')} still waiting: pop them all.`, { loop: 'drain' });
+    if (empty) break;
+    const v = T.pop('operators'); w.out.push(v);
+    T.at(L(20), `Pop ${C(v)} to the output.`, { loop: 'drain', fx: { outNew: true } });
+  }
+  return T.ret(w.out.slice(), L(21), `Return the output: ${clip(pyrepr(w.out), 60)}.`, opt.ret);
+}
+const syScenario = (id, title, blurb, text, strict, extra) => def(Object.assign({
+  id, group: strict ? 'wrong' : 'infix', world: 'app', title, blurb,
+  code: strict ? INFIX_STRICT : INFIX, src: [strict ? 'infix_to_postfix_strict' : 'infix_to_postfix'],
+  params: { text: textP(text, tokensCheck('infix')) },
+  strip: [`${strict ? 'infix_to_postfix_strict' : 'infix_to_postfix'}(`, 'text', '.split())'],
+  run: (T, p) => T.cmd(() => { setupApp(T, {}); shunt(T, splitTokens(p.text), strict); }),
+}, extra || {}));
+syScenario('sy_prec', 'Shunting-yard: 3 + 4 * 2', '* binds tighter, so it leaves before +: 3 4 2 * +.', '3 + 4 * 2');
+syScenario('sy_paren', 'Shunting-yard: ( 3 + 4 ) * 2', 'The ( is a wall: + stays behind it until the ) sends it out.', '( 3 + 4 ) * 2');
+syScenario('sy_left', 'Shunting-yard: 8 - 3 - 2, equal precedence', 'Equal precedence pops too, so the first - leaves first: left associativity.', '8 - 3 - 2');
+syScenario('sy_lower', 'Shunting-yard: 2 * 3 + 4', 'A lower-precedence + empties the * waiting above it.', '2 * 3 + 4');
+syScenario('sy_big', 'Shunting-yard: ( 1 + 2 ) * ( 3 - 4 ) / 5', 'Two groups and three precedence decisions: the Homework 6 trace.', '( 1 + 2 ) * ( 3 - 4 ) / 5');
+syScenario('w_sy_strict', 'Shunting-yard with > instead of >=', 'Equal precedence no longer pops: 8 - 3 - 2 becomes 8 3 2 - -, which is 8 - (3 - 2).', '8 - 3 - 2', true,
+  { bugLines: [8], finale: (T, p) => `It returned ${pyrepr(T.lastRet)}. The correct postfix is ${pyrepr(T.sc.correct(p))}. Evaluated, ${T.sc.both(p)}. With \`>\`, operators of equal precedence group from the right, which is wrong for - and /.`,
+    correct: p => { const T2 = new Tracer({ code: INFIX }, p); setupApp(T2, {}); try { return shunt(T2, splitTokens(p.text), false); } catch (e) { return null; } },
+    both: p => { const ev = toks => { const T2 = new Tracer({ code: EVAL }, p); setupApp(T2, {}); try { return pyrepr(evalPostfix(T2, toks, false)); } catch (e) { return e.type || 'an error'; } };
+      const T3 = new Tracer({ code: INFIX }, p); setupApp(T3, {}); let bad, good;
+      try { good = shunt(T3, splitTokens(p.text), false); } catch (e) { return 'the input is not valid'; }
+      const T4 = new Tracer({ code: INFIX_STRICT }, p); setupApp(T4, {}); bad = shunt(T4, splitTokens(p.text), true);
+      return `this gives ${ev(bad)} instead of ${ev(good)}`; } });
+
+/* ---- the whole calculator: two passes, two stacks ---- */
+def({
+  id: 'calc', group: 'infix', world: 'app', title: 'The calculator: infix → postfix → value',
+  blurb: 'Shunting-yard turns the infix tokens into postfix; evaluate_postfix turns those into a number. Two stacks, no tree.',
+  parts: [['infix', INFIX, 'infix_to_postfix'], ['eval', EVAL, 'evaluate_postfix']],
+  params: { text: textP('( 1 + 2 ) * 4 - 6 / 3', v => { const ok = tokensCheck('infix')(v); if (ok !== true) return ok; return /[a-z]/.test(v) ? 'The calculator needs numbers, not letters.' : true; }) },
+  strip: ['evaluate_postfix(infix_to_postfix(', 'text', '.split()))'],
+  run: (T, p) => T.cmd(() => {
+    setupApp(T, {});
+    const post = shunt(T, splitTokens(p.text), false, T.sc.o.infix, { ret: { inner: true, after: 'The postfix tokens are handed straight to `evaluate_postfix`.' } });
+    T.w.out = null; T.w.piles = T.w.piles.filter(x => x.key !== 'operators');
+    evalPostfix(T, post, false, T.sc.o.eval, { callMsg: `Call \`evaluate_postfix\` on the postfix tokens. A second pass, with a second stack.` });
+  }),
+});
+
+/* ==== recursion without recursion, and undo/redo (written for the demo) ==== */
+const NESTED = `def nested_sum(nested):
+    total, pending = 0, Stack([nested])
+    while not pending.is_empty():
+        item = pending.pop()
+        if isinstance(item, list):
+            for inner in item:
+                pending.push(inner)        # "call" on every inner item
+        else:
+            total += item
+    return total`;
+function nestedCheck(v) {
+  let count = 0, bad = false;
+  const walk = (x, d) => { if (Array.isArray(x)) { if (d > 3) bad = true; x.forEach(y => walk(y, d + 1)); } else { count++; if (!(typeof x === 'number' && Number.isInteger(x) && Math.abs(x) < 1000)) bad = true; } };
+  walk(v, 0);
+  if (bad) return 'Use whole numbers and lists, nested at most 3 deep.';
+  if (count > 8) return 'Use at most 8 numbers.';
+  return true;
+}
+def({
+  id: 'nested_sum', group: 'more', world: 'app', title: 'nested_sum: recursion with your own stack',
+  blurb: 'Every push is a recursive call that has not happened yet; every pop is one being made. No recursion limit.',
+  code: NESTED, src: ['nested_sum'], params: { nested: { type: 'nested', def: [1, [2, [3, 4]], 5], check: nestedCheck } },
+  strip: ['nested_sum(', 'nested', ')'],
+  run: (T, p) => T.cmd(() => {
+    setupApp(T, { piles: [pileOf('pending', 'pending')] });
+    T.call('nested_sum', [['nested', p.nested]], `nested_sum(${clip(pyrepr(p.nested), 24)})`, null, 1);
+    let total = 0;
+    T.set('total', 0); T.set('pending', { pile: 'pending' }); T.push('pending', p.nested); T.w.notes = [['total', 0]];
+    T.at(2, '`total` starts at 0, and `pending` holds one job: the whole list.');
+    let pops = 0;
+    for (;;) {
+      const P = T.pile('pending').vals;
+      T.at(3, P.length ? `\`pending\` has ${plural(P.length, 'item')}: carry on.` : '`pending` is empty: every item has been handled.', { loop: 'work' });
+      if (!P.length) break;
+      if (pops === 1 && P.length >= 2) T.ask('Which item will `pending.pop()` take next?', pyrepr(P[P.length - 1]), [pyrepr(P[0]), pyrepr(P[1]), 'The smallest number'].filter(x => x !== pyrepr(P[P.length - 1])),
+        'The one pushed last: the stack takes from the top. So the inner items are handled from the last one to the first, the reverse of the recursive order. The sum is the same.');
+      const item = T.pop('pending'); pops++;
+      T.set('item', item);
+      T.at(4, `Pop ${clip(pyrepr(item), 30)}.`, { loop: 'work' });
+      const isList = Array.isArray(item);
+      T.at(5, isList ? 'It is a list: break it into its items.' : `It is a number, ${item}.`, { loop: 'work' });
+      if (isList) {
+        if (!item.length) T.at(6, 'An empty list: nothing to push.', { loop: 'work' });
+        for (const inner of item) {
+          T.set('inner', inner);
+          T.at(6, `\`inner\` is ${clip(pyrepr(inner), 30)}.`, { loop: 'work' });
+          T.push('pending', inner);
+          T.at(7, `Push it: a job for later, like a recursive call waiting to be made.`, { loop: 'work' });
+        }
+      } else {
+        total += item; T.set('total', total); T.w.notes = [['total', total]];
+        T.at(9, `\`total += ${item}\`: \`total\` is ${total}.`, { loop: 'work' });
+      }
+    }
+    return T.ret(total, 10, `Return ${total}.`);
+  }),
+});
+
+const ED_TYPE = `def type(self, word):
+    self.text += word
+    self.undo_stack.push(word)               # remember the action
+    self.redo_stack = Stack()                # a new action clears redo`;
+const ED_UNDO = `def undo(self):
+    if self.undo_stack.is_empty():
+        return
+    word = self.undo_stack.pop()
+    self.text = self.text[:len(self.text) - len(word)]
+    self.redo_stack.push(word)`;
+const ED_REDO = `def redo(self):
+    if self.redo_stack.is_empty():
+        return
+    word = self.redo_stack.pop()
+    self.text += word
+    self.undo_stack.push(word)`;
+const wordP = d => ({ type: 'value', def: d, str: true });
+function edObj(T) {
+  T.w.obj = { title: 'ed: Editor object', fields: [['text', T.w.text], ['undo_stack', { pile: 'undo' }], ['redo_stack', { pile: 'redo' }]] };
+  T.w.notes = [['ed.text', T.w.text]];
+}
+function edType(T, word) {
+  const o = T.sc.o.type;
+  T.call('type', [['self', { obj: 'ed' }], ['word', word]], `type(${pyrepr(word)})`, null, o + 1);
+  T.w.text += word; edObj(T);
+  T.at(o + 2, `The text becomes ${C(T.w.text)}.`);
+  T.push('undo', word);
+  T.at(o + 3, `Push ${C(word)} on the undo stack: the most recent action is on top.`);
+  const lost = T.pile('redo').vals.length;
+  T.pile('redo').vals = []; T.fx.cleared = 'redo';
+  T.at(o + 4, lost ? `A new, empty redo stack. The ${plural(lost, 'action')} that could have been redone ${lost === 1 ? 'is' : 'are'} gone: after a new action, the old future no longer makes sense.` : 'A new, empty redo stack (it was empty anyway).');
+  return T.ret(null, o + 4, 'type returns None.');
+}
+function edMove(T, kind) {
+  const o = T.sc.o[kind], from = kind === 'undo' ? 'undo' : 'redo', to = kind === 'undo' ? 'redo' : 'undo';
+  T.call(kind, [['self', { obj: 'ed' }]], `${kind}()`, null, o + 1);
+  const empty = !T.pile(from).vals.length;
+  T.at(o + 2, `Is the ${from} stack empty? ${empty ? `**Yes**: nothing to ${kind}.` : 'No.'}`);
+  if (empty) { T.at(o + 3, 'Return, and do nothing.'); return T.ret(null, o + 3, `${kind} returns None.`); }
+  const word = T.pop(from); T.set('word', word);
+  T.at(o + 4, `Pop ${C(word)}: the most recent ${kind === 'undo' ? 'action' : 'undone action'}.`);
+  if (kind === 'undo') T.w.text = T.w.text.slice(0, T.w.text.length - word.length); else T.w.text += word;
+  edObj(T);
+  T.at(o + 5, kind === 'undo' ? `Cut its ${plural(word.length, 'character')} off the end: the text is ${C(T.w.text)}.` : `Add it back: the text is ${C(T.w.text)}.`);
+  T.push(to, word);
+  T.at(o + 6, `Push ${C(word)} on the ${to} stack, so it can be ${kind === 'undo' ? 'redone' : 'undone again'}.`);
+  return T.ret(null, o + 6, `${kind} returns None.`);
+}
+def({
+  id: 'undo_redo', group: 'more', world: 'app', title: 'Undo and redo: two stacks',
+  blurb: 'type pushes the action on the undo stack; undo moves it to the redo stack; redo moves it back. A new action clears redo.',
+  parts: [['type', ED_TYPE, 'Editor.type'], ['undo', ED_UNDO, 'Editor.undo'], ['redo', ED_REDO, 'Editor.redo']],
+  params: { w1: wordP('Hi'), w2: wordP(' all'), w3: wordP('!') },
+  strip: ['ed = Editor()', '\n', 'ed.type(', 'w1', ')', '\n', 'ed.type(', 'w2', ')', '\n', 'ed.undo()', '\n', 'ed.undo()', '\n', 'ed.redo()', '\n', 'ed.type(', 'w3', ')', '\n', 'ed.redo()'],
+  traced: 7,
+  setup: T => { setupApp(T, { piles: [pileOf('undo', 'undo_stack'), pileOf('redo', 'redo_stack')], text: '' }); edObj(T); T.set('ed', { obj: 'ed' }, T.mod); },
+  run: (T, p) => {
+    T.cmd(() => edType(T, p.w1));
+    T.cmd(() => edType(T, p.w2));
+    T.cmd(() => edMove(T, 'undo'));
+    T.cmd(() => edMove(T, 'undo'));
+    T.cmd(() => {
+      T.say(`Both actions are undone and sit on the redo stack, ${C(p.w1)} on top.`);
+      T.ask('What will `ed.redo()` bring back?', pyrepr(p.w1), [pyrepr(p.w2), 'Both words', 'Nothing'],
+        `${C(p.w1)} was undone last, so it is on top of the redo stack and comes back first: the order the actions were done in.`);
+      edMove(T, 'redo');
+    });
+    T.cmd(() => {
+      T.say(`Now a new action, while ${C(p.w2)} still waits on the redo stack.`);
+      T.ask(`After \`ed.type(${pyrepr(p.w3)})\`, what will \`ed.redo()\` do?`, 'Nothing: the redo stack is cleared', [`Bring back ${pyrepr(p.w2)}`, `Undo ${pyrepr(p.w3)}`, 'Raise IndexError'],
+        'A new action clears the redo stack, because the old "future" no longer fits the new text. And `redo` returns quietly when its stack is empty.');
+      edType(T, p.w3);
+    });
+    T.cmd(() => edMove(T, 'redo'));
+  },
+  probes: () => [['ed.text', T => T.w.text]],
+});
+
+
+/* Build the full trace for one scenario and its inputs. */
+function shellLines(sc, p) {
+  return sc.strip.map(part => (part in (sc.params || {})) ? pyrepr(p[part]) : part).join('').split('\n');
+}
+function build(sc, p) {
+  const T = new Tracer(sc, p);
+  setupApp(T, {});
+  if (sc.setup) sc.setup(T, p);
+  const lines = shellLines(sc, p), nt = sc.traced || 1;
+  lines.slice(0, lines.length - nt).forEach(l => T.prompt(l));
+  T.queue = lines.slice(lines.length - nt);
+  T.say(lines.length > nt ? `Ready: \`${lines[0]}\` has built the ${sc.world === 'app' ? 'object' : 'stack'}. Press **Step** to run \`${T.queue[0]}\`.`
+                          : `Ready. Press **Step** to run \`${T.queue[0]}\`.`);
+  sc.run(T, p);
+  if (sc.summary && !T.failed) T.steps[T.steps.length - 1].msg += sc.summary(T, p);
+  if (sc.probes) for (const [cmd, fn] of sc.probes(T, p)) T.probe(cmd, () => fn(T));
+  if (sc.probes || sc.finale || sc.finaleMsg) {
+    T.stack[0].status = 'active'; T.stack[0].line = 0; T.stack[0].note = '';
+    T.snap(sc.finale ? '**What went wrong?** ' + sc.finale(T, p) : sc.finaleMsg ? sc.finaleMsg(T, p) : 'The shell checks the result: the stack, bottom to top, and its length.',
+      { kind: sc.group === 'wrong' ? 'err' : '' });
+  }
+  return T;
+}
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const md = s => esc(s).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>');
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+const KW = new Set(['def', 'class', 'if', 'elif', 'return', 'for', 'in', 'not', 'is', 'None', 'else', 'and', 'or', 'True', 'False', 'while', 'raise', 'from', 'import']);
+const BI = new Set(['print', 'len', 'str', 'range', 'IndexError', 'ValueError', 'Node', 'Stack', 'isinstance', 'list', 'float', 'int', 'make_block']);
+function highlight(line) {
+  const re = /(#.*$)|([fF]?"(?:[^"\\]|\\.)*"|[fF]?'(?:[^'\\]|\\.)*')|(\b\d+\b)|([A-Za-z_]\w*)|(\s+|.)/g;
+  let m, html = '', prev = '';
+  while ((m = re.exec(line))) {
+    if (m[1]) html += `<span class="t-com">${esc(m[1])}</span>`;
+    else if (m[2]) html += `<span class="t-str">${esc(m[2])}</span>`;
+    else if (m[3]) html += `<span class="t-num">${m[3]}</span>`;
+    else if (m[4]) {
+      const w = m[4];
+      if (prev === 'def' || prev === 'class') html += `<span class="t-fn">${w}</span>`;
+      else if (KW.has(w)) html += `<span class="t-kw">${w}</span>`;
+      else if (BI.has(w)) html += `<span class="t-bi">${w}</span>`;
+      else html += esc(w);
+      prev = w; continue;
+    } else html += esc(m[5]);
+    if (m[5] && /\S/.test(m[5])) prev = m[5];
+  }
+  return html;
+}
+
+const state = { sc: null, params: {}, T: null, idx: 0, answered: new Map(), quiz: true, timer: null, prevSnap: null, nudge: '', pic: null };
+
+const DEMO = /^(LinkedStack|FrontStack|NoneStack|PeekPopStack|Editor)\.|_no_|_swapped|_strict|^nested_sum$/;
+function sourceBadge(sc) {
+  if (sc.src.some(n => DEMO.test(n))) return '<span class="badge ex">Written for this demo: not in dsa/</span>';
+  if (sc.src.some(n => /postfix$/.test(n) && n.startsWith('evaluate'))) return '<span class="badge ex">dsa/translation.py: exercise solution</span>';
+  return '<span class="badge ex">dsa/stack.py: exercise solution</span>';
+}
+function initPicker() {
+  const sel = $('scenario');
+  for (const g in GROUPS) {
+    const og = document.createElement('optgroup'); og.label = GROUPS[g];
+    for (const sc of SCENARIOS.filter(s => s.group === g)) {
+      const o = document.createElement('option'); o.value = sc.id; o.textContent = sc.title;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+  sel.addEventListener('change', () => loadScenario(sel.value));
+}
+
+function loadScenario(id) {
+  stop();
+  const sc = SCENARIOS.find(s => s.id === id) || SCENARIOS[0];
+  state.sc = sc;
+  $('scenario').value = sc.id;
+  state.params = {};
+  for (const k in sc.params) state.params[k] = structuredClone(sc.params[k].def);
+  const kind = sc.group === 'wrong' ? 'wrong' : sc.group === 'linked' ? 'cost' : 'works';
+  $('badges').innerHTML = `<span class="badge ${kind}">${esc(GROUPS[sc.group])}</span>` + sourceBadge(sc);
+  $('scTitle').textContent = sc.title;
+  $('scBlurb').textContent = sc.blurb;
+  $('callerr').textContent = '';
+  renderCallStrip();
+  rebuild();
+  try { localStorage.setItem('stack-lab-scenario', sc.id); } catch (e) {}
+}
+
+function renderCallStrip() {
+  const sc = state.sc, box = $('callstrip');
+  box.innerHTML = '<span class="ps">&gt;&gt;&gt;</span>';
+  for (const part of sc.strip) {
+    if (part === '\n') { box.insertAdjacentHTML('beforeend', '<span class="br"></span><span class="ps">&gt;&gt;&gt;</span>'); continue; }
+    if (part in sc.params) {
+      const inp = document.createElement('input');
+      inp.id = 'param-' + part; inp.value = pyrepr(state.params[part]); inp.spellcheck = false;
+      inp.setAttribute('aria-label', part);
+      inp.size = Math.max(2, inp.value.length);
+      inp.addEventListener('input', () => { inp.size = Math.max(2, inp.value.length); });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); applyParams(); } e.stopPropagation(); });
+      inp.addEventListener('change', applyParams);
+      box.appendChild(inp);
+    } else {
+      const s = document.createElement('span'); s.innerHTML = highlight(part); box.appendChild(s);
+    }
+  }
+  const run = document.createElement('button'); run.className = 'btn run'; run.textContent = 'Run';
+  run.addEventListener('click', applyParams); box.appendChild(run);
+}
+
+/* A Python literal typed by the user: a string, a number, or a (nested) list. */
+function parsePy(text) {
+  const src = text.trim(); let i = 0;
+  const ws = () => { while (i < src.length && /\s/.test(src[i])) i++; };
+  const val = () => {
+    ws();
+    const c = src[i];
+    if (c === '[') {
+      i++; const out = []; ws();
+      if (src[i] === ']') { i++; return out; }
+      for (;;) { out.push(val()); ws(); if (src[i] === ',') { i++; ws(); if (src[i] === ']') { i++; return out; } continue; } if (src[i] === ']') { i++; return out; } throw new Error('bad list'); }
+    }
+    if (c === "'" || c === '"') {
+      const j = src.indexOf(c, i + 1); if (j < 0) throw new Error('bad string');
+      const s = src.slice(i + 1, j); if (s.includes('\\')) throw new Error('no escapes'); i = j + 1; return s;
+    }
+    const m = /^-?\d+/.exec(src.slice(i)); if (!m) throw new Error('bad value');
+    i += m[0].length; return parseInt(m[0], 10);
+  };
+  const v = val(); ws(); if (i !== src.length) throw new Error('trailing text');
+  return v;
+}
+function applyParams() {
+  const sc = state.sc, next = {}; let err = '';
+  for (const k in sc.params) {
+    const spec = sc.params[k], inp = $('param-' + k);
+    inp.classList.remove('bad');
+    try {
+      if (spec.type === 'int') {
+        if (!/^\s*-?\d+\s*$/.test(inp.value)) throw new Error(`${k} must be a whole number.`);
+        const v = parseInt(inp.value, 10);
+        if (v < spec.min || v > spec.max) throw new Error(`For this demo, ${k} must be between ${spec.min} and ${spec.max}.`);
+        next[k] = v;
+      } else if (spec.type === 'value') {
+        let v; try { v = parsePy(inp.value); } catch (e) { throw new Error(spec.str ? `${k} must be a short string, like 'abc'.` : `${k} must be a number, like 99, or a short string, like 'x'.`); }
+        if (spec.str) { if (typeof v !== 'string' || !v.length || v.length > 6) throw new Error(`${k} must be a string of 1 to 6 characters.`); }
+        else if (!((typeof v === 'number' && Number.isInteger(v) && Math.abs(v) < 1000) || (typeof v === 'string' && v.length <= 4))) throw new Error(`${k} must be a whole number below 1000, or a string of up to 4 characters.`);
+        next[k] = v;
+      } else if (spec.type === 'text') {
+        let v; try { v = parsePy(inp.value); } catch (e) { throw new Error(`${k} must be a string in quotes, like ${pyrepr(spec.def)}.`); }
+        if (typeof v !== 'string') throw new Error(`${k} must be a string in quotes.`);
+        const ok = spec.check ? spec.check(v) : true;
+        if (ok !== true) throw new Error(ok);
+        next[k] = v;
+      } else {
+        let v; try { v = parsePy(inp.value); } catch (e) { throw new Error(`${k} must be a Python list, like ${pyrepr(spec.def)}.`); }
+        if (!Array.isArray(v)) throw new Error(`${k} must be a list.`);
+        if (spec.minLen !== undefined && (v.length < spec.minLen || v.length > spec.maxLen)) throw new Error(`For this demo, the list must have ${spec.minLen} to ${spec.maxLen} values.`);
+        const ok = spec.check ? spec.check(v) : true;
+        if (ok !== true) throw new Error(ok);
+        next[k] = v;
+      }
+    } catch (e) { inp.classList.add('bad'); err = e.message; }
+  }
+  if (!err && sc.check) { const ok = sc.check(next); if (ok !== true) err = ok; }
+  if (!err) { try { build(sc, next); } catch (e) { err = e.message === 'too many steps' ? 'That input makes the trace too long for this demo. Try something shorter.' : 'This input is outside what the demo can show.'; } }
+  $('callerr').textContent = err;
+  if (err) return;
+  state.params = next;
+  for (const k in next) { const inp = $('param-' + k); inp.value = pyrepr(next[k]); inp.size = Math.max(2, inp.value.length); }
+  rebuild();
+}
+
+function rebuild() {
+  stop();
+  state.T = build(state.sc, state.params);
+  state.idx = 0; state.answered = new Map(); state.prevSnap = null;
+  picSetup();
+  $('scrub').max = state.T.steps.length - 1;
+  render();
+}
+
+/* ---------- navigation ---------- */
+const snapAt = i => state.T.steps[i];
+const pendingQ = () => { const s = snapAt(state.idx); return state.quiz && s.q && !state.answered.has(state.idx); };
+function go(i) {
+  const N = state.T.steps.length;
+  i = Math.max(0, Math.min(N - 1, i));
+  if (i === state.idx) return false;
+  state.prevSnap = snapAt(state.idx);
+  state.idx = i;
+  state.nudge = '';
+  render();
+  return true;
+}
+function guard() {
+  if (pendingQ()) { state.nudge = 'Answer the question first (keys A–D), or press Reveal.'; $('nudge').textContent = state.nudge; return false; }
+  return true;
+}
+function step() { if (!guard()) { stop(); return false; } return go(state.idx + 1); }
+function back() { stop(); go(state.idx - 1); }
+function skipLoop() {
+  if (!guard()) return;
+  stop();
+  const S = state.T.steps, lp = S[state.idx].loop, d = S[state.idx].depth;
+  let j = state.idx + 1;
+  if (lp) while (j < S.length && ((S[j].loop === lp && S[j].depth === d) || S[j].depth > d)) j++;
+  go(j);
+}
+function stepOut() {
+  if (!guard()) return;
+  stop();
+  const S = state.T.steps, d = S[state.idx].depth;
+  let j = state.idx + 1;
+  while (j < S.length && S[j].depth >= d && d > 0) j++;
+  go(j);
+}
+function play() {
+  if (state.timer) { stop(); return; }
+  if (state.idx >= state.T.steps.length - 1) go(0);
+  $('bPlay').innerHTML = 'Pause <kbd>P</kbd>'; $('bPlay').classList.add('on');
+  const tick = () => {
+    if (!step() || state.idx >= state.T.steps.length - 1 || pendingQ()) { stop(); return; }
+    state.timer = setTimeout(tick, delay());
+  };
+  state.timer = setTimeout(tick, Math.min(400, delay()));
+}
+function stop() {
+  if (state.timer) clearTimeout(state.timer);
+  state.timer = null;
+  $('bPlay').innerHTML = 'Play <kbd>P</kbd>'; $('bPlay').classList.remove('on');
+}
+const delay = () => [2600, 2000, 1500, 1150, 900, 700, 520, 380, 260, 160][+$('speed').value - 1];
+
+function answer(k) {
+  const s = snapAt(state.idx);
+  if (!s.q || state.answered.has(state.idx)) return;
+  state.answered.set(state.idx, k);
+  state.nudge = '';
+  renderNarr();
+  $('nudge').textContent = '';
+}
+
+/* ---------- rendering ---------- */
+function render() {
+  const s = snapAt(state.idx);
+  renderCode(s);
+  renderNarr();
+  renderVars(s);
+  renderPic(s);
+  renderOut(s);
+  renderTransport(s);
+  scrollCode();
+}
+/* Keep the running line in view (after the narration has taken its space). */
+function scrollCode() {
+  const box = $('code'), cur = box.querySelector('.ln.cur, .ln.ret, .ln.errl');
+  if (!cur) return;
+  const r = cur.getBoundingClientRect(), br = box.getBoundingClientRect();
+  if (r.top < br.top + 4 || r.bottom > br.bottom - 4) box.scrollTop += r.top - br.top - br.height / 2 + r.height / 2;
+}
+
+function renderCode(s) {
+  const lines = state.sc.code.split('\n');
+  const frames = s.stack.slice(1), top = s.stack[s.stack.length - 1];
+  const waiting = {};
+  for (const f of frames) if (f !== top && f.status === 'waiting') (waiting[f.line] = waiting[f.line] || []).push(f);
+  const errLine = s.kind === 'err' && frames.length ? frames[frames.length - 1].line : 0;
+  const last = state.idx === state.T.steps.length - 1;
+  const bugs = last && state.sc.bugLines ? new Set(state.sc.bugLines) : new Set();
+  let html = '';
+  lines.forEach((ln, i) => {
+    const no = i + 1;
+    let cls = '';
+    const tags = [];
+    if (top.fn !== '<module>' && top.line === no) {
+      if (top.status === 'returning') { cls = 'ret'; tags.push(`<span class="tag r">returns ${esc(clip(pyrepr(top.ret), 22))}</span>`); }
+      else if (top.status === 'error') { cls = 'errl'; tags.push(`<span class="tag e">error here</span>`); }
+      else { cls = 'cur'; tags.push(`<span class="tag a">${esc(clip(top.label, 26))}</span>`); }
+    } else if (errLine === no) cls = 'errl';
+    if (waiting[no]) { if (!cls) cls = 'waitl'; tags.push(`<span class="tag w">${esc(clip(waiting[no][0].label, 24))} paused</span>`); }
+    if (bugs.has(no)) { cls += ' bug'; tags.push('<span class="tag e">bug</span>'); }
+    html += `<div class="ln ${cls}"><span class="no">${no}</span><span class="src">${highlight(ln) || ' '}</span><span class="tags">${tags.join('')}</span></div>`;
+  });
+  const box = $('code');
+  box.innerHTML = html;
+  $('lineInfo').textContent = top.fn === '<module>' ? '' : `${top.label} · line ${top.line}`;
+}
+
+function renderNarr() {
+  const s = snapAt(state.idx), box = $('narr');
+  let html = `<div class="say ${s.kind === 'err' ? 'err' : ''}">${md(s.msg)}</div>`;
+  if (s.q && state.quiz) {
+    const chosen = state.answered.get(state.idx);
+    const done = chosen !== undefined && chosen !== -2;
+    html += `<div class="qcard" role="group" aria-label="Question"><div class="qlabel">What happens next?</div><div class="qtext">${md(s.q.text)}</div><div class="choices">`;
+    s.q.choices.forEach((c, k) => {
+      let cls = '';
+      if (done) { if (k === s.q.answer) cls = 'right'; else if (k === chosen) cls = 'wrong'; }
+      html += `<button class="choice ${cls}" data-k="${k}" ${done ? 'disabled' : ''}><span class="k">${'ABCD'[k]}</span><span>${md(c)}</span></button>`;
+    });
+    html += `</div>`;
+    if (done) {
+      const verdict = chosen === -1 ? 'Answer:' : chosen === s.q.answer ? 'Correct.' : `Not quite. The answer is ${'ABCD'[s.q.answer]}.`;
+      html += `<div class="why"><b>${verdict}</b> ${md(s.q.why)}</div>`;
+    } else {
+      html += `<div class="qactions"><button class="btn" id="qReveal">Reveal <kbd>V</kbd></button><button class="btn" id="qSkip">Skip question</button></div>`;
+    }
+    html += `</div>`;
+  }
+  box.innerHTML = html;
+  box.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+  scrollCode();
+  const rv = $('qReveal'); if (rv) rv.addEventListener('click', () => answer(-1));
+  const sk = $('qSkip'); if (sk) sk.addEventListener('click', () => { state.answered.set(state.idx, -2); step(); });
+}
+
+/* ---------- variables ---------- */
+const stackRepr = vals => `Stack(${pyrepr(vals)})`;
+function showVal(s, v) {
+  const w = s.w;
+  if (v && v.self === 'obj') return `→ the ${w.cls || 'Stack'} object`;
+  if (v && v.self === 'items') return '→ s._items, the DynamicArray';
+  if (v && v.obj === 's') return `→ ${w.cls} object`;
+  if (v && v.obj === 'ed') return '→ Editor object';
+  if (v && v.obj === 'DynamicArray') return '→ DynamicArray object';
+  if (v && v.obj) return v.obj;
+  if (v && v.blk) return `→ Array(${(w.newBlock || w.block).length}), the new block`;
+  if (v && v.arr) return `→ Array(${v.arr})`;
+  if (v && v.node !== undefined) return v.node === null ? 'None' : `→ Node(${pyrepr(w.nodes[v.node].v)})`;
+  if (v && v.pile) { const P = w.piles.find(x => x.key === v.pile); return '→ ' + stackRepr(P ? P.vals : []); }
+  if (v && v.list) return pyrepr(w.out || []);
+  return pyrepr(v);
+}
+function objFrames(s) {
+  const w = s.w;
+  if (w.type === 'block') return [
+    { title: `s: ${w.cls} object`, fields: [['_items', { obj: 'DynamicArray' }]] },
+    { title: 's._items: DynamicArray object', fields: [['_size', w.size], ['_capacity', w.cap], ['growth', 2], ['resize_count', w.resizes], ['_block', { arr: w.block.length }]] },
+  ];
+  if (w.type === 'nodes') return [{ title: 's: LinkedStack object', fields: [['_head', { node: w.head }], ['_size', w.size]] }];
+  return w.obj ? [w.obj] : [];
+}
+function renderVars(s) {
+  const box = $('vars'), prev = state.prevSnap;
+  const prevIds = new Set((prev ? prev.stack : []).map(f => f.id));
+  const prevObjs = prev ? objFrames(prev) : [];
+  const was = (fid, name) => {
+    if (!prev) return undefined;
+    if (typeof fid === 'string') { const o = prevObjs.find(x => x.title === fid); const e = o && o.fields.find(x => x[0] === name); return e ? showVal(prev, e[1]) : undefined; }
+    const f = prev.stack.find(x => x.id === fid); if (!f) return undefined;
+    const e = f.locals.find(x => x[0] === name); return e ? showVal(prev, e[1]) : undefined;
+  };
+  const row = (fid, n, v) => {
+    const shown = showVal(s, v), old = was(fid, n), chg = old !== undefined && old !== shown;
+    const isRef = shown.startsWith('→');
+    return `<span class="k">${esc(n)}</span><span class="v ${isRef ? 'ref' : ''} ${chg ? 'chg' : ''}">${esc(clip(shown, 64))}</span>`;
+  };
+  let html = '';
+  for (const o of objFrames(s))
+    html += `<div class="frame obj"><div class="fh"><span class="fname">${esc(o.title)}</span><span class="chip">on the heap</span></div><div class="locals">` +
+      o.fields.map(([n, v]) => row(o.title, n, v)).join('') + `</div></div>`;
+  for (let k = s.stack.length - 1; k >= 0; k--) {
+    const f = s.stack[k], isTop = k === s.stack.length - 1;
+    let cls = (f.fn === '<module>' ? 'module ' : '') + f.status;
+    if (prev && !prevIds.has(f.id) && f.fn !== '<module>') cls += ' new';
+    let chip;
+    if (f.fn === '<module>') chip = f.status === 'error' ? 'error' : isTop ? (state.idx === 0 ? 'ready' : 'shell') : 'waiting';
+    else if (f.status === 'active') chip = `running · line ${f.line}`;
+    else if (f.status === 'waiting') chip = `paused · line ${f.line}`;
+    else if (f.status === 'returning') chip = `returns ${clip(pyrepr(f.ret), 16)}`;
+    else chip = 'abandoned';
+    const locals = f.locals.map(([n, v]) => row(f.id, n, v)).join('');
+    html += `<div class="frame ${cls}"><div class="fh"><span class="fname">${f.fn === '<module>' ? '&lt;module&gt;' : esc(f.label)}</span><span class="chip">${esc(chip)}</span></div>` +
+      (locals ? `<div class="locals">${locals}</div>` : '') + (f.note ? `<div class="fnote">${esc(f.note)}</div>` : '') + `</div>`;
+  }
+  box.innerHTML = html;
+  $('varInfo').textContent = s.depth ? `${plural(s.depth, 'call')} running` : '';
+}
+
+/* ---------- the picture ---------- */
+const textW = (t, px) => t.length * (px || 9.6) + 16;
+function picSetup() {
+  const T = state.T, kind = T.steps[0].w.type === 'app' && T.steps.some(x => x.w.type !== 'app') ? null : null;
+  const box = $('picbox');
+  const wt = T.steps[T.steps.length - 1].w.type;
+  let P;
+  if (wt === 'block') P = setupBlockPic(T);
+  else if (wt === 'nodes') P = setupNodesPic(T);
+  else P = setupAppPic(T);
+  box.innerHTML = `<svg viewBox="0 0 ${P.W} ${P.H}" role="img" aria-label="${esc(P.aria)}">
+    <defs>${['n:var(--ink)', 'hot:var(--accent)', 'chg:var(--done)', 'w:var(--wait)'].map(m => { const [k, c] = m.split(':'); return `<marker id="mk-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:${c}"/></marker>`; }).join('')}</defs>
+    <g class="lyr-a"></g><g class="lyr-n"></g><g class="lyr-t"></g></svg>`;
+  const svg = box.querySelector('svg');
+  svg.style.minWidth = Math.round(P.W * 0.62) + 'px';
+  P.svg = svg; P.la = svg.querySelector('.lyr-a'); P.ln = svg.querySelector('.lyr-n'); P.lt = svg.querySelector('.lyr-t'); P.els = new Map(); P.wt = wt;
+  state.pic = P;
+}
+function putter(P, seen) {
+  return (layer, key, tag, fn) => {
+    let el = P.els.get(key), fresh = false;
+    if (!el) { el = document.createElementNS(SVGNS, tag); fresh = true; }
+    fn(el, fresh);
+    if (fresh) { layer.appendChild(el); P.els.set(key, el); }
+    seen.add(key);
+    return el;
+  };
+}
+function renderPic(s) {
+  const P = state.pic, seen = new Set(), put = putter(P, seen);
+  const forward = state.prevSnap && state.idx > 0 && state.T.steps.indexOf(state.prevSnap) === state.idx - 1;
+  if (s.w.type === 'block') drawBlock(P, s, put, forward);
+  else if (s.w.type === 'nodes') drawNodes(P, s, put, forward);
+  else drawApp(P, s, put, forward);
+  for (const [k, el] of P.els) if (!seen.has(k)) { el.remove(); P.els.delete(k); }
+}
+const ghost = (put, P, key, x, y, v, label) => put(P.lt, key, 'g', el => {
+  el.setAttribute('class', 'ghost');
+  el.style.transform = `translate(${x}px, ${y}px)`;
+  const t = `${label} ${clip(pyrepr(v), 14)}`, w = textW(t, 8);
+  el.innerHTML = `<g class="gin"><rect x="0" y="0" width="${w}" height="26" rx="6"/><text x="${w / 2}" y="17.5" text-anchor="middle">${esc(t)}</text></g>`;
+});
+
+/* -- the array block: slots bottom-up, index 0 at the bottom -- */
+function setupBlockPic(T) {
+  let maxCap = 1, two = false;
+  for (const s of T.steps) { maxCap = Math.max(maxCap, s.w.cap, s.w.newBlock ? s.w.newBlock.length : 0); if (s.w.newBlock || s.w.old) two = true; }
+  const SH = Math.max(18, Math.min(38, Math.floor(220 / maxCap))), SW = 84, PAD = 16, LAB = 30, TOP = 34;
+  const colX = [PAD + LAB, PAD + LAB + SW + 168];
+  const W = (two ? colX[1] + SW + PAD : colX[0] + SW + 200);
+  const H = TOP + maxCap * SH + 26;
+  return { SH, SW, colX, TOP, base: TOP + maxCap * SH, W, H, two, aria: 'The array block behind the stack, index 0 at the bottom' };
+}
+function drawBlock(P, s, put, forward) {
+  const w = s.w, fx = s.fx, SH = P.SH, SW = P.SW;
+  const y = i => P.base - (i + 1) * SH;
+  const blocks = [];
+  if (w.newBlock) blocks.push({ bid: w.bid, arr: w.block, col: 0, role: 'cur', title: 's._items._block' }, { bid: w.newBid, arr: w.newBlock, col: 1, role: 'new', title: 'block (new)' });
+  else if (w.old) blocks.push({ bid: w.old.bid, arr: w.old.block, col: 0, role: 'old', title: 'old block' }, { bid: w.bid, arr: w.block, col: 1, role: 'cur', title: 's._items._block' });
+  else blocks.push({ bid: w.bid, arr: w.block, col: 0, role: 'cur', title: 's._items._block' });
+  const cur = blocks.find(b => b.role === 'cur');
+  const hot = new Set(fx.hot || []), chg = new Set(fx.chg || []), oldHot = new Set(fx.oldHot || []);
+  const prevW = state.prevSnap && state.prevSnap.w;
+  for (const b of blocks) {
+    const x = P.colX[b.col];
+    put(P.ln, 'B' + b.bid, 'g', (el, fresh) => {
+      el.setAttribute('class', 'blk ' + (b.role === 'old' ? 'garbage' : '') + (fresh && forward ? ' born' : ''));
+      el.style.transform = `translate(${x}px, 0px)`;
+      let h = `<text class="bh" x="${SW / 2}" y="${y(b.arr.length - 1) - 8}" text-anchor="middle">${esc(b.title)}${b.role === 'old' ? ' · unreachable' : ''}</text>`;
+      b.arr.forEach((v, i) => {
+        const used = b.role === 'cur' ? i < w.size : v !== null;
+        let c = 'slot' + (used ? ' used' : '');
+        if (b.role === 'cur' && hot.has(i)) c += ' hot';
+        if (b.role === 'cur' && oldHot.has(i)) c += ' hot';
+        if (b.role === 'cur' && chg.has(i)) c += ' chg';
+        if (b.role === 'new' && fx.copy === i) c += ' chg';
+        if (b.role === 'cur' && used && i === topIx(w)) c += ' top';
+        h += `<g class="${c}"><rect x="0" y="${y(i)}" width="${SW}" height="${SH}"/>` +
+          `<text class="ix" x="-8" y="${y(i) + SH / 2 + 4}" text-anchor="end">${i}</text>` +
+          `<text class="${v === null ? 'nv' : 'v'}" x="${SW / 2}" y="${y(i) + SH / 2 + (v === null ? 4 : 6)}" text-anchor="middle">${esc(v === null ? 'None' : clip(pyrepr(v), 7))}</text></g>`;
+      });
+      el.innerHTML = h;
+    });
+  }
+  /* the copy arrow during a resize, the shift arrow inside one block */
+  if (fx.copy !== undefined && w.newBlock) {
+    const x1 = P.colX[0] + SW + 4, x2 = P.colX[1] - 4, yy = y(fx.copy) + SH / 2;
+    put(P.la, 'COPY', 'path', el => { el.setAttribute('class', 'ar chg'); el.setAttribute('d', `M${x1},${yy} C${x1 + 50},${yy - 18} ${x2 - 50},${yy - 18} ${x2},${yy}`); el.setAttribute('marker-end', 'url(#mk-chg)'); });
+  }
+  if (fx.shift) {
+    const cx = P.colX[cur.col] + SW, [a, b2] = fx.shift, ya = y(a) + SH / 2, yb = y(b2) + SH / 2;
+    put(P.la, 'SHIFT', 'path', el => { el.setAttribute('class', 'ar chg'); el.setAttribute('d', `M${cx + 2},${ya} C${cx + 30},${ya} ${cx + 30},${yb} ${cx + 4},${yb}`); el.setAttribute('marker-end', 'url(#mk-chg)'); });
+  }
+  /* top and next-free markers */
+  const tx = P.colX[cur.col] + SW + 40;
+  put(P.lt, 'TOP', 'g', el => {
+    el.setAttribute('class', 'tg self');
+    el.style.display = w.size ? '' : 'none';
+    el.style.transform = `translate(${tx}px, ${y(Math.max(0, topIx(w))) + SH / 2 - 10}px)`;
+    el.innerHTML = `<line x1="0" y1="10" x2="-30" y2="10" marker-end="url(#mk-n)"/><rect x="0" y="0" width="46" height="20" rx="4"/><text x="23" y="14.5" text-anchor="middle">top</text>`;
+  });
+  put(P.lt, 'FREE', 'g', el => {
+    const show = !w.front && w.size < cur.arr.length;
+    el.setAttribute('class', 'tg tmp');
+    el.style.display = show ? '' : 'none';
+    el.style.transform = `translate(${tx}px, ${y(Math.min(w.size, cur.arr.length - 1)) + SH / 2 - 10}px)`;
+    el.innerHTML = `<line x1="0" y1="10" x2="-30" y2="10" marker-end="url(#mk-w)"/><rect x="0" y="0" width="84" height="20" rx="4"/><text x="42" y="14.5" text-anchor="middle">next push</text>`;
+  });
+  put(P.lt, 'EMPTY', 'g', el => {
+    el.setAttribute('class', 'nonemark');
+    el.style.display = w.size ? 'none' : '';
+    el.innerHTML = `<text x="${tx}" y="${y(0) + SH / 2 + 5}">empty</text>`;
+  });
+  if (fx.popped && forward) ghost(put, P, 'G' + state.idx, tx + 54, y(Math.min(fx.popped.at, cur.arr.length - 1)) + SH / 2 - 13, fx.popped.v, 'popped');
+  $('viewTitle').textContent = 'The stack in its array';
+  $('viewMeta').innerHTML = `_size: <b>${w.size}</b> · _capacity: <b>${w.cap}</b> · resize_count: <b>${w.resizes}</b>`;
+  $('legend').innerHTML = `<span><i class="box" style="border-color:var(--ink);background:var(--panel-2)"></i>used slot</span><span><i class="box" style="border-color:var(--line);border-style:dashed"></i>spare capacity</span>` +
+    `<span><i class="box" style="border-color:var(--accent);background:var(--accent-bg)"></i>read now</span><span><i class="box" style="border-color:var(--done);background:var(--done-bg)"></i>just written</span>` +
+    `<span>index 0 at the bottom${w.front ? ' · <b style="color:var(--err)">top at index 0</b>' : ' · top at the end'}</span>`;
+}
+
+/* -- the linked stack: the head node on top, next links pointing down -- */
+function setupNodesPic(T) {
+  let rows = 1;
+  for (const s of T.steps) { let k = 0; for (let id = s.w.head; id !== null; id = s.w.nodes[id].next) k++; rows = Math.max(rows, k + 1 + (s.w.tmp !== null ? 1 : 0)); }
+  const NW = 96, NH = 36, GAP = 26, PAD = 16, LEFT = 120, TOP = 14;
+  return { NW, NH, GAP, LEFT, TOP, W: LEFT + NW + 210, H: TOP + (rows + 1) * (NH + GAP), aria: 'The nodes of the linked stack, top first' };
+}
+function drawNodes(P, s, put, forward) {
+  const w = s.w, fx = s.fx, NW = P.NW, NH = P.NH, VW = 58;
+  const chain = []; for (let id = w.head; id !== null; id = w.nodes[id].next) chain.push(id);
+  const row = new Map(chain.map((id, k) => [id, k + 1]));
+  const pos = id => { if (row.has(id)) return { x: P.LEFT, y: P.TOP + row.get(id) * (NH + P.GAP) }; if (id === w.tmp) return { x: P.LEFT, y: P.TOP }; return null; };
+  const prevChain = new Map(); if (state.prevSnap && state.prevSnap.w.nodes) { let k = 1; for (let id = state.prevSnap.w.head; id !== null; id = state.prevSnap.w.nodes[id].next) prevChain.set(id, k++); }
+  w.nodes.forEach((nd, id) => {
+    if (nd.gone) return;
+    let p = pos(id), garbage = false;
+    if (!p) { garbage = true; const r = prevChain.get(id) || 1; p = { x: P.LEFT + 150, y: P.TOP + r * (NH + P.GAP) }; }
+    const cls = ['nd', fx.focus === id ? 'focus' : '', garbage ? 'garbage' : '', id === w.tmp ? 'fresh' : ''].join(' ');
+    put(P.ln, 'N' + id, 'g', (el, fresh) => {
+      el.setAttribute('class', cls + (fresh && forward ? ' born' : ''));
+      el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+      let h = `<rect class="box" x="0" y="0" width="${NW}" height="${NH}" rx="5"/><line class="div" x1="${VW}" y1="0" x2="${VW}" y2="${NH}"/>` +
+        `<text class="v" x="${VW / 2}" y="${NH / 2 + 6}" text-anchor="middle">${esc(clip(pyrepr(nd.v), 5))}</text>`;
+      h += nd.next === null ? `<line class="none" x1="${VW + 5}" y1="${NH - 6}" x2="${NW - 5}" y2="6"/>` : `<circle class="dot" cx="${VW + (NW - VW) / 2}" cy="${NH / 2}" r="3.5"/>`;
+      if (garbage) h += `<text class="gone" x="${NW / 2}" y="-7" text-anchor="middle">unreachable</text>`;
+      el.innerHTML = h;
+    });
+    if (nd.next !== null) {
+      const q = pos(nd.next) || p;
+      const sx = p.x + VW + (NW - VW) / 2, sy = p.y + NH / 2, tx = q.x + NW - 18, ty = q.y - 1;
+      const d = `M${sx},${sy} C${sx},${sy + 30} ${tx},${ty - 22} ${tx},${ty}`;
+      put(P.la, 'A' + id, 'path', el => { el.setAttribute('class', 'ar' + (garbage ? ' garbage' : '')); el.setAttribute('d', d); el.style.d = `path("${d}")`; el.setAttribute('marker-end', 'url(#mk-n)'); });
+    }
+  });
+  /* _head, and the temporary reference to a new node */
+  const headY = w.head === null ? P.TOP + (NH + P.GAP) : pos(w.head).y;
+  const hc = (fx.hot || []).includes('head') ? 'hot' : (fx.chg || []).includes('head') ? 'chg' : '';
+  put(P.lt, 'HEAD', 'g', el => {
+    el.setAttribute('class', `tg self ${hc} ${w.head === null ? 'isnone' : ''}`);
+    el.style.transform = `translate(${P.LEFT - 96}px, ${headY + NH / 2 - 10}px)`;
+    el.innerHTML = `<line x1="62" y1="10" x2="92" y2="10" marker-end="url(#mk-${hc || 'n'})"/><rect x="0" y="0" width="62" height="20" rx="4"/><text x="31" y="14.5" text-anchor="middle">_head</text>`;
+  });
+  put(P.lt, 'NONE', 'g', el => {
+    el.setAttribute('class', 'nonemark'); el.style.display = w.head === null ? '' : 'none';
+    el.innerHTML = `<text x="${P.LEFT + 4}" y="${P.TOP + (NH + P.GAP) + NH / 2 + 5}">None: the stack is empty</text>`;
+  });
+  if (w.tmp !== null) put(P.lt, 'TMP', 'g', el => {
+    el.setAttribute('class', 'tg tmp'); el.style.transform = `translate(${P.LEFT - 104}px, ${P.TOP + NH / 2 - 10}px)`;
+    el.innerHTML = `<line x1="80" y1="10" x2="100" y2="10" marker-end="url(#mk-w)"/><rect x="0" y="0" width="80" height="20" rx="4"/><text x="40" y="14.5" text-anchor="middle">new node</text>`;
+  });
+  if (fx.popped && forward) ghost(put, P, 'G' + state.idx, P.LEFT + NW + 20, P.TOP + (NH + P.GAP) - 34, fx.popped.v, 'popped');
+  $('viewTitle').textContent = 'The nodes, top first';
+  $('viewMeta').innerHTML = `nodes from _head: <b>${chain.length}</b> · _size: <b>${w.size}</b>`;
+  $('legend').innerHTML = `<span><i style="border-color:var(--ink)"></i>next</span><span><i class="box" style="border-color:var(--accent);background:var(--accent-bg)"></i>read now</span>` +
+    `<span><i class="box" style="border-color:var(--done)"></i>new node</span><span>╱ = None</span><span style="opacity:.6"><i class="box" style="border-color:var(--ink);border-style:dashed"></i>unreachable: Python frees it</span>`;
+}
+
+/* -- applications: the input tape, the stacks as piles, the output -- */
+function setupAppPic(T) {
+  let tapeW = 0, hasTape = false, hasOut = false, maxOut = 0, notesW = 0;
+  const piles = new Map();
+  for (const s of T.steps) {
+    const w = s.w;
+    if (w.tape) { hasTape = true; tapeW = Math.max(tapeW, w.tape.reduce((a, t) => a + cellW(t) + 4, 0) + 40); }
+    if (w.out) { hasOut = true; maxOut = Math.max(maxOut, w.out.reduce((a, t) => a + cellW(t) + 4, 0)); }
+    for (const p of w.piles) {
+      const e = piles.get(p.key) || { key: p.key, label: p.label, n: 0, cw: textW(p.label, 8) };
+      e.n = Math.max(e.n, p.vals.length);
+      for (const v of p.vals) e.cw = Math.max(e.cw, textW(clip(pyrepr(v), 18), 9));
+      piles.set(p.key, e);
+    }
+    for (const [k, v] of w.notes) notesW = Math.max(notesW, textW(`${k} = ${pyrepr(v)}`, 9.6));
+  }
+  const PAD = 16, CH = 30, tapeY = hasTape ? 30 : 0;
+  const pileTop = tapeY + (hasTape ? 66 : 14);
+  const maxN = Math.max(1, ...[...piles.values()].map(p => p.n));
+  let x = PAD + 40;
+  const pileX = new Map();
+  for (const p of piles.values()) { p.cw = Math.max(70, p.cw); pileX.set(p.key, x); x += p.cw + 34; }
+  const rightX = x + 10;
+  const W = Math.max(PAD + tapeW + 10, rightX + Math.max(hasOut ? Math.max(maxOut, 120) : 0, notesW) + PAD, 360);
+  const base = pileTop + 22 + maxN * CH;
+  return { PAD, CH, tapeY, pileTop, base, piles, pileX, rightX, hasOut, W, H: base + 30, aria: 'The input, the stacks and the output' };
+}
+const cellW = t => Math.max(26, String(t).length * 10 + 14);
+function drawApp(P, s, put, forward) {
+  const w = s.w, fx = s.fx, CH = P.CH;
+  /* tape */
+  if (w.tape) {
+    put(P.lt, 'TL', 'g', el => { el.setAttribute('class', 'lab'); el.innerHTML = `<text x="${P.PAD}" y="${P.tapeY - 10}">${esc(w.tapeLabel)}</text>`; });
+    let x = P.PAD;
+    w.tape.forEach((t, i) => {
+      const cw = cellW(t), c = i === w.cur ? 'cell cur' : i < w.cur ? 'cell past' : 'cell';
+      const xx = x;
+      put(P.ln, 'K' + i, 'g', el => {
+        el.setAttribute('class', c);
+        el.style.transform = `translate(${xx}px, ${P.tapeY}px)`;
+        el.innerHTML = `<rect x="0" y="0" width="${cw}" height="30" rx="4"/><text x="${cw / 2}" y="20" text-anchor="middle">${esc(t === ' ' ? '·' : t)}</text>`;
+      });
+      x += cw + 4;
+    });
+    const end = w.cur >= w.tape.length;
+    put(P.lt, 'END', 'g', el => { el.setAttribute('class', 'lab endmark'); el.style.display = end ? '' : 'none'; el.innerHTML = `<text x="${x + 4}" y="${P.tapeY + 20}">end</text>`; });
+  }
+  /* piles */
+  for (const [key, meta] of P.piles) {
+    const pile = w.piles.find(p => p.key === key), px = P.pileX.get(key), cw = meta.cw;
+    const prevP = state.prevSnap && state.prevSnap.w.piles ? state.prevSnap.w.piles.find(p => p.key === key) : null;
+    const prevN = prevP ? prevP.vals.length : 0;
+    put(P.la, 'PB' + key, 'g', el => {
+      el.setAttribute('class', 'pilebase'); el.style.display = pile ? '' : 'none';
+      el.innerHTML = `<path d="M${px - 6},${P.pileTop + 8} L${px - 6},${P.base} L${px + cw + 6},${P.base} L${px + cw + 6},${P.pileTop + 8}"/>` +
+        `<text x="${px + cw / 2}" y="${P.base + 20}" text-anchor="middle">${esc(meta.label)}</text>`;
+    });
+    if (!pile) continue;
+    pile.vals.forEach((v, i) => {
+      const yy = P.base - (i + 1) * CH, isTop = i === pile.vals.length - 1;
+      const c = 'pc' + (isTop ? ' top' : '') + (isTop && fx.peeked === key ? ' hot' : '') + (isTop && fx.pushed === key ? ' chg' : '');
+      put(P.ln, `P${key}:${i}`, 'g', (el, fresh) => {
+        el.setAttribute('class', c + (forward && i >= prevN && fresh ? ' born' : ''));
+        el.style.transform = `translate(${px}px, ${yy}px)`;
+        el.innerHTML = `<rect x="0" y="1" width="${cw}" height="${CH - 2}" rx="4"/><text x="${cw / 2}" y="${CH / 2 + 5}" text-anchor="middle">${esc(clip(pyrepr(v), 18))}</text>`;
+      });
+    });
+    /* the top marker */
+    put(P.lt, 'PT' + key, 'g', el => {
+      el.setAttribute('class', 'toptxt'); el.style.display = pile.vals.length ? '' : 'none';
+      el.style.transform = `translate(${px - 10}px, ${P.base - Math.max(1, pile.vals.length) * CH + CH / 2 + 4}px)`;
+      el.innerHTML = '<text x="0" y="0" text-anchor="end">top ▸</text>';
+    });
+    if (fx.popped && fx.popped.key === key && forward) ghost(put, P, 'G' + state.idx, px, P.base - (pile.vals.length + 1) * CH - 4, fx.popped.v, 'popped');
+  }
+  /* output and notes, to the right of the piles */
+  let ry = P.pileTop + 8;
+  if (P.hasOut) {
+    put(P.lt, 'OL', 'g', el => { el.setAttribute('class', 'lab'); el.style.display = w.out ? '' : 'none'; el.innerHTML = `<text x="${P.rightX}" y="${ry + 4}">output</text>`; });
+    let x = P.rightX;
+    (w.out || []).forEach((t, i) => {
+      const cw = cellW(t), xx = x, isNew = fx.outNew && i === w.out.length - 1;
+      put(P.ln, 'O' + i, 'g', (el, fresh) => {
+        el.setAttribute('class', 'cell out' + (isNew ? ' chg' : '') + (fresh && forward ? ' born' : ''));
+        el.style.transform = `translate(${xx}px, ${ry + 14}px)`;
+        el.innerHTML = `<rect x="0" y="0" width="${cw}" height="30" rx="4"/><text x="${cw / 2}" y="20" text-anchor="middle">${esc(t)}</text>`;
+      });
+      x += cw + 4;
+    });
+    ry += 70;
+  }
+  w.notes.forEach(([k, v], i) => {
+    put(P.lt, 'NT' + i, 'g', el => { el.setAttribute('class', 'note'); el.innerHTML = `<text x="${P.rightX}" y="${ry + 18 + i * 26}"><tspan class="nk">${esc(k)} = </tspan>${esc(pyrepr(v))}</text>`; });
+  });
+  const names = w.piles.map(p => p.label).join(' and ');
+  $('viewTitle').textContent = w.piles.length > 1 ? 'The stacks' : 'The stack';
+  $('viewMeta').innerHTML = w.piles.map(p => `${esc(p.label)}: <b>${p.vals.length}</b>`).join(' · ');
+  $('legend').innerHTML = (w.tape ? `<span><i class="box" style="border-color:var(--accent);background:var(--accent-bg)"></i>${w.tapeLabel === 'text' ? 'this character' : 'this token'}</span>` : '') +
+    `<span><i class="box" style="border-color:var(--done);background:var(--done-bg)"></i>just pushed</span><span>Each stack is drawn top up; only its top can be touched.</span>`;
+}
+
+function renderOut(s) {
+  const prevLen = state.prevSnap && state.prevSnap !== s ? state.prevSnap.out.length : s.out.length;
+  const forward = state.prevSnap && state.prevSnap.out.length <= s.out.length;
+  $('out').innerHTML = s.out.map((o, i) => `<span class="${o.k} ${forward && i >= prevLen ? 'new' : ''}">${esc(o.t)}</span>`).join('\n');
+  $('out').scrollTop = $('out').scrollHeight;
+}
+
+function renderTransport(s) {
+  const N = state.T.steps.length;
+  $('scrub').value = state.idx;
+  $('pos').textContent = `step ${state.idx} / ${N - 1}`;
+  $('bBack').disabled = state.idx === 0;
+  $('bStep').disabled = state.idx >= N - 1;
+  $('bOver').disabled = state.idx >= N - 1 || !s.loop;
+  $('bOut').disabled = state.idx >= N - 1 || s.depth === 0;
+  const c = s.counters, t = s.w.type;
+  let h = `<span title="Values pushed on a stack">Pushes <b>${c.push}</b></span><span title="Values popped from a stack">Pops <b>${c.pop}</b></span>`;
+  if (t === 'block') h += `<span title="Values moved one slot to make or close a gap">Shifted <b>${c.shift}</b></span><span title="Values copied into a bigger block">Copied <b>${c.copy}</b></span>`;
+  if (t === 'nodes') h += `<span title="References changed">Links changed <b>${c.links}</b></span>`;
+  $('stats').innerHTML = h;
+  $('nudge').textContent = state.nudge;
+}
+
+/* ---------- controls ---------- */
+function setTheme(t) {
+  if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('stack-lab-theme', t || ''); } catch (e) {}
+}
+function wire() {
+  $('bStep').addEventListener('click', () => { stop(); step(); });
+  $('bBack').addEventListener('click', back);
+  $('bOver').addEventListener('click', skipLoop);
+  $('bOut').addEventListener('click', stepOut);
+  $('bPlay').addEventListener('click', play);
+  $('bRestart').addEventListener('click', () => { stop(); go(0); });
+  $('scrub').addEventListener('input', e => { stop(); go(+e.target.value); });
+  $('bQuiz').addEventListener('click', () => {
+    state.quiz = !state.quiz;
+    $('bQuiz').innerHTML = `Questions: ${state.quiz ? 'on' : 'off'} <kbd>Q</kbd>`;
+    $('bQuiz').classList.toggle('on', state.quiz);
+    state.nudge = ''; renderNarr(); $('nudge').textContent = '';
+  });
+  $('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(dark ? 'light' : 'dark');
+  });
+  $('fsBtn').addEventListener('click', () => {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else { const p = document.documentElement.requestFullscreen(); if (p && p.catch) p.catch(() => {}); }
+    } catch (e) {}
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return;
+    if (e.target.tagName === 'SELECT') return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    const s = snapAt(state.idx);
+    if (s.q && state.quiz && !state.answered.has(state.idx)) {
+      const map = { a: 0, b: 1, c: 2, d: 3, '1': 0, '2': 1, '3': 2, '4': 3 };
+      if (k in map && map[k] < s.q.choices.length) { e.preventDefault(); answer(map[k]); return; }
+      if (k === 'v') { e.preventDefault(); answer(-1); return; }
+    }
+    if (k === 'arrowright' || k === ' ') { e.preventDefault(); stop(); step(); }
+    else if (k === 'arrowleft') { e.preventDefault(); back(); }
+    else if (k === 'o') skipLoop();
+    else if (k === 'u') stepOut();
+    else if (k === 'p') play();
+    else if (k === 'r') { stop(); go(0); }
+    else if (k === 'e' || k === 'end') { stop(); go(state.T.steps.length - 1); }
+    else if (k === 'q') $('bQuiz').click();
+    else if (k === 'f') $('fsBtn').click();
+  });
+}
+
+/* Self-check: open the page as stack-lab.html#selftest to build every
+   scenario with its default input, a few edge inputs and random inputs,
+   render every step, and print one JSON line per run (tools compare the
+   shell lines with Python). */
+const SELFTEST_EXTRA = {
+  push: [{ values: [] }, { values: [1] }, { values: ['a', 'b'], value: 'c' }], push_resize: [{ values: [1, 2, 3, 4, 5, 6, 7, 8] }],
+  pop: [{ values: [] }, { values: [9] }, { values: [1, 2, 3, 4, 5] }], peek: [{ values: [] }, { values: ['x'] }],
+  pop_empty: [{ values: [] }, { values: [1, 2] }], amortised: [{ n: 1 }, { n: 16 }, { n: 5 }],
+  l_push: [{ values: [] }], l_pop: [{ values: [] }, { values: [5] }],
+  w_front_push: [{ values: [] }, { values: [1, 2, 3, 4] }], w_front_pop: [{ values: [] }, { values: [8] }],
+  w_pop_none: [{ values: [] }, { values: [1, 2] }, { values: ['ab'] }], w_peek_pops: [{ values: [1] }, { values: [4, 5] }],
+  bal_ok: [{ text: '' }, { text: '{[()()]}' }, { text: 'x' }], bal_cross: [{ text: '{(})' }], bal_closer: [{ text: ')' }, { text: ']' }], bal_open: [{ text: '(' }, { text: '[[]' }],
+  w_bal_partner: [{ text: '(]' }, { text: '()' }], w_bal_empty: [{ text: ')' }, { text: '(]' }], w_bal_final: [{ text: '(' }, { text: '(]' }],
+  pf_eval: [{ text: '' }, { text: '2 3 4 * 5 - +' }, { text: '1.5 2 *' }, { text: '5 x +' }, { text: '-3 4 -' }], pf_div: [{ text: '1 0 /' }, { text: '1.0 0 /' }, { text: '8 2 /' }, { text: '1 3 /' }, { text: '.5 .25 /' }],
+  pf_short: [{ text: '+' }, { text: '1 2 + *' }], pf_extra: [{ text: '1 2 3 +' }], w_pf_swapped: [{ text: '8 2 /' }, { text: '3 4 +' }],
+  sy_prec: [{ text: '' }, { text: 'a + b * c' }, { text: '1 / 2 / 3' }], sy_paren: [{ text: '( 1 + 2' }, { text: '1 + 2 )' }, { text: '( ( 1 ) )' }],
+  w_sy_strict: [{ text: '8 / 4 / 2' }, { text: '1 + 2 * 3' }], calc: [{ text: '8 - 3 - 2' }, { text: '1 / 0' }, { text: '( 2 + 3 ) / 2' }],
+  nested_sum: [{ nested: [] }, { nested: [[], [[]]] }, { nested: [1, 2, 3] }, { nested: [[1, [2]], [[3], 4]] }],
+  undo_redo: [{ w1: 'a', w2: 'bc', w3: 'd' }],
+};
+/* Random inputs: a small seeded generator, so a failing run can be repeated. */
+let seed = 20261026;
+const rnd = n => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return (((t ^ (t >>> 14)) >>> 0) % n); };
+const pick = a => a[rnd(a.length)];
+function randomParams(sc) {
+  const p = {};
+  for (const k in sc.params) {
+    const spec = sc.params[k];
+    if (spec.type === 'int') p[k] = spec.min + rnd(spec.max - spec.min + 1);
+    else if (spec.type === 'value') p[k] = spec.str ? pick(['x', 'ab', ' hi', 'Q!']) : rnd(2) ? rnd(200) - 50 : pick(['a', 'zz', 'k']);
+    else if (spec.type === 'list') { const n = spec.minLen + rnd(spec.maxLen - spec.minLen + 1); p[k] = Array.from({ length: n }, () => rnd(3) ? rnd(100) : pick(['p', 'q'])); }
+    else if (spec.type === 'nested') { const gen = d => Array.from({ length: rnd(3) + (d ? 0 : 1) }, () => (d < 2 && rnd(3) === 0 ? gen(d + 1) : rnd(20))); p[k] = gen(0); }
+    else if (sc.group === 'brackets' || /bal/.test(sc.id)) p[k] = Array.from({ length: rnd(9) }, () => pick(['(', ')', '[', ']', '{', '}', 'a'])).join('');
+    else if (/^pf|pf_/.test(sc.id)) p[k] = Array.from({ length: 1 + rnd(7) }, () => rnd(5) < 3 ? String(rnd(12)) : pick(OPS)).join(' ');
+    else {
+      const t = []; let open = 0;
+      const n = 1 + rnd(4);
+      for (let i = 0; i < n; i++) {
+        if (rnd(3) === 0) { t.push('('); open++; }
+        t.push(String(1 + rnd(9)));
+        if (open && rnd(2)) { t.push(')'); open--; }
+        if (i < n - 1) t.push(pick(OPS));
+      }
+      while (open--) t.push(')');
+      p[k] = t.join(' ');
+    }
+  }
+  return p;
+}
+function validParams(sc, p) {
+  for (const k in sc.params) { const spec = sc.params[k]; if (spec.check) { const ok = spec.check(p[k]); if (ok !== true) return ok; } }
+  return true;
+}
+function selftest() {
+  const lines = [];
+  for (const sc of SCENARIOS) {
+    const base = {}; for (const k in sc.params) base[k] = sc.params[k].def;
+    const runs = [base, ...(SELFTEST_EXTRA[sc.id] || []).map(e => Object.assign({}, base, e))];
+    for (let r = 0; r < 4; r++) runs.push(randomParams(sc));
+    for (const p of runs) {
+      try {
+        const ok = validParams(sc, p);
+        if (ok !== true) { lines.push(JSON.stringify({ id: sc.id, params: p, skipped: ok })); continue; }
+        const T = build(sc, p);
+        const shell = T.out.map(o => o.k === 'err' ? o.t.split('\n').pop() : o.t);
+        const qs = T.steps.filter(x => x.q).length;
+        const nlines = sc.code.split('\n').length;
+        const badLine = T.steps.some(x => x.line > nlines || x.stack.some(f => f.line > nlines));
+        const badQ = T.steps.some(x => x.q && (x.q.answer < 0 || x.q.choices.length < 2));
+        state.sc = sc; state.T = T; state.params = p; state.prevSnap = null; state.idx = 0;
+        picSetup();
+        for (let i = 0; i < T.steps.length; i++) { state.prevSnap = i ? T.steps[i - 1] : null; state.idx = i; render(); }
+        lines.push(JSON.stringify({ id: sc.id, params: p, steps: T.steps.length, questions: qs, badLine, badQ, shell, code: sc.code, src: sc.src }));
+      } catch (e) { lines.push(JSON.stringify({ id: sc.id, params: p, crash: e.message + ' ' + (e.stack || '').split('\n')[1] })); }
+    }
+  }
+  const pre = $('selftest'); pre.hidden = false; pre.textContent = lines.join('\n');
+}
+
+initPicker();
+wire();
+try { const t = localStorage.getItem('stack-lab-theme'); if (t) setTheme(t); } catch (e) {}
+const themeArg = /[#&]theme=(light|dark)/.exec(location.hash); if (themeArg) setTheme(themeArg[1]);
+let startId = 'lifo';
+try { startId = localStorage.getItem('stack-lab-scenario') || startId; } catch (e) {}
+const hashId = location.hash.slice(1).split('&')[0];
+if (hashId && SCENARIOS.some(s => s.id === hashId)) startId = hashId;
+loadScenario(startId);
+const stepArg = /[#&]step=(\d+)/.exec(location.hash);
+if (stepArg) { state.quiz = location.hash.includes('quiz'); go(+stepArg[1]); }
+if (location.hash === '#selftest') selftest();
+</script>
+</body>
+</html>
