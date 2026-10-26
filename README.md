@@ -44,7 +44,7 @@ Dynamic programming is included as enrichment.
 | [Lecture 14 — Graphs and Graph Searches](docs/lectures/14-graphs/lecture.md) | [handout PDF](docs/pdf/DSA27-L14-handout.pdf) · [slides PDF](docs/pdf/DSA27-L14-slides.pdf) |
 | [Lecture 15 — The Principles of Language Translation](docs/lectures/15-language-translation/lecture.md) | [handout PDF](docs/pdf/DSA27-L15-handout.pdf) · [slides PDF](docs/pdf/DSA27-L15-slides.pdf) |
 | **[The students' book](docs/pdf/DSA27-Book.pdf)** | All fifteen lectures and the question bank **with its answers**, in one PDF |
-| **[Question bank](docs/question-bank/)** | MCQ, essay, trace, complexity, proofs, bugs and code — with answers, and three mock exams |
+| **[Question bank](docs/question-bank/)** | MCQ, essay, trace, complexity, proofs, bugs and code — with answers, and four mock exams |
 | **[Online quizzes](https://helghareeb.github.io/en/quizzes/)** | The multiple-choice part of the question bank as interactive quizzes, one per week: pick an answer and see at once whether it is right, with the explanation |
 | [Recorded lectures, 2019/2020](https://helghareeb.github.io/en/videos/dsa20/) | Earlier recordings of this course (Python, OOP, ADTs, arrays, sets, maps, complexity) to watch or download |
 | **[Worked solutions](solutions/)** | Every exercise solved — for **after** you have tried. `pytest --solutions` runs the tests on them |

@@ -34,7 +34,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | **[Lecture 14 — Graphs and Graph Searches](lectures/14-graphs/lecture.md)** | Adjacency list against matrix, BFS and DFS, components, cycles, topological sort. |
 | **[Lecture 15 — The Principles of Language Translation](lectures/15-language-translation/lecture.md)** | Tokens, grammar, recursive descent and the syntax tree — the capstone. |
 | **[The students' book](pdf/DSA27-Book.pdf)** | All fifteen lectures and the question bank with its answers, in one printable PDF. |
-| **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and three mock exams. |
+| **[Question bank](question-bank/)** | Practice for the final (30 marks MCQ + 30 marks written): every question type, worked answers, and four mock exams. |
 | **[Worked solutions](../solutions/)** | Every exercise, lab and practice problem solved — read them only after you have tried. |
 | **[Lab manual — weeks 1–15](labs/)** | Python for this course in weeks 1–3, then one lab per week building that week's structure in `dsa/`. Everything you need is in the repository. |
 | **[Your program's regulations](course/regulations/)** | The bylaws, and what they say about this course. |
@@ -114,6 +114,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Question bank — week 15 | [questions](pdf/DSA27-QB-Week15-Questions.pdf) · [answers](pdf/DSA27-QB-Week15-Answers.pdf) |
 | Mock exam — weeks 1–3 | [`DSA27-QB-Mock-Exam-Weeks01-03.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-03.pdf) |
 | Mock exam — weeks 1–7 (midterm practice) | [`DSA27-QB-Mock-Exam-Weeks01-07.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-07.pdf) |
+| Mock exam B — weeks 1–7 (midterm practice, self-contained) | [`DSA27-QB-Mock-Exam-B-Weeks01-07.pdf`](pdf/DSA27-QB-Mock-Exam-B-Weeks01-07.pdf) · [answers](pdf/DSA27-QB-Mock-Exam-B-Weeks01-07-Answers.pdf) |
 | Mock exam — weeks 1–15 (final practice) | [`DSA27-QB-Mock-Exam-Weeks01-15.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-15.pdf) |
 | DSA in your program | [`DSA27-DSA-In-Your-Program.pdf`](pdf/DSA27-DSA-In-Your-Program.pdf) |
 | **Official bylaws** | [`course/regulations/`](course/regulations/) |
@@ -172,7 +173,10 @@ docs/
 │   ├── README.md                   exam format, question types, how to use it
 │   ├── weekNN-questions.md         one pair per week
 │   ├── weekNN-answers.md
-│   └── mock-exam-weeks01-03.md     30 marks MCQ + 30 marks written
+│   ├── mock-exam-weeks01-03.md     30 marks MCQ + 30 marks written
+│   ├── mock-exam-weeks01-07.md     midterm practice
+│   ├── mock-exam-b-weeks01-07.md   midterm practice, printed in full (+ -answers.md)
+│   └── mock-exam-weeks01-15.md     final practice
 ├── labs/
 │   ├── README.md                   the lab manual: how labs run
 │   ├── lab01-python-basics.md      week 1

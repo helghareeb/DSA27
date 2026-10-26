@@ -65,8 +65,9 @@ paper code and a whole group sits the same paper.
 | **15** | Lecture 15 (the principles of language translation) | [questions](week15-questions.md) | [answers](week15-answers.md) | [quiz](https://helghareeb.github.io/en/quizzes/dsa27/week-15/) | `practice/week15.py` |
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | | |
 | — | **[Mock exam, weeks 1–7](mock-exam-weeks01-07.md)** — midterm practice, no overlap with the weeks 1–3 paper | | in the weekly answer files | | |
+| — | **[Mock exam B, weeks 1–7](mock-exam-b-weeks01-07.md)** — midterm practice, every question printed in full, its own answer key | | [answers](mock-exam-b-weeks01-07-answers.md) | | |
 | — | **[Midterm exam simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)** — weeks 1–7, a new timed paper every time, up to 60 questions | | explained after you submit | [simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/) | |
-| — | **[Mock exam, weeks 1–15](mock-exam-weeks01-15.md)** — final practice, no overlap with the two earlier papers | | in the weekly answer files | | |
+| — | **[Mock exam, weeks 1–15](mock-exam-weeks01-15.md)** — final practice, no overlap with the earlier papers | | in the weekly answer files | | |
 
 Printable PDFs of every file are in [`docs/pdf/`](../pdf/) (`DSA27-QB-...`).
 All fifteen weeks, questions and answers together, are also in the
@@ -101,7 +102,7 @@ students' book: [`DSA27-Book.pdf`](../pdf/DSA27-Book.pdf).
    `pytest --solutions tests/test_practice_week02.py` runs the tests on it.
 7. **A week before the exam,** sit a mock exam under exam conditions, then mark
    it: [weeks 1–3](mock-exam-weeks01-03.md), and [weeks 1–7](mock-exam-weeks01-07.md)
-   before the midterm.
+   and [weeks 1–7, paper B](mock-exam-b-weeks01-07.md) before the midterm.
 
 ## Honesty about what this is
 
