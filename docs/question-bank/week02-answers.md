@@ -13,13 +13,17 @@ lang: en
 
 | Q | Ans | Q | Ans | Q | Ans | Q | Ans |
 |---|---|---|---|---|---|---|---|
-| M01 | b | M08 | a | M15 | d | M22 | c |
-| M02 | c | M09 | b | M16 | b | M23 | d |
-| M03 | a | M10 | c | M17 | a | M24 | a |
-| M04 | d | M11 | d | M18 | c | M25 | b |
-| M05 | a | M12 | a | M19 | d | M26 | c |
-| M06 | c | M13 | b | M20 | a | | |
-| M07 | d | M14 | c | M21 | b | | |
+| M01 | b | M12 | a | M23 | d | M34 | c |
+| M02 | c | M13 | b | M24 | a | M35 | d |
+| M03 | a | M14 | c | M25 | b | M36 | b |
+| M04 | d | M15 | d | M26 | c | M37 | a |
+| M05 | a | M16 | b | M27 | b | M38 | c |
+| M06 | c | M17 | a | M28 | d | M39 | d |
+| M07 | d | M18 | c | M29 | a | M40 | b |
+| M08 | a | M19 | d | M30 | c | M41 | a |
+| M09 | b | M20 | a | M31 | b | M42 | c |
+| M10 | c | M21 | b | M32 | d | M43 | d |
+| M11 | d | M22 | c | M33 | a | M44 | b |
 
 **W2-M01 — b.** Keep the fastest-growing term, drop its constant: $3n^2 \to n^2$.
 It is also $O(n^3)$, but not $\Theta(n^3)$ (c) — Θ is a tight bound.
@@ -93,6 +97,81 @@ shared by every call that uses it.
 
 **W2-M26 — c.** `return 1` is decided, then `finally` runs (printing `bye`)
 before the function actually returns; then `print` shows `1`.
+
+**W2-M27 — b.** `in` on a list walks it comparing item by item, $O(n)$ — a hidden
+loop (Rule 5). One slot read or write (a), one comparison of small numbers (c)
+and the call itself (d) each take constant time.
+
+**W2-M28 — d.** Ten times the input, squared: $10^2 = 100$ times the work, so
+about 100 seconds. 10 seconds (a) is what an $O(n)$ algorithm would take;
+1,000 (b) would be $n^3$.
+
+**W2-M29 — a.** $1000n < n^2$ exactly when $n > 1000$. Big-O describes growth
+for large n, so (b) is wrong for small n; (c) ignores that $n^2$ overtakes any
+$1000n$; being polynomials (d) says nothing about which is smaller.
+
+**W2-M30 — c.** "Best/worst case" says **which input**; O, Ω, Θ say **what kind
+of bound**. The two are independent, so (a) and (b) confuse them. (d) is false:
+it stops at the first match, so one comparison is enough when the target is
+first.
+
+**W2-M31 — b.** The loop stops when $i^2 \ge n$, that is after about $\sqrt{n}$
+steps (n = 1,000,000 gives i = 1,000). It neither halves (a) nor walks all the
+way to n (c).
+
+**W2-M32 — d.** Recursion uses space: n calls deep means n frames waiting at
+once. Creating no data (a) is not the same as using no memory — and Python stops
+at about 1,000 frames.
+
+**W2-M33 — a.** Slots 3 to 6 move left: size − index − 1 = 7 − 2 − 1 = 4. Five
+(b) is the count for `insert_at` at index 2.
+
+**W2-M34 — c.** After the shift, slot `size - 1` still holds a copy of the last
+reference. Clearing it means nothing reads a stale value, and the object can be
+freed. `len(arr)` is the fixed capacity and never changes (a); the order (b) was
+already right after the shift.
+
+**W2-M35 — d.** C does not check indices: `a[6]` is base + 6 × 4, the memory
+right after the array. No error is raised (a), and an array cannot grow (b) or
+wrap (c). The course `Array` checks, and raises `IndexError`.
+
+**W2-M36 — b.** The slot holds a reference to the object, not the object; every
+reference is 8 bytes on a 64-bit machine, so base + i × 8 still works. The
+objects themselves live elsewhere, at any size — no sorting (a) or padding (c).
+
+**W2-M37 — a.** A slice is a copy, O(k), dressed as one step, so the course
+`Array` refuses it: "Array does not support slicing; copy with a loop".
+
+**W2-M38 — c.** `rotate_left` first does `k %= n`: 8 mod 6 = 2, so it rotates
+left by 2. (a) would be right only for k = 6 or 12; (d) is a rotation to the
+**right** by 2.
+
+**W2-M39 — d.** With `<`, an equal value from `b` would be taken first, swapping
+the order of equal values; the output would still be sorted (a), with no error
+(b) and no endless loop (c). Keeping equal values in their original order is
+**stability** (Week 10).
+
+**W2-M40 — b.** 1 is at (0, 1) in the 3 × 4 matrix, so at (1, 0) in the 4 × 3
+transpose: $1 \times 3 + 0 = 3$. The result is `[0, 4, 8, 1, 5, 9, …]`.
+
+**W2-M41 — a.** It is a lower bound on the **problem** for comparison sorts.
+Counting sort (Week 9) uses the values as indices and never compares, so the
+bound does not apply to it (b). Ω is "at least", not "exactly" (c), and not an
+upper bound (d).
+
+**W2-M42 — c.** It compares 5 with 1, finds them out of order and returns
+`False` at once: $O(1)$, the best case. Seven (a) is the number of pairs in a
+**sorted** array of 8.
+
+**W2-M43 — d.** The assignment makes `count` local for the **whole** function,
+so reading it on the right-hand side finds a local with no value yet. Python
+does not fall back to the global (a, c), and the error is more specific than a
+`NameError` (b).
+
+**W2-M44 — b.** Removing `'guest1'` shifts every item left, so the loop's next
+position holds `'ali'`: `'guest2'` is skipped. `'guest3'` is then removed. A
+list does not raise (d) — dicts and sets do. Loop over a copy, or build a new
+list.
 
 ---
 
@@ -174,6 +253,57 @@ A `ctypes` array of object references is a genuine fixed-size C array that can
 hold any Python object. The course wraps it, adds bounds checking, and offers
 nothing else — so every other operation must be written, and priced, by the
 student.
+
+**W2-E7** *(4)*
+
+- **(1)** One pass over n items with an O(1) body: **Rule 2**, $\Theta(n)$.
+- **(2)** i is halved until it reaches 1: **Rule 4**, $\Theta(\log n)$.
+- **(3)** n iterations (**Rule 2**); the body hides a slice and an `in`
+  (**Rule 5**), but the slice copies at most **10** items and `in` searches at
+  most 10 — a constant, not n. So the body is O(1) and the loop is $\Theta(n)$.
+  A hidden loop costs what it actually walks: here a fixed 10, not the whole
+  list.
+- **Total**, by **Rule 1**: $\Theta(n + \log n + n) = \Theta(n)$. (Timing it
+  confirms this: doubling n doubles the time.)
+
+**W2-E8** *(4)*
+
+- **Auxiliary space:** the memory an algorithm needs **beyond its input**, as a
+  function of n.
+- `reverse_in_place`: two indices and a swap — $O(1)$. `resized(arr, 2n)`: a new
+  array of 2n slots — $O(n)$. `merge_sorted(a, b)`: the output array —
+  $O(n + m)$.
+- Recursive `total(values)`: $O(n)$ — every call that has not yet returned keeps
+  a frame (its arguments, its local variables, where to return to) on the call
+  stack, n frames at the deepest point.
+- Python stops recursion at about **1,000** frames (`RecursionError`), so a
+  recursion n deep fails for large n; a loop with $O(1)$ space does not. Time
+  and space can be traded: merge sort uses $O(n)$ extra space for its
+  $O(n \log n)$ time.
+
+**W2-E9** *(3)*
+
+- **Row-major:** the rows are stored one after another in one flat array, so
+  element (r, c) is at index $r \times \text{cols} + c$.
+- (3, 4) in a 5 × 7 matrix: $3 \times 7 + 4 = 25$. Index 30: row
+  30 // 7 = 4, column 30 % 7 = 2, so (4, 2).
+- Reaching (r, c) is one multiplication and one addition, then one $O(1)$ array
+  index — whatever the matrix size.
+
+**W2-E10** *(4)*
+
+- **No negative indices:** an index is an offset from the base, and there is
+  nothing before the base (as in C). You compute `size - 1` for the last
+  element; `DynamicArray` (Week 4) adds negative indexing as the translation
+  `i + size`.
+- **No slicing:** a slice is a copy, $O(k)$, that looks like one step. You write
+  the copying loop and see the cost.
+- **No `append`:** an array cannot grow; that is the definition. To make room you
+  allocate a bigger `Array` and copy — `resized`, the dynamic array's one move.
+- `len(a)` is the **capacity**, fixed when the `Array` is created; the **size** —
+  how many slots from index 0 hold real data — is kept by **your code**, in a
+  separate variable (`insert_at` and `remove_at` take it and the caller updates
+  it). That split is what the dynamic array is built on.
 
 ---
 

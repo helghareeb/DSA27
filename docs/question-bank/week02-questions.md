@@ -13,8 +13,8 @@ lang: en
 
 | Part | Type | Questions |
 |---|---|---|
-| A | Multiple choice (one correct answer of four) | W2-M01 – W2-M26 |
-| B | Short answer and essay | W2-E1 – W2-E6 |
+| A | Multiple choice (one correct answer of four) | W2-M01 – W2-M44 |
+| B | Short answer and essay | W2-E1 – W2-E10 |
 | C | Complexity analysis — give Θ and justify | W2-K1 – W2-K6 |
 | D | Proofs | W2-P1 – W2-P3 |
 | E | Array state — show every step | W2-S1 – W2-S4 |
@@ -255,6 +255,170 @@ def g():
 - **c)** `bye` then `1`
 - **d)** `1` then `bye`
 
+**W2-M27** [what] In the RAM model of Lecture 02, which of these is **not** one
+basic step?
+
+- **a)** `a[i] = v` on an array
+- **b)** `x in values` on a Python list of n items
+- **c)** `x < y` on two small integers
+- **d)** calling a function (the call itself, not what it then does)
+
+**W2-M28** [how] An algorithm does $n^2$ basic steps and takes 1 second at
+n = 10,000. About how long will it take at n = 100,000, on the same machine?
+
+- **a)** 10 seconds
+- **b)** 1,000 seconds
+- **c)** 2 seconds
+- **d)** 100 seconds
+
+**W2-M29** [why] Algorithm A does $1000n$ steps; algorithm B does $n^2$ steps.
+Which statement is **true**?
+
+- **a)** B does fewer steps for n < 1,000; A does fewer for every n > 1,000
+- **b)** A does fewer steps for every n, because $O(n)$ beats $O(n^2)$
+- **c)** B does fewer steps for every n, because its constant is 1
+- **d)** They are equally good, because both are polynomials
+
+**W2-M30** [why] Which sentence about linear search is **correct**?
+
+- **a)** Its worst case is $\Theta(1)$, because Θ describes the best input
+- **b)** Big-O means "worst case" and Big-Ω means "best case"
+- **c)** Its best case is $\Theta(1)$ and its worst case is $\Theta(n)$
+- **d)** It does exactly n comparisons on every input of size n
+
+**W2-M31** [how] What is the running time of this loop?
+
+```python
+i = 0
+while i * i < n:
+    i += 1
+```
+
+- **a)** $\Theta(\log n)$
+- **b)** $\Theta(\sqrt{n})$
+- **c)** $\Theta(n)$
+- **d)** $\Theta(n^2)$
+
+**W2-M32** [why] A recursive `total(values)` makes one call per element and
+creates no new data. Its **extra space** is:
+
+- **a)** $O(1)$, because it creates no new data
+- **b)** $O(\log n)$
+- **c)** $O(n^2)$
+- **d)** $O(n)$, because every call that has not returned keeps a frame on the
+  call stack
+
+**W2-M33** [how] A partly filled `Array` has **size 7**. How many elements move
+during `remove_at(arr, 7, 2)`?
+
+- **a)** 4
+- **b)** 5
+- **c)** 2
+- **d)** 7
+
+**W2-M34** [why] `remove_at` ends with `arr[size - 1] = None`. Why?
+
+- **a)** So that `len(arr)` goes down by one
+- **b)** Without it, the shifted values would end up in the wrong order
+- **c)** That slot is no longer in use; clearing it removes a stale copy of the
+  last value, which would otherwise keep that object alive
+- **d)** The course `Array` raises an error if a slot is not `None`
+
+**W2-M35** [what] In C, after `int a[6];`, the statement `a[6] = 0;`:
+
+- **a)** raises an index error at run time
+- **b)** makes the array grow to 7 slots
+- **c)** is the same as `a[0] = 0`, because indices wrap round
+- **d)** writes past the end with no check, over whatever is stored next — a
+  buffer overflow
+
+**W2-M36** [why] One Python array can hold an `int`, a `str` and a `list`, and
+still index in $O(1)$. Why?
+
+- **a)** Python sorts the objects by size first
+- **b)** Each slot holds a **reference**, and all references are the same size
+- **c)** Python pads every object to the size of the largest one
+- **d)** It cannot: indexing is $O(1)$ only when all items have the same type
+
+**W2-M37** [what] `a = Array(3)`, then `a[0:2]`. What happens?
+
+- **a)** `TypeError`: the course `Array` does not support slicing
+- **b)** a new `Array` of two `None`s is returned
+- **c)** the list `[None, None]` is returned
+- **d)** `IndexError`: index 2 is the last slot
+
+**W2-M38** [how] `arr` holds `[1, 2, 3, 4, 5, 6]`. What does it hold after
+`rotate_left(arr, 8)`?
+
+- **a)** `[1, 2, 3, 4, 5, 6]` — 8 is more than a full turn, so nothing moves
+- **b)** nothing: it raises `IndexError`, since 8 > 6
+- **c)** `[3, 4, 5, 6, 1, 2]`
+- **d)** `[5, 6, 1, 2, 3, 4]`
+
+**W2-M39** [why] `merge_sorted(a, b)` takes the front of `a` when
+`a[i] <= b[j]`. Why `<=` rather than `<`?
+
+- **a)** With `<`, the result would not be sorted
+- **b)** With `<`, two equal values would raise an error
+- **c)** With `<`, the loop would never end on equal values
+- **d)** With `<=`, equal values keep their order — the one from `a` first —
+  which merge sort relies on to be stable
+
+**W2-M40** [how] A 3 × 4 matrix holding the values 0 to 11 row by row is stored
+flat in row-major order. `transpose_flat(arr, 3, 4)` returns the 4 × 3
+transpose, also row-major. At which index of the result is the value **1**?
+
+- **a)** 1
+- **b)** 3
+- **c)** 4
+- **d)** 9
+
+**W2-M41** [why] "Any sort that works only by comparing elements needs
+$\Omega(n \log n)$ comparisons in the worst case." This means:
+
+- **a)** no comparison sort can have a worst case below a constant times
+  $n \log n$; counting sort escapes only because it does not compare
+- **b)** every sorting algorithm, counting sort included, is at least $n \log n$
+- **c)** every comparison sort does exactly $n \log n$ comparisons
+- **d)** comparison sorts are $O(n \log n)$ in the worst case
+
+**W2-M42** [how] How many pairs does `is_sorted(arr)` compare when `arr` holds
+`[5, 1, 2, 3, 4, 6, 7, 8]`?
+
+- **a)** 7
+- **b)** 8
+- **c)** 1
+- **d)** 0
+
+**W2-M43** [how] What happens when `increment()` is called?
+
+```python
+count = 0
+
+def increment():
+    count = count + 1
+```
+
+- **a)** the global `count` becomes 1
+- **b)** `NameError`: `count` is not defined
+- **c)** nothing visible: a local `count` becomes 1
+- **d)** `UnboundLocalError`
+
+**W2-M44** [why] What does `print(users)` show?
+
+```python
+users = ['guest1', 'guest2', 'ali', 'guest3']
+for u in users:
+    if u.startswith('guest'):
+        users.remove(u)
+print(users)
+```
+
+- **a)** `['ali']`
+- **b)** `['guest2', 'ali']`
+- **c)** `['guest2', 'ali', 'guest3']`
+- **d)** `RuntimeError`: the list changed size during iteration
+
 ---
 
 # Part B — Short answer and essay
@@ -282,6 +446,40 @@ later in the course follow it.
 **W2-E6** [what] *(3 marks)* Compare Python's `list`, `array.array`,
 `numpy.ndarray` and a `ctypes` array on: can it grow, what it holds, and whether
 it hides costs. Why is the course `Array` built on `ctypes`?
+
+**W2-E7** [why] *(4 marks)* `values` is a Python list of n numbers. Give the
+running time of each numbered part of this function, justify each with one of
+the five rules, and give the total. Why is part (3) **not** $O(n^2)$, although
+it hides a slice and an `in` inside a loop?
+
+```python
+def report(values):
+    total = 0
+    for v in values:                 # (1)
+        total += v
+    i = len(values)
+    while i > 1:                     # (2)
+        i //= 2
+    for v in values:                 # (3)
+        if v in values[:10]:
+            total -= v
+    return total
+```
+
+**W2-E8** [why] *(4 marks)* Define the **auxiliary space** of an algorithm. Give
+the extra space of `reverse_in_place`, `resized(arr, 2n)`, `merge_sorted(a, b)`
+and a recursive `total(values)`, with a reason for each. Why does recursion use
+space even when it creates no data, and what limit does Python put on it?
+
+**W2-E9** [how] *(3 marks)* Explain row-major order. A 5 × 7 matrix (5 rows,
+7 columns) is stored flat in row-major order: at which flat index is element
+(3, 4), and which (row, column) is at flat index 30? Why is reaching (r, c)
+still $O(1)$?
+
+**W2-E10** [why] *(4 marks)* The course `Array` refuses negative indices,
+slicing and `append`. For each refusal, explain why it is deliberate and what
+you write instead. Then explain the difference between `len(a)` and the
+**size** of a partly filled array, and who keeps track of each.
 
 ---
 
