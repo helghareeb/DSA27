@@ -16,7 +16,7 @@ lang: en
 > yourself.
 >
 > Slides: `DSA27-L01-slides.pdf` · Repository: <https://github.com/helghareeb/DSA27> ·
-> Practise online: [Week 1 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-01/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-01/)) ·
+> Practise online: [Week 1 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-01/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-01/)) ·
 > [timed Lecture 1 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=1) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

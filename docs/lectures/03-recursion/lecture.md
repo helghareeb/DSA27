@@ -18,7 +18,7 @@ lang: en
 > Slides: `DSA27-L03-slides.pdf` · Code: `dsa/recursion.py` ·
 > Tests: `tests/test_recursion.py` · Lab: Lab 03, Part 10 ·
 > Interactive demo: [Recursion Lab](https://helghareeb.github.io/DSA27/lectures/03-recursion/recursion-lab.html) ·
-> Practise online: [Week 3 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-03/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-03/)) ·
+> Practise online: [Week 3 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-03/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-03/)) ·
 > [timed Lecture 3 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=3) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

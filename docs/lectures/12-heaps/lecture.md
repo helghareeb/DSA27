@@ -18,7 +18,7 @@ lang: en
 >
 > Slides: `DSA27-L12-slides.pdf` · Code: `dsa/heap.py` ·
 > Tests: `tests/test_heap.py` ·
-> Practise online: [Week 12 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-12/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-12/))
+> Practise online: [Week 12 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-12/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-12/))
 
 :::
 

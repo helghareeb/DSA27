@@ -19,7 +19,7 @@ lang: en
 >
 > Slides: `DSA27-L11-slides.pdf` · Code: `dsa/tree.py` ·
 > Tests: `tests/test_tree.py` ·
-> Practise online: [Week 11 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-11/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-11/))
+> Practise online: [Week 11 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-11/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-11/))
 
 :::
 

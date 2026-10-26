@@ -19,7 +19,7 @@ lang: en
 >
 > Slides: `DSA27-L13-slides.pdf` · Code: `dsa/hashmap.py` ·
 > Tests: `tests/test_hashmap.py` ·
-> Practise online: [Week 13 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-13/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-13/))
+> Practise online: [Week 13 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-13/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-13/))
 
 :::
 

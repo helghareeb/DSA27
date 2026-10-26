@@ -18,7 +18,7 @@ lang: en
 > Slides: `DSA27-L06-slides.pdf` · Code: `dsa/stack.py` ·
 > Tests: `tests/test_stack_queue.py` (the stack half) ·
 > Interactive demo: [Stack Lab](https://helghareeb.github.io/DSA27/lectures/06-stacks/stack-lab.html) ·
-> Practise online: [Week 6 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-06/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-06/)) ·
+> Practise online: [Week 6 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-06/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-06/)) ·
 > [timed Lecture 6 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=6) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

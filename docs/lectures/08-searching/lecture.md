@@ -17,7 +17,7 @@ lang: en
 >
 > Slides: `DSA27-L08-slides.pdf` · Code: `dsa/searching.py` ·
 > Tests: `tests/test_searching.py` ·
-> Practise online: [Week 8 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-08/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-08/))
+> Practise online: [Week 8 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-08/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-08/))
 
 :::
 

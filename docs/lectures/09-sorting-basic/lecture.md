@@ -18,7 +18,7 @@ lang: en
 >
 > Slides: `DSA27-L09-slides.pdf` · Code: `dsa/sorting.py` ·
 > Tests: `tests/test_sorting.py` ·
-> Practise online: [Week 9 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-09/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/))
+> Practise online: [Week 9 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-09/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/))
 
 :::
 

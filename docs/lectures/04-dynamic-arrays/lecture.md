@@ -17,7 +17,7 @@ lang: en
 > Slides: `DSA27-L04-slides.pdf` · Code: `dsa/dynamic_array.py` ·
 > Tests: `tests/test_dynamic_array.py` ·
 > Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html) ·
-> Practise online: [Week 4 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-04/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-04/)) ·
+> Practise online: [Week 4 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-04/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-04/)) ·
 > [timed Lecture 4 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=4) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

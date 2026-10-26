@@ -19,7 +19,7 @@ lang: en
 >
 > Slides: `DSA27-L14-slides.pdf` · Code: `dsa/graph.py` ·
 > Tests: `tests/test_graph.py` ·
-> Practise online: [Week 14 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-14/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-14/))
+> Practise online: [Week 14 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-14/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-14/))
 
 :::
 

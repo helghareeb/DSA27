@@ -19,7 +19,7 @@ lang: en
 > Slides: `DSA27-L07-slides.pdf` · Code: `dsa/queue.py` ·
 > Tests: `tests/test_stack_queue.py` (the queue half) ·
 > Interactive demo: [Queue Lab](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html) ·
-> Practise online: [Week 7 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-07/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-07/)) ·
+> Practise online: [Week 7 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-07/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-07/)) ·
 > [timed Lecture 7 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=7) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

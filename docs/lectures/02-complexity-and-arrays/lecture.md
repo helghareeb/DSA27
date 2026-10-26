@@ -18,7 +18,7 @@ lang: en
 > Slides: `DSA27-L02-slides.pdf` · Code: `dsa/array.py`, `dsa/array_ops.py` ·
 > Tests: `tests/test_array.py`, `tests/test_array_ops.py` ·
 > Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html) ·
-> Practise online: [Week 2 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-02/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-02/)) ·
+> Practise online: [Week 2 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-02/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-02/)) ·
 > [timed Lecture 2 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=2) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

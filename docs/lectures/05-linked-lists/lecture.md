@@ -19,7 +19,7 @@ lang: en
 > Slides: `DSA27-L05-slides.pdf` · Code: `dsa/linked_list.py` ·
 > Tests: `tests/test_linked_list.py` ·
 > Interactive demo: [Linked List Lab](https://helghareeb.github.io/DSA27/lectures/05-linked-lists/linked-list-lab.html) ·
-> Practise online: [Week 5 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-05/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-05/)) ·
+> Practise online: [Week 5 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-05/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-05/)) ·
 > [timed Lecture 5 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=5) ·
 > [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 

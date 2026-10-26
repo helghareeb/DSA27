@@ -19,7 +19,7 @@ lang: en
 >
 > Slides: `DSA27-L15-slides.pdf` · Code: `dsa/translation.py` ·
 > Tests: `tests/test_translation.py` ·
-> Practise online: [Week 15 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-15/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-15/))
+> Practise online: [Week 15 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-15/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-15/))
 
 :::
 

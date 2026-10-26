@@ -19,7 +19,7 @@ lang: en
 >
 > Slides: `DSA27-L10-slides.pdf` · Code: `dsa/sorting.py` (the second half) ·
 > Tests: `tests/test_sorting.py -k "merge or quick or heap"` ·
-> Practise online: [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/))
+> Practise online: [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/))
 
 :::
 
