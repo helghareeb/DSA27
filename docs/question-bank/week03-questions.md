@@ -11,8 +11,8 @@ lang: en
 
 | Part | Type | Questions |
 |---|---|---|
-| A | Multiple choice (one correct answer of four) | W3-M01 – W3-M26 |
-| B | Short answer and essay | W3-E1 – W3-E6 |
+| A | Multiple choice (one correct answer of four) | W3-M01 – W3-M44 |
+| B | Short answer and essay | W3-E1 – W3-E10 |
 | C | Recurrences — write and solve | W3-R1 – W3-R5 |
 | D | Trace the code and the call stack | W3-T1 – W3-T8 |
 | E | Find and fix the bug | W3-B1 – W3-B4 |
@@ -234,6 +234,199 @@ grows like:
 - **c)** $O(n \log n)$
 - **d)** $O(\varphi^n)$ with $\varphi \approx 1.618$
 
+**W3-M27** [how] Lecture 03's `to_binary`:
+
+```python
+def to_binary(n):
+    if n < 2:
+        return str(n)
+    return to_binary(n // 2) + str(n % 2)
+```
+
+What does `to_binary(6)` return?
+
+- **a)** `'011'`
+- **b)** `'110'`
+- **c)** `'1100'`
+- **d)** `'6'`
+
+**W3-M28** [how] With the course `gcd` (`return a` if `b == 0`, else
+`return gcd(b, a % b)`), how many calls does `gcd(48, 18)` make in total,
+counting the first?
+
+- **a)** 2
+- **b)** 3
+- **c)** 18
+- **d)** 4
+
+**W3-M29** [why] In `binary_strings`, the base case is changed from
+`return [""]` to `return []`. What does `binary_strings(2)` return now?
+
+```python
+def binary_strings(n):
+    if n == 0:
+        return []
+    shorter = binary_strings(n - 1)
+    return ["0" + s for s in shorter] + ["1" + s for s in shorter]
+```
+
+- **a)** `[]`
+- **b)** `['0', '1']`
+- **c)** `['00', '01', '10', '11']`
+- **d)** it raises `RecursionError`
+
+**W3-M30** [why] `flatten` descends only into items for which
+`isinstance(item, list)` is true, not into everything that is iterable. Why?
+
+- **a)** strings are immutable, so `extend` cannot be called on them
+- **b)** `isinstance` is faster than checking for iterability
+- **c)** a one-character string contains itself, so descending into strings
+  never reaches a base case
+- **d)** lists are the only iterable type in Python
+
+**W3-M31** [what] With the course's fast `power` (one call on `exponent // 2`,
+base case `exponent == 0`), at most how many frames of `power` are on the call
+stack at once during `power(2, 1000)`?
+
+- **a)** 11
+- **b)** 1,000
+- **c)** 2
+- **d)** 500
+
+**W3-M32** [what] The memoised `fib_memo(30)` of Lecture 03 (memo in an
+`Array`) makes how many calls in total, counting the first?
+
+- **a)** 30
+- **b)** 59
+- **c)** 2,692,537
+- **d)** 31
+
+**W3-M33** [why] The course `merge_sorted` is called on two sorted lists of 600
+numbers each, and raises `RecursionError`. Why?
+
+- **a)** its slices copy the lists, which costs $O(n^2)$ time
+- **b)** the two lists hold equal values, so the merge is not stable
+- **c)** a Python list cannot be longer than about 1,000 items
+- **d)** it makes one nested call per item it outputs: about 1,200 frames deep,
+  past the limit of about 1,000
+
+**W3-M34** [why] `merge_sorted` compares the heads with `left[0] <= right[0]`.
+What would change if it used `<` instead?
+
+- **a)** equal values would be lost from the result
+- **b)** the merge would become $O(n^2)$
+- **c)** on a tie the head of `right` would go first, so the merge would no
+  longer be stable
+- **d)** it would raise an error when two heads are equal
+
+**W3-M35** [how] `sum_digits(n)` makes one call on `n // 10` and does $O(1)$
+work besides. Its running time, in terms of the number n, is:
+
+- **a)** $O(\log n)$ — one call per decimal digit
+- **b)** $O(n)$ — one call per unit of n
+- **c)** $O(1)$ — the work per call is constant
+- **d)** $O(n \log n)$
+
+**W3-M36** [how] With Lecture 03's `depth` (0 for a non-list; otherwise 1 + the
+deepest item, where an empty list has depth 1), what is
+`depth([1, [2, [3]], []])`?
+
+- **a)** 2
+- **b)** 4
+- **c)** 3
+- **d)** 1
+
+**W3-M37** [what] In the recursive solution of Towers of Hanoi with n disks, how
+many times does the **largest** disk move?
+
+- **a)** n times
+- **b)** exactly once
+- **c)** $2^{n-1}$ times
+- **d)** twice: away and back
+
+**W3-M38** [how] In the moves returned by `hanoi(n)`, how many times does the
+**smallest** disk move?
+
+- **a)** once
+- **b)** n times
+- **c)** $2^n - 1$ times — every move
+- **d)** $2^{n-1}$ times — every other move
+
+**W3-M39** [why] Why is `gcd` easy to rewrite as a plain `while` loop, while
+`hanoi` would need an explicit stack?
+
+- **a)** `gcd` makes one call as its very last action; `hanoi` branches, and
+  must remember work still to do after each call
+- **b)** `gcd` is exponential and `hanoi` is not
+- **c)** `hanoi` cannot be written without recursion at all
+- **d)** Python optimises the tail call in `hanoi`, but not the one in `gcd`
+
+**W3-M40** [why] Lecture 03's `array_max(arr, i=0)` recurses on `i + 1` and
+never slices. What happens when it is called on a course `Array` of 5,000
+numbers?
+
+- **a)** it returns the maximum in $O(n)$ time and $O(1)$ space
+- **b)** it returns the maximum, but in $O(n^2)$ time
+- **c)** it raises `RecursionError`: one frame per element, and 5,000 is past
+  the limit of about 1,000
+- **d)** it returns `None`
+
+**W3-M41** [how] The course `subsets`:
+
+```python
+def subsets(items):
+    if not items:
+        return [[]]
+    rest = subsets(items[1:])
+    return rest + [[items[0]] + subset for subset in rest]
+```
+
+What does `subsets([1, 2])` return, in this order?
+
+- **a)** `[[], [1], [2], [1, 2]]`
+- **b)** `[[], [2], [1], [1, 2]]`
+- **c)** `[[1, 2], [1], [2], []]`
+- **d)** `[[], [1, 2]]`
+
+**W3-M42** [what] Which of these can be used as a `dict` key or a `set` member?
+
+- **a)** `[1, 2]`
+- **b)** `{1: 2}`
+- **c)** `{1, 2}`
+- **d)** `(1, 2)`
+
+**W3-M43** [why] What does this print?
+
+```python
+t = (1, [2])
+t[1].append(3)
+print(t)
+```
+
+- **a)** `(1, [2, 3])` — the tuple cannot change which objects it holds, but the
+  list inside it can change
+- **b)** nothing: `TypeError`, because tuples are immutable
+- **c)** `(1, [2])`
+- **d)** `(1, 2, 3)`
+
+**W3-M44** [how] What does this print?
+
+```python
+def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+g = countdown(3)
+next(g)
+print(list(g))
+```
+
+- **a)** `[3, 2, 1]`
+- **b)** `[]`
+- **c)** `[2, 1]`
+- **d)** `[1]`
+
 ---
 
 # Part B — Short answer and essay
@@ -259,6 +452,28 @@ mathematical induction.
 and justify by cost: (a) the marks of a class, in the order entered; (b) checking
 whether a student ID has already been registered; (c) looking up a student's name
 by ID; (d) one student's (ID, name, mark), used as a key elsewhere.
+
+**W3-E7** [why] *(4 marks)* `hanoi(20)` makes over a million calls, yet it never
+has more than about 20 frames on the call stack. Explain why the space a
+recursion needs is set by its **depth** and not by its number of calls. Give the
+depth of `factorial(n)`, of the fast `power(x, n)` and of `hanoi(n)`, and explain
+why raising `sys.setrecursionlimit` is not the right fix for a recursion that
+must go 100,000 deep.
+
+**W3-E8** [why] *(4 marks)* Three versions of `power(x, n)`: (i)
+`x * power(x, n - 1)`; (ii) `half = power(x, n // 2)`, then `half * half`
+(× x if n is odd); (iii) `power(x, n // 2) * power(x, n // 2)` (× x if n is
+odd). For each, write the recurrence and its solution, and say what happens for
+n = 4,096.
+
+**W3-E9** [why] *(3 marks)* Rewrite `gcd` as a loop, and explain why that rewrite
+is easy. Explain why rewriting `hanoi` without recursion is harder, and what the
+loop version must keep for itself.
+
+**W3-E10** [why] *(3 marks)* Explain why `binary_strings(0)` must return `[""]`,
+and `subsets([])` must return `[[]]`, rather than `[]`. What goes wrong with
+`[]`, and how many results do `binary_strings(n)` and `subsets` of n items
+return?
 
 ---
 

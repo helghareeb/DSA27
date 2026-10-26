@@ -13,13 +13,17 @@ lang: en
 
 | Q | Ans | Q | Ans | Q | Ans | Q | Ans |
 |---|---|---|---|---|---|---|---|
-| M01 | a | M08 | c | M15 | d | M22 | d |
-| M02 | d | M09 | b | M16 | c | M23 | b |
-| M03 | b | M10 | a | M17 | a | M24 | c |
-| M04 | c | M11 | d | M18 | b | M25 | b |
-| M05 | a | M12 | c | M19 | d | M26 | d |
-| M06 | d | M13 | b | M20 | c | | |
-| M07 | b | M14 | a | M21 | a | | |
+| M01 | a | M12 | c | M23 | b | M34 | c |
+| M02 | d | M13 | b | M24 | c | M35 | a |
+| M03 | b | M14 | a | M25 | b | M36 | c |
+| M04 | c | M15 | d | M26 | d | M37 | b |
+| M05 | a | M16 | c | M27 | b | M38 | d |
+| M06 | d | M17 | a | M28 | d | M39 | a |
+| M07 | b | M18 | b | M29 | a | M40 | c |
+| M08 | c | M19 | d | M30 | c | M41 | b |
+| M09 | b | M20 | c | M31 | a | M42 | d |
+| M10 | a | M21 | a | M32 | b | M43 | a |
+| M11 | d | M22 | d | M33 | d | M44 | c |
 
 **W3-M01 — a.** A base case that answers directly, and progress towards it. A loop
 (b) is not needed; one recursive call (c) is enough; a global counter (d) is a
@@ -95,6 +99,105 @@ loop, `list()` and so on.
 
 **W3-M26 — d.** Each call spawns two subtrees almost as large as itself; the call
 count grows by a factor of about the golden ratio, 1.618, per step of n.
+
+**W3-M27 — b.** to_binary(6) = to_binary(3) + "0" = (to_binary(1) + "1") + "0"
+= "110". The leading digits come from the recursive call, and the last digit is
+added on the way back up. (a) is the digits in the order they are computed,
+last first, which is what you would get by putting `str(n % 2)` *before* the
+call; (c) adds a digit too many; (d) is the decimal number unchanged.
+
+**W3-M28 — d.** gcd(48, 18) → gcd(18, 12) → gcd(12, 6) → gcd(6, 0), which
+returns 6: four calls. (b) forgets the last call, the one that reaches the base
+case b == 0; (c) confuses the number of calls with the size of b. Euclid's
+algorithm is O(log min(a, b)), so the count stays small.
+
+**W3-M29 — a.** `binary_strings(0)` now returns `[]`, so both comprehensions in
+`binary_strings(1)` loop over nothing and return `[]`, and so does every call
+above it. There is exactly one string of length 0, the empty string, which is
+why the base case must be `[""]`. There is no infinite recursion (d): n still
+goes down to 0. (c) is the correct answer with the original base case.
+
+**W3-M30 — c.** The string `"ab"` is iterable; its item `"a"` is also a string,
+and the item of `"a"` is `"a"` again, so the recursion never shrinks and ends in
+`RecursionError`. (a) is true of strings but has nothing to do with it; (b) is
+not the reason; (d) is false, since strings, tuples, sets, dicts and ranges are
+all iterable.
+
+**W3-M31 — a.** The exponents are 1000, 500, 250, 125, 62, 31, 15, 7, 3, 1 and
+0: one frame each, 11 at the deepest point, about log₂ n. (b) and (d) describe
+an $O(n)$-deep power; (c) ignores the frames that are waiting for their
+recursive call to return.
+
+**W3-M32 — b.** Each `fib_memo(k)` for k from 2 to 30 computes its value once,
+making two calls; after that it is looked up. That is 29 × 2 calls plus the first
+one: 59, against 2,692,537 for the naive `fib(30)` (c). (a) and (d) count the
+values computed, not the calls; a call that only looks up a stored answer still
+counts.
+
+**W3-M33 — d.** Every call outputs one item and makes one nested call on the
+rest, so the depth is len(left) + len(right) = 1,200, past CPython's limit of
+about 1,000 frames. (a) is a real cost, but it makes the merge slow, not
+crash; (b) equal values are fine; (c) lists can hold millions of items. This is
+why merge sort's real merge, in Week 10, is a loop.
+
+**W3-M34 — c.** With `<`, a tie takes the head of `right` first, so two equal
+keys swap their original order: the merge is still correct but not **stable**,
+and the test with `(1, "L")` and `(1, "R")` catches it. No value is lost (a),
+because one of the two heads is always taken; the cost is unchanged (b); equal
+values compare without error (d).
+
+**W3-M35 — a.** $T(d) = T(d-1) + c$ in the number of digits d, so $O(d)$, and a
+number n has about log₁₀ n digits: $O(\log n)$. (b) would be right for a
+recursion on n − 1, not on n // 10; (c) forgets that there is one call per digit.
+
+**W3-M36 — c.** depth(1) = 0, depth([2, [3]]) = 1 + depth([3]) = 1 + 1 = 2, and
+depth([]) = 1 + 0 = 1. The outer list is 1 + max(0, 2, 1) = 3. (a) forgets to
+count the outer list; (b) counts the empty list as if it were nested inside the
+deepest one.
+
+**W3-M37 — b.** The largest disk moves once, in the middle: before that move all
+n − 1 smaller disks go to the spare peg, and after it they come back on top. (c)
+is how often the *smallest* disk moves (W3-M38); (d) would mean the largest disk
+is moved off its target, which the algorithm never does.
+
+**W3-M38 — d.** Disk k (1 is the smallest) moves $2^{n-k}$ times, so the
+smallest disk moves $2^{n-1}$ times: on every other move, every odd-numbered
+one. For n = 4 the counts are 8, 4, 2, 1, which add up to $2^4 - 1 = 15$. (c) is
+the total number of moves; (a) is the largest disk.
+
+**W3-M39 — a.** In `gcd`, the call `return gcd(b, a % b)` is the last thing done,
+so nothing has to be remembered: overwrite a and b and go round again. `hanoi`
+makes two calls and has work left after the first (move the largest disk, then
+the second call), and the call stack is what remembers it; a loop version must
+keep that stack itself. (b) is reversed; (c) is false, since any recursion can
+be a loop with a stack; (d) is false, since Python does no tail-call
+optimisation at all.
+
+**W3-M40 — c.** No slicing means no copying, so the time is $O(n)$, but each
+element still costs a frame: the depth is n, and 5,000 frames is past the limit.
+That is why (a) is wrong: the space is $O(n)$, not $O(1)$. (b) is the cost of
+the *slicing* version, `list_max`.
+
+**W3-M41 — b.** `subsets([2])` is `rest + [[2] + s for s in rest]` with
+`rest = [[]]`, so `[[], [2]]`. Then `subsets([1, 2])` is `[[], [2]]` (the subsets
+without 1) followed by `[[1], [1, 2]]` (the same with 1 in front). (a) is the
+same subsets in another order, which the tests would also accept after sorting,
+but it is not what this code returns.
+
+**W3-M42 — d.** A key must be **hashable**, and the hash must not change: a tuple
+of hashable values is immutable, so it qualifies. A list (a), a dict (b) and a
+set (c) are mutable, and Python raises `TypeError: unhashable type`. Use
+`frozenset` if you need a set as a key.
+
+**W3-M43 — a.** The tuple stores two references, and these cannot change: you
+cannot write `t[1] = [9]`. But the list that `t[1]` refers to is itself mutable,
+and `append` changes it in place, with no error (b). (c) would be true only if
+the list had been copied into the tuple; (d) confuses the list with its items.
+
+**W3-M44 — c.** Calling `countdown(3)` runs nothing yet. `next(g)` runs the body
+as far as the first `yield` and returns 3, which is thrown away. `list(g)`
+resumes from there and collects the rest: 2 and 1. (a) forgets that 3 has already
+been used; (b) would be the answer if `next` had used up the whole generator.
 
 ---
 
@@ -177,6 +280,64 @@ frame below finishes its multiplication; maximum depth 4 = n + 1.
 - (d) **tuple** — a fixed record of related values of different types;
   immutable, therefore hashable, so it can be a dictionary key or set member (a
   list cannot).
+
+**W3-E7** *(4)*
+
+- A frame exists only while its call is running. When a call **returns**, its
+  frame is popped, so frames do not accumulate. At any moment the stack holds
+  only one chain of calls, from the first down to the current one, and the
+  longest such chain, the **depth**, sets the space.
+- `hanoi(20)` makes $2^{21} - 1$ calls, but each chain goes 20, 19, …, 0 and
+  returns before the next branch starts, so its stack space is $O(n)$.
+- Depths: `factorial(n)` n + 1 frames, $O(n)$; fast `power(x, n)` about
+  log₂ n frames, $O(\log n)$; `hanoi(n)` about n frames, $O(n)$.
+- Raising the limit does not make the real stack underneath bigger, so a deep
+  enough recursion then crashes the interpreter. The fix is a different design: a
+  loop, or a recursion that is only $O(\log n)$ deep.
+
+**W3-E8** *(4)*
+
+- (i) $T(n) = T(n-1) + c$ → $O(n)$ calls and multiplications, and n + 1 frames
+  deep: `power(2, 4096)` raises `RecursionError`.
+- (ii) $T(n) = T(n/2) + c$ → $O(\log n)$: for n = 4,096 it makes 14 calls
+  (exponents 4096, 2048, …, 1, 0) and 14 multiplications, 14 frames deep.
+- (iii) $T(n) = 2T(n/2) + c$ → $O(n)$: two calls on half the input undo the
+  halving. For n = 4,096 it makes 16,383 calls. It is only about 14 deep, so it
+  does not crash, but it is no faster than (i).
+- The lesson: count the recursive calls *and* their size. Calling once and
+  keeping the result in a variable is what makes (ii) logarithmic.
+
+**W3-E9** *(3)*
+
+- Loop version:
+
+  ```python
+  def gcd_loop(a, b):
+      while b != 0:
+          a, b = b, a % b
+      return a
+  ```
+
+- It is easy because `gcd` is **tail-shaped**: one call, as its very last
+  action, with nothing to do after it. The arguments of the next call can simply
+  replace the current ones.
+- `hanoi` **branches**: after the first recursive call it still has to move the
+  largest disk and make the second call. That pending work is what the call
+  stack remembers, so a loop version must push it onto its **own stack**
+  (Lecture 06's `Stack`) and pop it later. This is more code, and harder to read.
+
+**W3-E10** *(3)*
+
+- The base case is the answer for the smallest input, and it must be **right**.
+  There is exactly one bit string of length 0 (the empty string `""`) and one
+  subset of the empty set (the empty set), so each answer is a list holding one
+  item: `[""]` and `[[]]`.
+- With `[]` there is nothing to build on: the recursive case makes every result
+  by extending a result of the smaller call, so every level returns `[]` and the
+  final answer is empty, with no error to warn you.
+- `binary_strings(n)` returns $2^n$ strings and `subsets` of n items returns
+  $2^n$ lists: each of the n decisions (0 or 1; out or in) doubles the count, and
+  the count for n = 0 is $2^0 = 1$, which is why the base case holds one item.
 
 ---
 
