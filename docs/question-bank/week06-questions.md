@@ -14,8 +14,8 @@ lang: en
 
 | Part | Type | Questions |
 |---|---|---|
-| A | Multiple choice (one correct answer of four) | W6-M01 – W6-M22 |
-| B | Short answer and essay | W6-E1 – W6-E5 |
+| A | Multiple choice (one correct answer of four) | W6-M01 – W6-M40 |
+| B | Short answer and essay | W6-E1 – W6-E9 |
 | C | Trace the code and the algorithms | W6-T1 – W6-T5 |
 | D | Find and fix the bug | W6-B1 – W6-B4 |
 | E | Write the code — checked by `pytest` | W6-C1 – W6-C5 |
@@ -184,6 +184,149 @@ on the stack at once is:
 - **c)** returns the bottom
 - **d)** never raises an error
 
+**W6-M23** [how] The shunting-yard algorithm converts `2 * 3 + 4` to:
+
+- **a)** `2 3 4 + *`
+- **b)** `2 3 * 4 +`
+- **c)** `2 * 3 4 +`
+- **d)** `+ * 2 3 4`
+
+**W6-M24** [how] The shunting-yard algorithm converts `( 1 + 2 ) * ( 3 - 4 ) / 5`
+to:
+
+- **a)** `1 2 + 3 4 - 5 / *`
+- **b)** `1 2 3 4 + - * 5 /`
+- **c)** `1 2 + 3 4 - * 5 /`
+- **d)** `1 2 + * 3 4 - 5 /`
+
+**W6-M25** [why] A student's `infix_to_postfix` pops an operator only when the
+stacked one has **strictly higher** precedence (`>` instead of `>=`). Their
+calculator, `evaluate_postfix(infix_to_postfix(...))`, now gives `8 - 3 - 2` as:
+
+- **a)** 3
+- **b)** 13
+- **c)** a `ValueError`
+- **d)** 7
+
+**W6-M26** [why] With the same `>` bug, which of these inputs is **still**
+converted correctly?
+
+- **a)** `3 + 4 * 2`
+- **b)** `8 - 3 - 2`
+- **c)** `8 / 4 / 2`
+- **d)** `6 - 2 + 1`
+
+**W6-M27** [how] `evaluate_postfix(["6", "2", "/", "3", "*"])` returns:
+
+- **a)** 1.0
+- **b)** 18.0
+- **c)** 9.0
+- **d)** it raises `ValueError`
+
+**W6-M28** [why] A buggy `evaluate_postfix` computes (first value popped) op
+(second value popped): the operands the wrong way round. On which input does it
+**still** give the right answer?
+
+- **a)** `8 3 -`
+- **b)** `9 3 /`
+- **c)** `5 1 2 + -`
+- **d)** `3 4 + 2 *`
+
+**W6-M29** [how] `evaluate_postfix(["3", "4"])`:
+
+- **a)** returns 4
+- **b)** raises `ValueError`: two values are left at the end
+- **c)** returns 7
+- **d)** returns 3
+
+**W6-M30** [what] `evaluate_postfix(["1", "0", "/"])`:
+
+- **a)** raises `ZeroDivisionError`
+- **b)** raises `ValueError`
+- **c)** returns 0
+- **d)** returns `None`
+
+**W6-M31** [why] A version of `is_balanced` ends with `return True` instead of
+`return openers.is_empty()`. Which input does it get **wrong**?
+
+- **a)** `([)]`
+- **b)** `)(`
+- **c)** `(a))`
+- **d)** `((a)`
+
+**W6-M32** [what] A version of `is_balanced` pops for every closer **without**
+first checking that the stack is non-empty. On `"())"` it:
+
+- **a)** returns `True`
+- **b)** returns `False`
+- **c)** raises `IndexError`: `pop` on the empty stack
+- **d)** loops for ever
+
+**W6-M33** [how] `is_balanced("a(b)c)d(")` returns `False`. Which check fails
+**first**?
+
+- **a)** the partner check
+- **b)** a closer arrives when the stack is empty
+- **c)** the empty-at-the-end check
+- **d)** none of them: it returns `True`
+
+**W6-M34** [why] `is_balanced("print('(')")`, a line of valid Python, returns:
+
+- **a)** `True`: the characters inside quotes are skipped
+- **b)** `True`: it has as many `(` as `)`
+- **c)** it raises an error on the quote characters
+- **d)** `False`: the `(` inside the quotes is counted like any other
+
+**W6-M35** [why] Most pushes onto the `Stack` of `dsa/stack.py` are instant, but
+now and then **one** push takes much longer. Why?
+
+- **a)** The `DynamicArray` was full, so that push copies every item into a
+  bigger block: $O(n)$ for that push, amortised $O(1)$ overall
+- **b)** The top is kept at index 0, so that push shifts every item
+- **c)** `push` walks to the end of the stack first
+- **d)** Python checks the whole stack for duplicates
+
+**W6-M36** [what] Which stack gives **worst-case** $O(1)$ for every push, not just
+amortised $O(1)$?
+
+- **a)** an array with the top at the end
+- **b)** an array with the top at index 0
+- **c)** a singly linked list with the top at the head
+- **d)** a singly linked list with the top at the last node
+
+**W6-M37** [what] `s = Stack([1, 2, 3])`. What does `s.pop()` return?
+
+- **a)** 1
+- **b)** 3
+- **c)** `[1, 2, 3]`
+- **d)** it raises `IndexError`
+
+**W6-M38** [why] Two `peek()` calls in a row, with nothing in between, return two
+**different** values. The most likely bug is that `peek`:
+
+- **a)** reads index 0 instead of the last slot
+- **b)** forgets to raise `IndexError` on an empty stack
+- **c)** is $O(n)$ instead of $O(1)$
+- **d)** removes the top, as `pop` does
+
+**W6-M39** [how] An editor with an undo stack and a redo stack. The user types A,
+types B, types C, then: undo, undo, redo, types D. What is on the two stacks
+(bottom → top)?
+
+- **a)** undo: A B D · redo: empty
+- **b)** undo: A B C D · redo: empty
+- **c)** undo: A B D · redo: C
+- **d)** undo: A D · redo: C B
+
+**W6-M40** [why] `nested_sum` with your own `Stack` instead of recursion. Its real
+advantage in Python is that:
+
+- **a)** it is asymptotically faster
+- **b)** it adds the numbers in a different order, so the sum is more exact
+- **c)** a deeply nested input cannot raise `RecursionError`: your `Stack` has no
+  1,000-frame limit
+- **d)** it uses no extra memory
+
 ---
 
 # Part B — Short answer and essay
@@ -206,6 +349,29 @@ operators?
 **W6-E5** [why] *(3 marks)* "Recursion is a stack." Explain, and describe how
 you would rewrite a recursive algorithm without recursion. When is that worth
 doing in Python?
+
+**W6-E6** [why] *(4 marks)* A student's `infix_to_postfix` pops an operator only
+on **strictly higher** precedence (`>` instead of `>=`). Give one input that it
+still converts correctly and one that it gets wrong, with both postfix results and
+their values. Explain why the tests can miss this bug, and name an operator for
+which `>` is the right rule.
+
+**W6-E7** [how] *(3 marks)* Run the whole calculator on
+`( 8 - 2 ) / ( 1 + 2 ) * 4`: convert it to postfix with the shunting-yard
+algorithm, then evaluate the postfix with a stack, showing the stack after each
+operator. Why is the answer a float?
+
+**W6-E8** [why] *(4 marks)* Compare a stack on a dynamic array (top at the end)
+with a stack on a singly linked list (top at the head): the cost of push in the
+worst case and amortised, the memory per item, and memory locality. The
+lecture's timings found the linked stack faster in this course. Why, and would
+that still hold for Python's own `list`? Which would you choose for a program that
+must never pause?
+
+**W6-E9** [how] *(3 marks)* Design undo and redo for a text editor with two
+stacks. Say what each of *action*, *Undo* and *Redo* does to the two stacks, and
+show both stacks after: type A, type B, type C, undo, undo, redo, type D. What
+would go wrong if a new action did not clear the redo stack?
 
 ---
 
