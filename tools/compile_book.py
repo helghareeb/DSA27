@@ -205,10 +205,12 @@ def book() -> str:
         if a.exists():
             parts.append(chapter(f"Answers — Week {n}"))
             parts.append(include(a, 1, edits=BOOK_EDITS))
-    for stem in ("mock-exam-weeks01-03", "mock-exam-weeks01-07", "mock-exam-weeks01-15"):
+    for stem in ("mock-exam-weeks01-03", "mock-exam-weeks01-07", "mock-exam-b-weeks01-07",
+                 "mock-exam-b-weeks01-07-answers",
+                 "mock-exam-weeks01-15"):
         p = DOCS / "question-bank" / f"{stem}.md"
         if p.exists():
-            parts.append(chapter(title_of(p) + " — practice paper"))
+            parts.append(chapter(title_of(p) + ("" if stem.endswith("-answers") else " — practice paper")))
             parts.append(include(p, 1, edits=BOOK_EDITS))
     return "".join(parts)
 

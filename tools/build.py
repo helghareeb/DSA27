@@ -176,6 +176,8 @@ QB = {
        for w in range(1, 16) for k in ("questions", "answers")},
     "mock-exam-weeks01-03": "DSA27-QB-Mock-Exam-Weeks01-03.pdf",
     "mock-exam-weeks01-07": "DSA27-QB-Mock-Exam-Weeks01-07.pdf",
+    "mock-exam-b-weeks01-07": "DSA27-QB-Mock-Exam-B-Weeks01-07.pdf",
+    "mock-exam-b-weeks01-07-answers": "DSA27-QB-Mock-Exam-B-Weeks01-07-Answers.pdf",
     "mock-exam-weeks01-15": "DSA27-QB-Mock-Exam-Weeks01-15.pdf",
 }
 
