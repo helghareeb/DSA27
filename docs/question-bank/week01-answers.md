@@ -109,6 +109,87 @@ the screen, but it is not *returned*. Tests see only what is returned.
 **W1-M24 — d.** `int()` of a string accepts only an integer literal. Use
 `int(float("4.5"))` if truncation is really what you want.
 
+**W1-M25 — c.** "A portable assembler; trust the programmer" is C's founding
+decision. A bounds check costs time on every access, so C leaves it out. It is
+not a bug (a). Python is not compiled to machine code (b); it checks because its
+designers preferred a loud failure to silent corruption.
+
+**W1-M26 — a.** A Python `int` grows as large as memory allows, so the answer is
+exact. Wrapping round (b) is what a fixed-size C integer does. `OverflowError`
+(c) is raised by some *float* operations, not by `int` arithmetic, and (d) would
+need a float in the expression.
+
+**W1-M27 — d.** `tests/` calls each function with arguments and checks what it
+returns, and a test cannot type at a keyboard. `input()` exists in Python 3 (c)
+and returns a **string** (b), never an `int`.
+
+**W1-M28 — b.** `:03d` means an integer, at least 3 wide, padded with zeros:
+`007`. `:.2f` means two digits after the point: `3.14`. (a) ignores the format,
+and (d) has the wrong precision.
+
+**W1-M29 — a.** `b = a` makes two names for one list. Then `a = a + [4]` builds a
+**new** list and rebinds only `a`. `b` still names the old list, so
+`b.append(5)` changes only that one. (b) and (c) assume that `+` changes the
+list in place; `append` does, `+` does not.
+
+**W1-M30 — d.** The list holds references, as the ladder in Lecture 01 shows, so
+the objects themselves can be of any type. Nothing is converted (a), and Python
+lists declare no element type (b).
+
+**W1-M31 — b.** Correctness first, because a fast wrong answer is worthless;
+then time, then space. (a) puts speed before correctness, which is exactly the
+habit the lecture warns against.
+
+**W1-M32 — a.** Big-O describes growth and throws constant factors away. Binary
+search does more work per step, so at small n linear search can win: the
+**crossover point** that a measurement shows. The measurement is not wrong (b),
+and binary search is $O(\log n)$ at every size (c).
+
+**W1-M33 — c.** $O(n^2)$: ten times the data means $10^2 = 100$ times the work,
+so about 200 seconds. (a) is what an $O(n)$ program would do.
+
+**W1-M34 — b.** TIOBE counts search results, a proxy for how much people write
+about a language. The lecture keeps two uses for rankings, trends over years and
+"is it still alive?", so (d) goes too far, and neither (a) nor (c) follows from
+a search count.
+
+**W1-M35 — a.** Splitting on an exact separator keeps the empty string between
+two commas that are next to each other. It is `split()` with **no** argument
+that splits on runs of whitespace and drops empty pieces, which is where (b)
+comes from.
+
+**W1-M36 — d.** Most decimal fractions are not exact in binary
+(`0.1 + 0.1 + 0.1 == 0.3` is `False`), and the errors add up over many sums.
+Store the smallest unit as an `int`, which is exact. Floats can be negative (b)
+and go far above a million (c).
+
+**W1-M37 — b.** `find` returns `-1` when the substring is absent; `index` raises
+`ValueError` (`substring not found`). Neither returns `None` (d), and the error
+is a `ValueError`, not an `IndexError`.
+
+**W1-M38 — a.** The course studies how structures work and what they cost.
+Calling the built-in that does it for you hides both, which is why the course
+re-implements them and, from Lecture 02, forbids `list`, `dict` and `set` as
+storage inside `dsa/`. The built-ins are usually **faster** than student code,
+because they run in C, so (b) is the wrong way round.
+
+**W1-M39 — c.** Stroustrup's rule for C++ was that it should leave no gap below
+it. "Readability" is van Rossum's Python (a), "fewer features" is Go, by Pike,
+Thompson and Griesemer (b), and "trust the programmer" is Ritchie's C (d).
+
+**W1-M40 — d.** In Python the indentation *is* the block structure, so there is
+no separate layout that could be bad while the code stays the same. Nothing
+re-indents your code (a, c), and the indentation is not ignored (b).
+
+**W1-M41 — a.** `return a, b` returns **one** value, a tuple. Here `9 < 2` is
+false, so the second `return` gives `(2, 9)`, and `result[0]` is `2`. (c) takes
+the order of the arguments instead of the order returned.
+
+**W1-M42 — b.** `grid[:]` is a **shallow** copy: a new outer list holding the
+same inner lists. `copy[0][0] = 9` changes an inner list that both share, so
+`grid` sees it. `copy[1] = [7, 7]` rebinds a slot of the **new** outer list
+only, so `grid` does not see it, which rules out (c). (a) assumes a deep copy.
+
 ---
 
 # Part B — Short answer and essay
@@ -185,6 +266,59 @@ roughly one mark.
 - Diagram: two names, `a` and `b`, with arrows to one list object.
 - Consequence: `b.append(4)` changes what `a` shows. To get an independent list,
   copy it: `a[:]`, `a.copy()` or `list(a)` — and that copy is **shallow**.
+
+**W1-E7** *(4)*
+
+- **Why measure:** a claim about cost is a hypothesis. Timing the code over
+  growing n and plotting it against reference curves checks the claim instead
+  of arguing about it (`viz.complexity.measure` and `plot_growth`).
+- **What it shows that Big-O does not:** the **constant factors**, and so the
+  **crossover point**. Linear search can beat binary search at small n, because
+  binary search does more work per step, even though it wins at scale.
+- **How it can mislead:** one run is noisy, a small n hides the growth, and one
+  machine is not every machine.
+- **Avoiding it:** time many sizes over a wide range, repeat the runs and take
+  the best or the average, and judge the **shape** (the slope on a log–log
+  plot), not one number.
+
+**W1-E8** *(3)*
+
+- `def f(x): print(x * 2)` shows the value on the screen and returns `None`;
+  `def g(x): return x * 2` hands the value back to the caller.
+- A test sees only what is **returned**: `assert f(3) == 6` fails, because
+  `f(3)` is `None`, although "6" appeared on the screen.
+- Exercises take **parameters** and **return** results because a test can call
+  them with any input and check the output automatically. A function that calls
+  `input()` waits for a keyboard that a test does not have, and `print()` gives
+  the test nothing to check.
+
+**W1-E9** *(4)*
+
+- The real questions: best **for what task** (firmware, a web service, data
+  analysis…), **for whom** (one learner, or a large team for ten years), **by
+  which measure** (speed to write, speed to run, safety, hiring), and **when**
+  (this project, or one maintained until 2035).
+- Change any one of them and the answer changes, so "best" alone has no answer.
+- **Ecosystem**, any three: libraries, tooling (debugger, profiler, package
+  manager, test runner), community (answers already written),
+  interoperability (calling fast code written in another language), longevity.
+- **Why it beats syntax:** you stop noticing syntax after two weeks, but you
+  work inside the ecosystem for years. Whether someone has already solved your
+  problem, well, matters more than how a loop is spelt.
+
+**W1-E10** *(4)*
+
+- **C `int`** has a fixed size (usually 32 bits) and silently **wraps round**
+  when it overflows: $2^{31} - 1$ plus 1 becomes $-2^{31}$.
+- **Python `int`** grows as large as memory allows, so `2 ** 100` is exact. The
+  cost is that arithmetic on huge integers is **not $O(1)$**: it takes longer as
+  the number of digits grows.
+- A **`float`** is a 64-bit binary fraction. 0.1, 0.2 and 0.3 have no exact
+  binary form, so `0.1 + 0.2` is `0.30000000000000004`. This is not a bug; C,
+  Java and JavaScript do the same.
+- **Rules:** never compare floats with `==` after arithmetic (round them, or
+  test `abs(x - y) < 1e-9`), and never store money as a float (store piasters as
+  an `int`).
 
 ---
 

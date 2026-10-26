@@ -13,8 +13,8 @@ lang: en
 
 | Part | Type | Questions |
 |---|---|---|
-| A | Multiple choice (one correct answer of four) | W1-M01 – W1-M24 |
-| B | Short answer and essay | W1-E1 – W1-E6 |
+| A | Multiple choice (one correct answer of four) | W1-M01 – W1-M42 |
+| B | Short answer and essay | W1-E1 – W1-E10 |
 | C | Trace the code — what is printed? | W1-T1 – W1-T6 |
 | D | Find and fix the bug | W1-B1 – W1-B3 |
 | E | Write the code — checked by `pytest` | W1-C1 – W1-C4 |
@@ -196,6 +196,178 @@ What does `x = area(3, 4)` store in `x`?
 - **c)** returns `4.5`
 - **d)** raises `ValueError`
 
+**W1-M25** [why] In C, reading `a[10]` from a 5-element array returns whatever
+happens to be in memory; in Python, `a[10]` on a 5-element list raises
+`IndexError`. Which explanation matches Lecture 01?
+
+- **a)** C's compilers have a long-standing bug that was never fixed
+- **b)** Python checks the index because it is a compiled language
+- **c)** C was designed as a portable assembler that trusts the programmer, so it
+  does not pay for a bounds check; Python chose to fail loudly instead
+- **d)** C arrays are stored as linked lists, so the index cannot be checked
+
+**W1-M26** [how] What does Python print for `2 ** 64 + 1`?
+
+- **a)** `18446744073709551617`
+- **b)** `1`, because the value wraps around past 64 bits
+- **c)** it raises `OverflowError`
+- **d)** `1.8446744073709552e+19`
+
+**W1-M27** [why] Why do the course's exercises never call `input()`?
+
+- **a)** `input()` is too slow for large inputs
+- **b)** `input()` always returns an `int`, which is not always wanted
+- **c)** `input()` was removed in Python 3
+- **d)** a function that reads the keyboard cannot be tested automatically; the
+  exercises take parameters and return results instead
+
+**W1-M28** [how] What is `f'{7:03d}|{3.14159:.2f}'`?
+
+- **a)** `'7|3.14'`
+- **b)** `'007|3.14'`
+- **c)** `'700|3.141'`
+- **d)** `'007|3.1'`
+
+**W1-M29** [how] What does this print?
+
+```python
+a = [1, 2, 3]
+b = a
+a = a + [4]
+b.append(5)
+print(a, b)
+```
+
+- **a)** `[1, 2, 3, 4] [1, 2, 3, 5]`
+- **b)** `[1, 2, 3, 4, 5] [1, 2, 3, 4, 5]`
+- **c)** `[1, 2, 3, 4] [1, 2, 3, 4, 5]`
+- **d)** `[1, 2, 3, 5, 4] [1, 2, 3, 5]`
+
+**W1-M30** [why] `xs = [42, "hello", 3.14]` holds an `int`, a `str` and a
+`float` in one list. Why is that possible?
+
+- **a)** Python converts every element to a string when it is stored
+- **b)** a list declares a union type when it is created
+- **c)** a list grows when a bigger element is added
+- **d)** a list stores **references** to objects, not the objects themselves, and
+  every reference has the same size
+
+**W1-M31** [what] Lecture 01 lists three properties we care about in an
+algorithm. In the lecture's order, they are:
+
+- **a)** cost in time, cost in space, correctness
+- **b)** correctness, cost in time, cost in space
+- **c)** cost in time, cost in space, readability
+- **d)** readability, correctness, cost in time
+
+**W1-M32** [why] You time linear and binary search on a sorted list of 20 items,
+and linear search is faster. Does this contradict "binary search is
+$O(\log n)$, linear search is $O(n)$"?
+
+- **a)** No: Big-O ignores constant factors and describes how the cost grows for
+  large n; at small n, the constants can win
+- **b)** Yes: the measurement must have been wrong
+- **c)** No: binary search is $O(n)$ when n is below 100
+- **d)** Yes: Big-O applies only to unsorted input
+
+**W1-M33** [how] An $O(n^2)$ program takes 2 seconds on today's data. The data
+grows **ten times** larger. About how long will it take now?
+
+- **a)** 20 seconds
+- **b)** 40 seconds
+- **c)** 200 seconds
+- **d)** 4 seconds
+
+**W1-M34** [why] TIOBE ranked Visual Basic above Rust in September 2026. What
+does Lecture 01 conclude from rankings like this?
+
+- **a)** Visual Basic is the better language for new projects
+- **b)** The index counts search-engine hits, which says nothing about quality;
+  use rankings only to see trends and to check that a language is not dying,
+  never to choose a language for a task
+- **c)** Rust is dying and should not be learnt
+- **d)** All rankings are worthless and should never be read
+
+**W1-M35** [what] What is `'a,b,,c'.split(',')`?
+
+- **a)** `['a', 'b', '', 'c']`
+- **b)** `['a', 'b', 'c']`
+- **c)** `['a,b,,c']`
+- **d)** `['a', 'b', ',c']`
+
+**W1-M36** [why] A shop stores prices in pounds as `float` values and adds them
+up. Why does Lab 01 say not to, and what should it do instead?
+
+- **a)** floats are slower than ints; it should use strings
+- **b)** floats cannot hold negative values; it should use `abs()`
+- **c)** floats overflow above a million; it should use smaller units
+- **d)** amounts like 0.10 cannot be stored exactly in binary, so totals drift;
+  it should store whole piasters as `int`
+
+**W1-M37** [what] What do `'banana'.find('z')` and `'banana'.index('z')` do?
+
+- **a)** both return `-1`
+- **b)** `find` returns `-1`; `index` raises `ValueError`
+- **c)** `find` raises `ValueError`; `index` returns `-1`
+- **d)** `find` returns `None`; `index` raises `IndexError`
+
+**W1-M38** [why] Lecture 01 calls Python's built-in `list`, `dict`, `sorted` and
+`heapq` "the honest case against Python — for us". Why are they a problem in
+**this** course?
+
+- **a)** They already *are* the structures the course studies, so using them
+  would hide the mechanism and the cost that the course is about
+- **b)** They are slower than any structure a student can write
+- **c)** They are not part of the Python standard library
+- **d)** They make the tests run too fast to be measured
+
+**W1-M39** [what] Which pairing of designer, language and decision is correct?
+
+- **a)** Bjarne Stroustrup — Python — readability is worth paying for
+- **b)** Guido van Rossum — Go — fewer features, faster builds
+- **c)** Bjarne Stroustrup — C++ — leave no room for a lower-level language
+- **d)** Graydon Hoare — C — trust the programmer
+
+**W1-M40** [why] Lecture 01 says you cannot write badly-indented Python. Why?
+
+- **a)** Python editors re-indent your code before it runs
+- **b)** Python ignores indentation, so any indentation is fine
+- **c)** the interpreter repairs inconsistent indentation as it reads the file
+- **d)** indentation is part of Python's syntax: indent differently and you get a
+  different program (or an error), a decision made for readability
+
+**W1-M41** [how] What does this print?
+
+```python
+def min_max(a, b):
+    if a < b:
+        return a, b
+    return b, a
+
+result = min_max(9, 2)
+print(type(result).__name__, result[0])
+```
+
+- **a)** `tuple 2`
+- **b)** `list 2`
+- **c)** `tuple 9`
+- **d)** `int 2`
+
+**W1-M42** [how] What does this print?
+
+```python
+grid = [[0, 0], [0, 0]]
+copy = grid[:]
+copy[0][0] = 9
+copy[1] = [7, 7]
+print(grid)
+```
+
+- **a)** `[[0, 0], [0, 0]]`
+- **b)** `[[9, 0], [0, 0]]`
+- **c)** `[[9, 0], [7, 7]]`
+- **d)** `[[0, 0], [7, 7]]`
+
 ---
 
 # Part B — Short answer and essay
@@ -224,6 +396,24 @@ drawback?
 **W1-E6** [why] *(3 marks)* "In Python a variable is not a box holding a value;
 it is a name bound to an object." Explain this with a short code example and a
 diagram, and state one consequence for lists.
+
+**W1-E7** [why] *(4 marks)* "Measure, do not assert." Explain why the course
+asks you to measure an algorithm's cost, what a measurement shows that a Big-O
+table does not, and one way a measurement can mislead you, with how to avoid it.
+
+**W1-E8** [why] *(3 marks)* "`print` is not `return`." Explain the difference
+with a two-line function, say what a test sees in each case, and explain why
+the exercises use parameters and `return` rather than `input()` and `print()`.
+
+**W1-E9** [why] *(4 marks)* "Which language is best?" is not a question.
+Rewrite it as the real questions it hides, and explain why the **ecosystem** of
+a language matters more than its syntax, naming at least three parts of an
+ecosystem.
+
+**W1-E10** [how] *(4 marks)* Compare Python's `int` and `float` with C's `int`:
+what happens when a value gets very large, what that costs, and why
+`0.1 + 0.2 == 0.3` is `False`. State the two rules Lab 01 gives for working
+with floats.
 
 ---
 
