@@ -16,7 +16,10 @@ lang: en
 >
 > Slides: `DSA27-L04-slides.pdf` · Code: `dsa/dynamic_array.py` ·
 > Tests: `tests/test_dynamic_array.py` ·
-> Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html)
+> Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html) ·
+> Practise online: [Week 4 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-04/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-04/)) ·
+> [timed Lecture 4 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=4) ·
+> [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 
 :::
 
@@ -576,6 +579,26 @@ items to it. Keep both classes in a scratch file or the notebook, not in
 
 For item 3, follow the aggregate proof: where do the resizes happen, how much
 does each one copy, and what does the geometric series sum to?
+
+:::
+
+## Practise online
+
+- [**Week 4 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-04/): 40 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 9 questions. Write, then mark yourself against the marking points
+- [**Lecture 4 test**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=4): 20 questions, 25 minutes, timed
+- [**Midterm simulator**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/): Lectures 1–7, papers of up to 60 questions
+- In Arabic: [week 4](https://helghareeb.github.io/ar/quizzes/dsa27/week-04/) · [midterm](https://helghareeb.github.io/ar/quizzes/dsa27/midterm/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-04/>
+- Timed test on this lecture: <https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=4>
 
 :::
 

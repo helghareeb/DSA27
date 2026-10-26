@@ -18,7 +18,10 @@ lang: en
 >
 > Slides: `DSA27-L07-slides.pdf` · Code: `dsa/queue.py` ·
 > Tests: `tests/test_stack_queue.py` (the queue half) ·
-> Interactive demo: [Queue Lab](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html)
+> Interactive demo: [Queue Lab](https://helghareeb.github.io/DSA27/lectures/07-queues/queue-lab.html) ·
+> Practise online: [Week 7 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-07/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-07/)) ·
+> [timed Lecture 7 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=7) ·
+> [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 
 :::
 
@@ -591,6 +594,26 @@ takes minutes. Fit the slope of your log–log line and extrapolate: slope 2 mea
 
 For item 3, check your final answer with the given `__iter__`: `list(q)` should
 read the queue front to back.
+
+:::
+
+## Practise online
+
+- [**Week 7 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-07/): 40 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 9 questions. Write, then mark yourself against the marking points
+- [**Lecture 7 test**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=7): 20 questions, 25 minutes, timed
+- [**Midterm simulator**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/): Lectures 1–7, papers of up to 60 questions
+- In Arabic: [week 7](https://helghareeb.github.io/ar/quizzes/dsa27/week-07/) · [midterm](https://helghareeb.github.io/ar/quizzes/dsa27/midterm/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-07/>
+- Timed test on this lecture: <https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=7>
 
 :::
 

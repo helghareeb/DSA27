@@ -17,7 +17,10 @@ lang: en
 >
 > Slides: `DSA27-L02-slides.pdf` · Code: `dsa/array.py`, `dsa/array_ops.py` ·
 > Tests: `tests/test_array.py`, `tests/test_array_ops.py` ·
-> Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html)
+> Interactive demo: [Array Lab](https://helghareeb.github.io/DSA27/lectures/02-complexity-and-arrays/array-lab.html) ·
+> Practise online: [Week 2 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-02/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-02/)) ·
+> [timed Lecture 2 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=2) ·
+> [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 
 :::
 
@@ -981,6 +984,26 @@ for i in range(n):
 
 Hand in items 2–4 as one page (a PDF, or a notebook with the plot) through the
 channel the TAs announce.
+
+:::
+
+## Practise online
+
+- [**Week 2 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-02/): 44 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 10 questions. Write, then mark yourself against the marking points
+- [**Lecture 2 test**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=2): 20 questions, 25 minutes, timed
+- [**Midterm simulator**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/): Lectures 1–7, papers of up to 60 questions
+- In Arabic: [week 2](https://helghareeb.github.io/ar/quizzes/dsa27/week-02/) · [midterm](https://helghareeb.github.io/ar/quizzes/dsa27/midterm/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-02/>
+- Timed test on this lecture: <https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=2>
 
 :::
 

@@ -18,7 +18,8 @@ lang: en
 > promise about the **average**, and you should know exactly who can break it.
 >
 > Slides: `DSA27-L13-slides.pdf` · Code: `dsa/hashmap.py` ·
-> Tests: `tests/test_hashmap.py`
+> Tests: `tests/test_hashmap.py` ·
+> Practise online: [Week 13 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-13/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-13/))
 
 :::
 
@@ -863,6 +864,23 @@ For item 5, count probes by subclassing: a class that inherits from
 `OpenAddressingHashMap`, overrides `_probe`, and adds 1 to a counter for every
 index it passes on from `super()._probe(key)`. `tools/figures_l13.py` does
 exactly that, in `figure_probes`.
+
+:::
+
+## Practise online
+
+- [**Week 13 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-13/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 13](https://helghareeb.github.io/ar/quizzes/dsa27/week-13/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-13/>
 
 :::
 

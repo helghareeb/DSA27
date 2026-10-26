@@ -17,7 +17,8 @@ lang: en
 > code.
 >
 > Slides: `DSA27-L09-slides.pdf` · Code: `dsa/sorting.py` ·
-> Tests: `tests/test_sorting.py`
+> Tests: `tests/test_sorting.py` ·
+> Practise online: [Week 9 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-09/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/))
 
 :::
 
@@ -684,6 +685,23 @@ tuples that are "equal by their first item" are not equal to Python, so the
 sort orders them by their second item — which happens to be their arrival
 order. `test_insertion_sort_is_stable` uses cards that compare by key **only**
 for exactly this reason.
+
+:::
+
+## Practise online
+
+- [**Week 9 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-09/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 9](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-09/>
 
 :::
 

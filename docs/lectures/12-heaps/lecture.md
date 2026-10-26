@@ -17,7 +17,8 @@ lang: en
 > will ever use — the priority queue.
 >
 > Slides: `DSA27-L12-slides.pdf` · Code: `dsa/heap.py` ·
-> Tests: `tests/test_heap.py`
+> Tests: `tests/test_heap.py` ·
+> Practise online: [Week 12 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-12/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-12/))
 
 :::
 
@@ -797,6 +798,23 @@ step, and `draw_array_as_tree` to see it. For item 3, predict the last parent
 first. For item 4, a subclass of `MinHeap` whose `_beats` adds 1 to a counter
 and then returns `super()._beats(child, parent)` counts every comparison your
 code makes — the method of the measured figure. Lab 12 walks you through it.
+
+:::
+
+## Practise online
+
+- [**Week 12 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-12/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 12](https://helghareeb.github.io/ar/quizzes/dsa27/week-12/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-12/>
 
 :::
 

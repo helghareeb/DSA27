@@ -18,7 +18,8 @@ lang: en
 > four ways, and measure what happens when it stops being short.
 >
 > Slides: `DSA27-L11-slides.pdf` · Code: `dsa/tree.py` ·
-> Tests: `tests/test_tree.py`
+> Tests: `tests/test_tree.py` ·
+> Practise online: [Week 11 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-11/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-11/))
 
 :::
 
@@ -900,6 +901,23 @@ one child, and 50 is the root with two children. Draw the successor search for
 
 For item 4, the answer to "why 900" is the recursion limit — try 1,000 and read
 the error. Then explain why `contains` would still work on that tree.
+
+:::
+
+## Practise online
+
+- [**Week 11 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-11/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 11](https://helghareeb.github.io/ar/quizzes/dsa27/week-11/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-11/>
 
 :::
 

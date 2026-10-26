@@ -15,7 +15,10 @@ lang: en
 > number is printed next to it so you can check it yourself. You should check it
 > yourself.
 >
-> Slides: `DSA27-L01-slides.pdf` · Repository: <https://github.com/helghareeb/DSA27>
+> Slides: `DSA27-L01-slides.pdf` · Repository: <https://github.com/helghareeb/DSA27> ·
+> Practise online: [Week 1 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-01/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-01/)) ·
+> [timed Lecture 1 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=1) ·
+> [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 
 :::
 
@@ -887,6 +890,26 @@ for whether you can state a criterion, apply it, and be honest about the cost. A
 paragraph ending "…so I would choose Go, and I am giving up the library ecosystem
 I would have had in Python" earns full marks. A paragraph ending "…so Python is
 the best language" earns very few.
+
+:::
+
+## Practise online
+
+- [**Week 1 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-01/): 42 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 10 questions. Write, then mark yourself against the marking points
+- [**Lecture 1 test**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=1): 20 questions, 25 minutes, timed
+- [**Midterm simulator**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/): Lectures 1–7, papers of up to 60 questions
+- In Arabic: [week 1](https://helghareeb.github.io/ar/quizzes/dsa27/week-01/) · [midterm](https://helghareeb.github.io/ar/quizzes/dsa27/midterm/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-01/>
+- Timed test on this lecture: <https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=1>
 
 :::
 

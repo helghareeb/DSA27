@@ -18,7 +18,8 @@ lang: en
 > stack.
 >
 > Slides: `DSA27-L14-slides.pdf` · Code: `dsa/graph.py` ·
-> Tests: `tests/test_graph.py`
+> Tests: `tests/test_graph.py` ·
+> Practise online: [Week 14 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-14/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-14/))
 
 :::
 
@@ -936,6 +937,23 @@ rise with slope 2 on a log–log plot.
 
 For item 4, the specifications are in `docs/course/regulations/`; the lab
 shows how to draw the result with `viz.draw.draw_graph`.
+
+:::
+
+## Practise online
+
+- [**Week 14 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-14/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 14](https://helghareeb.github.io/ar/quizzes/dsa27/week-14/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-14/>
 
 :::
 

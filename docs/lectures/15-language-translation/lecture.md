@@ -18,7 +18,8 @@ lang: en
 > fifteen weeks and a map for the final exam.
 >
 > Slides: `DSA27-L15-slides.pdf` · Code: `dsa/translation.py` ·
-> Tests: `tests/test_translation.py`
+> Tests: `tests/test_translation.py` ·
+> Practise online: [Week 15 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-15/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-15/))
 
 :::
 
@@ -884,6 +885,23 @@ from memory on paper. What you cannot write on paper you do not yet know.
 The exact date and rules of the final exam will be announced by the faculty; the
 course guide (`docs/course/00-course-guide.md`) has the grading rules and their
 sources.
+
+:::
+
+## Practise online
+
+- [**Week 15 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-15/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 15](https://helghareeb.github.io/ar/quizzes/dsa27/week-15/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-15/>
 
 :::
 

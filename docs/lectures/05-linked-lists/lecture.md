@@ -18,7 +18,10 @@ lang: en
 >
 > Slides: `DSA27-L05-slides.pdf` · Code: `dsa/linked_list.py` ·
 > Tests: `tests/test_linked_list.py` ·
-> Interactive demo: [Linked List Lab](https://helghareeb.github.io/DSA27/lectures/05-linked-lists/linked-list-lab.html)
+> Interactive demo: [Linked List Lab](https://helghareeb.github.io/DSA27/lectures/05-linked-lists/linked-list-lab.html) ·
+> Practise online: [Week 5 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-05/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-05/)) ·
+> [timed Lecture 5 test](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=5) ·
+> [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)
 
 :::
 
@@ -599,6 +602,26 @@ last node. Almost every linked-list bug lives in one of those four.
 
 For item 3, remember to average fast operations over many repetitions, as the
 figure's legend says — a single $O(1)$ call is below the clock's resolution.
+
+:::
+
+## Practise online
+
+- [**Week 5 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-05/): 40 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 9 questions. Write, then mark yourself against the marking points
+- [**Lecture 5 test**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=5): 20 questions, 25 minutes, timed
+- [**Midterm simulator**](https://helghareeb.github.io/en/quizzes/dsa27/midterm/): Lectures 1–7, papers of up to 60 questions
+- In Arabic: [week 5](https://helghareeb.github.io/ar/quizzes/dsa27/week-05/) · [midterm](https://helghareeb.github.io/ar/quizzes/dsa27/midterm/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-05/>
+- Timed test on this lecture: <https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=5>
 
 :::
 

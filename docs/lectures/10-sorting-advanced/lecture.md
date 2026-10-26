@@ -18,7 +18,8 @@ lang: en
 > estimated.
 >
 > Slides: `DSA27-L10-slides.pdf` · Code: `dsa/sorting.py` (the second half) ·
-> Tests: `tests/test_sorting.py -k "merge or quick or heap"`
+> Tests: `tests/test_sorting.py -k "merge or quick or heap"` ·
+> Practise online: [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/))
 
 :::
 
@@ -944,6 +945,23 @@ $n(n-1)/2$ for `"first"`; for `"median3"`, a little over $n \log_2 n$.
 
 For item 5, predict before you run. (A hint: which of the tests compares
 values that are equal **but distinguishable**?)
+
+:::
+
+## Practise online
+
+- [**Week 10 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-10/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 10](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-10/>
 
 :::
 

@@ -16,7 +16,8 @@ lang: en
 > what weeks 1–7 expect of you.
 >
 > Slides: `DSA27-L08-slides.pdf` · Code: `dsa/searching.py` ·
-> Tests: `tests/test_searching.py`
+> Tests: `tests/test_searching.py` ·
+> Practise online: [Week 8 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-08/) ([عربي](https://helghareeb.github.io/ar/quizzes/dsa27/week-08/))
 
 :::
 
@@ -534,6 +535,47 @@ the WhatsApp channel. Until then, the safest preparation is the one the final
 rewards: the weekly question banks, done **before** reading their answers, and
 the mock exam under exam conditions — in one sitting, closed book, no computer.
 Searching is not on the weeks 1–7 mock; it is on the final.
+
+:::
+
+## Practise online
+
+- [**Week 8 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-08/): 22 multiple-choice questions, every answer explained
+- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
+- In Arabic: [week 8](https://helghareeb.github.io/ar/quizzes/dsa27/week-08/)
+
+::: {.handout-only}
+
+Everything runs in the browser and keeps your results on your own device.
+Do the quiz **after** the homework, as a check, not instead of it: it
+shows you which ideas did not stick, and the explanation of each answer
+sends you back to the right part of this handout.
+
+- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-08/>
+
+:::
+
+## Train for the midterm online
+
+The [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/) draws a new paper from the bank every time:
+
+- [Full midterm](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#paper=full) — 60 questions, 90 min
+- [Exam format](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#paper=format) — 30 questions + 30 marks written, 2 h
+- [Half paper](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#paper=half) — 30 questions, 45 min
+- [Explain-level challenge](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#paper=why) — 25 "why" questions
+- [My weak spots](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#paper=weak) · [My mistakes](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#paper=wrongs)
+- One lecture, 20 questions: [1](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=1) · [2](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=2) · [3](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=3) · [4](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=4) · [5](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=5) · [6](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=6) · [7](https://helghareeb.github.io/en/quizzes/dsa27/midterm/#lecture=7)
+
+On paper: [mock exam, weeks 1–7](../../question-bank/mock-exam-weeks01-07.md) and
+[mock exam B](../../question-bank/mock-exam-b-weeks01-07.md), with its own
+[answers](../../question-bank/mock-exam-b-weeks01-07-answers.md).
+
+::: {.handout-only}
+
+The same page in Arabic: <https://helghareeb.github.io/ar/quizzes/dsa27/midterm/>. Each link above opens the simulator with
+that paper already chosen, so you can bookmark it or share it with your group;
+add `&code=ABC123` (any letters and digits) to a link and everyone who opens it
+gets the same paper.
 
 :::
 
