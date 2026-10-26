@@ -13,12 +13,16 @@ lang: en
 
 | Q | Ans | Q | Ans | Q | Ans | Q | Ans |
 |---|---|---|---|---|---|---|---|
-| M01 | a | M07 | c | M13 | a | M19 | c |
-| M02 | c | M08 | d | M14 | b | M20 | d |
-| M03 | b | M09 | a | M15 | c | M21 | a |
-| M04 | d | M10 | b | M16 | d | M22 | b |
-| M05 | a | M11 | c | M17 | a | | |
-| M06 | b | M12 | d | M18 | b | | |
+| M01 | a | M11 | c | M21 | a | M31 | c |
+| M02 | c | M12 | d | M22 | b | M32 | d |
+| M03 | b | M13 | a | M23 | c | M33 | a |
+| M04 | d | M14 | b | M24 | a | M34 | b |
+| M05 | a | M15 | c | M25 | d | M35 | c |
+| M06 | b | M16 | d | M26 | b | M36 | d |
+| M07 | c | M17 | a | M27 | c | M37 | c |
+| M08 | d | M18 | b | M28 | d | M38 | a |
+| M09 | a | M19 | c | M29 | a | M39 | d |
+| M10 | b | M20 | d | M30 | b | M40 | b |
 
 **W4-M01 — a.** `len` is the number of elements the user stored. The capacity (b)
 is internal; showing it would expose the implementation.
@@ -85,6 +89,85 @@ nodes.
 **W4-M22 — b.** One coin for the append's own write, two saved to pay for copying
 at the next doubling.
 
+**W4-M23 — c.** Resizes on appends 2, 3 and 5 take the capacity 1 → 2 → 4 → 8;
+the sixth append fits. `len` is the size, 6. (a) confuses size with capacity;
+(d) grows by a factor of 3 from 4.
+
+**W4-M24 — a.** The `Array` has all `capacity` slots (so (b) is wrong), but the
+ones beyond `size` are not part of the user's data. Reading one must be an
+`IndexError`, not a silent `None` — W4-B2 is exactly this bug.
+
+**W4-M25 — d.** Appends 2, 3, 5 and 9 find the array full: 4 resizes, capacity
+1 → 2 → 4 → 8 → 16. (c) gives the size as the capacity; (a) misses the 9th
+append, which finds 8 of 8 slots used.
+
+**W4-M26 — b.** Allocate, copy, switch — Lecture 04's three steps. An `Array`
+cannot grow in place (a), and the dynamic array is one contiguous block, not a
+chain of blocks (d).
+
+**W4-M27 — c.** An array's speed comes from being one contiguous block, and the
+memory after it is not guaranteed to be free. So a larger block is made
+elsewhere, and everything is copied. (b) is backwards: a contiguous block is
+exactly what keeps indexing $O(1)$.
+
+**W4-M28 — d.** The array is full, so `insert_at` first resizes: 8 copies. Then
+all 8 elements shift one place right to free slot 0: 8 more. Then `"x"` is
+written. (a) forgets one of the two, and (b) counts the new element as a moved
+one.
+
+**W4-M29 — a.** `pop(2)` returns `a[2]`, which is 30, and 40 and 50 shift left to
+close the gap. (c) counts from 1; (d) also counts the removed element.
+
+**W4-M30 — b.** The course `DynamicArray.pop` shifts and clears a slot, but never
+resizes: the capacity stays 16. Shrinking at one quarter (c) is the Homework 4
+extension, `ShrinkingArray` (W4-C3), not the course class.
+
+**W4-M31 — c.** Resizes copy 1, 2, 4, …; the last one happens when the size is
+$2^{19} = 524288$, because $2^{20}$ is over a million. (a) and (b) would need the
+array to be full at that size, which it never is; (d) is the number of resizes,
+not the size of the largest.
+
+**W4-M32 — d.** The copies are $1 + 3 + 9 + \dots + 3^k = (3^{k+1} - 1)/2$ with
+$3^k < n$, which is less than $1.5 \cdot 3^k < 1.5n$ — the general bound
+$n \cdot r/(r-1)$ with r = 3. (b) is true but weaker, and (c) is not even linear.
+
+**W4-M33 — a.** A bound on the **total** of any sequence, shared over its
+operations, is amortised. (b), (c) and (d) each bound one operation: worst-case
+statements.
+
+**W4-M34 — b.** `make_block(1 * 1.5)` asks for 1.5 slots, and the `Array` raises
+`TypeError: 'float' object cannot be interpreted as an integer`. A factor of 1.5
+is fine in theory — (a) and (c) are wrong — it only needs rounding to a whole
+number, as Lecture 04 shows.
+
+**W4-M35 — c.** The first append fits. The second finds the array full and calls
+`_resize(1 * 1)`, which copies into a new block of the **same** size, so the write
+to slot 1 raises `IndexError`. A factor of 1 is not growth at all, and certainly
+not growth by one slot (a).
+
+**W4-M36 — d.** Constant-step copying is quadratic, about $n^2/(2 \times 10)$:
+double n and the copies multiply by about 4 (3,196,800 in fact). (b) is what
+doubling gives — linear.
+
+**W4-M37 — c.** `__setitem__` accepts the same indices as `__getitem__`, 0 to
+size − 1. Slot 5 is not yet an element, so it is an `IndexError`, as it is for a
+Python list; writing never changes the size (a). To add an element, use
+`append` (d).
+
+**W4-M38 — a.** After the resize to capacity 8 at size 4, the appends of elements
+5, 6, 7 and 8 each paid 1 coin for their own write and saved 2: 8 coins, exactly
+enough to copy 8 elements. Earlier appends' coins (b) were spent on earlier
+resizes; nothing is borrowed (d) — the bank never goes negative.
+
+**W4-M39 — d.** Append 2 sees size 1 = capacity 1 and resizes to a 2-slot block,
+but `_capacity` stays 1. From then on `size == _capacity` is never true again, so
+there are no more resizes: append 3 writes to slot 2 of a 2-slot block and raises
+`IndexError`. (b) is the bug of W4-B1.
+
+**W4-M40 — b.** `append` and `insert_at` add an element, so either may find the
+array full. `pop` never resizes in the course class (c), and `__setitem__` only
+overwrites an existing slot (d).
+
 ---
 
 # Part B — Short answer and essay
@@ -147,6 +230,53 @@ at the next doubling.
 - Any factor > 1 keeps append amortised O(1). CPython chooses a small one because
   Python programs create huge numbers of lists, most of them small, so the saved
   memory matters more than the extra copying.
+
+**W4-E6** *(4)*
+
+- **Bounds:** `0 <= 1 <= 4` holds. **Full:** size 4 = capacity 4, so resize to
+  8: allocate an `Array(8)` and copy `a b c d` — **4 copies**.
+- **Shift right**, from the end down to the gap: `d` to slot 4, `c` to 3, `b` to
+  2 — **3 shifts**. Then write `"x"` into slot 1; size becomes 5.
+- **Result:** `a x b c d`, size 5, capacity 8; 7 elements moved, plus 1 write.
+- **Why first:** the first shift writes into slot `size`, which does not exist in
+  a full block, so shifting before resizing raises `IndexError`.
+
+**W4-E7** *(4)*
+
+- **Stack:** the top is the **end** of the `DynamicArray`, so push is `append`
+  (amortised $O(1)$), and pop and peek touch only the last slot ($O(1)$).
+- **SlowQueue:** enqueue is `append` (amortised $O(1)$), but dequeue is
+  `pop(0)`, which shifts every remaining element: $O(n)$ — the cost Week 7
+  measures.
+- The structure's costs are the `DynamicArray`'s costs at the end it uses: the
+  stack chose the cheap end; the queue cannot avoid the expensive one. (`MinHeap`
+  adds a leaf with `append`; `Graph` keeps each neighbour list in one.)
+- **Bugs travel:** these classes call your `append`, `pop` and `__getitem__`, so
+  a wrong bound or a broken resize fails *their* tests too — the storage rule
+  makes week 4 the foundation of weeks 6, 7, 12 and 14.
+
+**W4-E8** *(3)*
+
+- Charge every append **3 coins**: 1 pays for its own write, 2 are saved in the
+  bank.
+- At a resize from capacity c to 2c, the c/2 appends since the previous resize
+  have saved $2 \cdot c/2 = c$ coins — exactly enough to copy the c elements.
+- So the balance never goes negative: every resize is paid for by coins already
+  saved. Total cost ≤ 3n, amortised $O(1)$ per append.
+
+**W4-E9** *(4)*
+
+- **The risk:** amortised $O(1)$ bounds the **total**, not each append. The
+  append that finds the array full copies everything — with a million records,
+  one frame does a million copies and the game stutters.
+- **Fix 1 — reserve:** allocate enough capacity in advance for the expected
+  number of records, so no resize happens during play.
+- **Fix 2 — spread the copy:** when the array is half full, allocate the bigger
+  block and copy a few old elements on each later append, so the copy is finished
+  before the old block fills; every append is then worst-case $O(1)$.
+- Also acceptable: store the records in a chain of fixed-size blocks (as
+  `collections.deque` does) or in a linked list — worst-case $O(1)$ append, at a
+  cost in memory and locality.
 
 ---
 
