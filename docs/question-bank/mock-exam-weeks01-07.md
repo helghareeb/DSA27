@@ -14,6 +14,11 @@ lang: en
 > answers are in the weekly answers files — look them up **only after** you have
 > finished and marked yourself.
 >
+> A second paper, [mock exam B](mock-exam-b-weeks01-07.md), prints every
+> question in full and has its own [answers](mock-exam-b-weeks01-07-answers.md).
+> For a new timed paper every time, use the
+> [online midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/).
+>
 > The format follows the final: **30 marks of multiple choice, 30 marks of
 > written answers.** The midterm's own format and date will be announced in the
 > lecture and on the WhatsApp channel.
