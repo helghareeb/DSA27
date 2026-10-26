@@ -14,8 +14,8 @@ lang: en
 
 | Part | Type | Questions |
 |---|---|---|
-| A | Multiple choice (one correct answer of four) | W5-M01 – W5-M22 |
-| B | Short answer and essay | W5-E1 – W5-E5 |
+| A | Multiple choice (one correct answer of four) | W5-M01 – W5-M40 |
+| B | Short answer and essay | W5-E1 – W5-E9 |
 | C | Trace the code | W5-T1 – W5-T5 |
 | D | List state — draw every step | W5-S1 – W5-S3 |
 | E | Complexity analysis | W5-K1 – W5-K3 |
@@ -201,6 +201,177 @@ structure?
 - **c)** in the heap
 - **d)** in the course `Array`
 
+**W5-M23** [why] What is printed?
+
+```python
+ll = LinkedList([1, 2, 3, 4])
+node = ll.head.next
+node.next = node.next.next
+print(list(ll), len(ll))
+```
+
+- **a)** `[1, 2, 4] 3`
+- **b)** `[1, 3, 4] 3`
+- **c)** `[1, 2, 4] 4`
+- **d)** `[1, 2, 3, 4] 4`
+
+**W5-M24** [how] On a list of 6 nodes, `insert_at(4, x)` runs. How many times
+does `prev = prev.next` run?
+
+- **a)** 6
+- **b)** 5
+- **c)** 4
+- **d)** 3
+
+**W5-M25** [what] `ll = LinkedList([1, 2, 3])`. Which call raises `IndexError`?
+
+- **a)** `ll[3]`
+- **b)** `ll.insert_at(3, 9)`
+- **c)** `ll[-1]`
+- **d)** `ll.insert_at(0, 9)`
+
+**W5-M26** [what] In a list with a sentinel node, the list is empty when:
+
+- **a)** `self.sentinel is None`
+- **b)** `self.sentinel.next is None`
+- **c)** `self.sentinel.value is None`
+- **d)** the sentinel has been removed
+
+**W5-M27** [how] In a doubly linked list, `x` is a node that is neither the first
+nor the last. Which two assignments remove it from the list?
+
+- **a)** `x.next = x.prev` and `x.prev = x.next`
+- **b)** `x.prev = None` and `x.next = None`
+- **c)** `x.prev.next = x.next` and `x.next.prev = x.prev`
+- **d)** `x.prev.next = x.prev` and `x.next.prev = x.next`
+
+**W5-M28** [how] A new node is inserted between two neighbouring nodes `a` and
+`b` of a **doubly** linked list. How many references must be set, counting the
+new node's own?
+
+- **a)** 1
+- **b)** 2
+- **c)** 3
+- **d)** 4
+
+**W5-M29** [why] A student adds `_tail` to the list. Their `append` decides
+"empty" by testing `self._tail is None`, and their `pop_front` updates `head`
+and `_size` but never `_tail`. What does this print?
+
+```python
+ll = LinkedList([7])
+ll.pop_front()
+ll.append(5)
+print(list(ll), len(ll))
+```
+
+- **a)** `[] 1`
+- **b)** `[5] 1`
+- **c)** `[7, 5] 2`
+- **d)** it raises `AttributeError`
+
+**W5-M30** [how] `reverse()` runs on 1 → 2 → 3. After the **first** pass of the
+loop body, what is the state?
+
+- **a)** `prev` is `None`, `current` is `Node(2)`, `Node(1).next` is `Node(2)`
+- **b)** `prev` is `Node(1)`, `current` is `Node(2)`, `Node(1).next` is `None`
+- **c)** `prev` is `Node(2)`, `current` is `Node(3)`, `Node(2).next` is `Node(1)`
+- **d)** `prev` is `Node(1)`, `current` is `Node(2)`, `Node(1).next` is `Node(2)`
+
+**W5-M31** [why] Suppose `insert_at` had **no** `index == 0` case and went
+straight to the walk. What would `insert_at(0, 9)` do to `[1, 2, 3]`?
+
+- **a)** `[9, 1, 2, 3]`, as it should
+- **b)** raise `IndexError`
+- **c)** give `[1, 9, 2, 3]`: `range(-1)` is empty, so the node goes after the head
+- **d)** loop for ever
+
+**W5-M32** [what] `ll = LinkedList([4, 2, 4])`, then `ll.remove(4)`. Now
+`list(ll)` is:
+
+- **a)** `[2]`
+- **b)** `[4, 2]`
+- **c)** `[4, 2, 4]`
+- **d)** `[2, 4]`
+
+**W5-M33** [why] Walking a dynamic array and walking a linked list are both
+$O(n)$, yet the array walk is usually several times faster. Why?
+
+- **a)** The array walk is really $O(\log n)$
+- **b)** Each step of the list walk must update `_size`
+- **c)** The array's references are contiguous and the processor reads memory in
+  blocks; nodes are scattered, so each `next` may jump elsewhere
+- **d)** Python copies every node as the walk reaches it
+
+**W5-M34** [why] In a **circular** list the last node points back to the first.
+What does the usual loop `while node is not None:` do on it?
+
+- **a)** It loops for ever, because no `next` is ever `None`
+- **b)** It visits every node once and stops
+- **c)** It raises `AttributeError` at the end
+- **d)** It stops when it returns to the head
+
+**W5-M35** [how] What is printed?
+
+```python
+a, b, c = Node(1), Node(2), Node(3)
+a.next = b
+b.next = c
+b.next, c.next = None, b
+print(a.next.value, c.next.value, b.next)
+```
+
+- **a)** `2 3 None`
+- **b)** `2 2 None`
+- **c)** `3 2 None`
+- **d)** `2 None 3`
+
+**W5-M36** [what] `LinkedList().pop_front()`:
+
+- **a)** returns `None`
+- **b)** returns 0
+- **c)** raises `AttributeError`
+- **d)** raises `IndexError`
+
+**W5-M37** [why] You hold a reference `node` to a node in the middle of a long
+**singly** linked list. Inserting a new node immediately **before** it costs:
+
+- **a)** $O(1)$, like inserting after it
+- **b)** amortised $O(1)$
+- **c)** $O(n)$: the node before it must be found by walking from the head
+- **d)** $O(\log n)$
+
+**W5-M38** [how] What is printed?
+
+```python
+ll = LinkedList()
+for v in [3, 1, 2]:
+    ll.push_front(v)
+ll.append(ll.pop_front())
+print(list(ll))
+```
+
+- **a)** `[1, 3, 2]`
+- **b)** `[2, 1, 3]`
+- **c)** `[3, 1, 2]`
+- **d)** `[1, 2, 3]`
+
+**W5-M39** [what] `insert_at(2, x)` on a **singly** linked list of 5 nodes. How
+many references held by nodes that were **already** in the list change?
+
+- **a)** none
+- **b)** 2
+- **c)** 3, the nodes after the gap
+- **d)** 1, `prev.next`
+
+**W5-M40** [why] A singly linked list with `head` and `_tail` is reversed in
+place. What must happen to `_tail`?
+
+- **a)** Nothing: the last node does not change
+- **b)** It must refer to the old first node, which can be saved before the loop
+- **c)** It must be found by a walk after the loop, an extra $O(n)$
+- **d)** It must be set to `None`
+
 ---
 
 # Part B — Short answer and essay
@@ -222,6 +393,28 @@ is still $O(n)$.
 
 **W5-E5** [why] *(3 marks)* Explain what a doubly linked list and a sentinel node
 each fix, and what each costs.
+
+**W5-E6** [why] *(4 marks)* A music player keeps a playlist. The user presses
+*next* and *previous*, and can delete the song that is playing. Which structure
+would you choose: a dynamic array, a singly linked list or a doubly linked list?
+Give the cost of each of the three actions in your choice, and say why each of
+the other two is worse.
+
+**W5-E7** [how] *(4 marks)* Explain `insert_at(index, value)` step by step: the
+check on `index`, the case `index == 0`, the walk, and the splice. Why does the
+walk stop after `index - 1` steps? Give the best-case and worst-case cost, and
+show what goes wrong if the loop is written `for _ in range(index):`, both for
+an index in the middle and for `index == len(ll)`.
+
+**W5-E8** [why] *(3 marks)* A linked list and a dynamic array are both $O(n)$ to
+walk, yet measurement shows the array is faster and smaller. Explain both
+differences, with numbers for CPython. When is the linked list still the right
+choice?
+
+**W5-E9** [why] *(4 marks)* Explain how `reverse()` reverses a list in place
+with three references. State what `prev` and `current` mean at the start of each
+pass of the loop, why `following` must be saved first, and why the extra space
+is $O(1)$. Compare with building a reversed copy with `push_front`.
 
 ---
 

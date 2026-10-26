@@ -13,12 +13,16 @@ lang: en
 
 | Q | Ans | Q | Ans | Q | Ans | Q | Ans |
 |---|---|---|---|---|---|---|---|
-| M01 | a | M07 | b | M13 | a | M19 | c |
-| M02 | c | M08 | d | M14 | b | M20 | d |
-| M03 | b | M09 | a | M15 | c | M21 | a |
-| M04 | d | M10 | c | M16 | d | M22 | b |
-| M05 | a | M11 | b | M17 | a | | |
-| M06 | c | M12 | d | M18 | b | | |
+| M01 | a | M11 | b | M21 | a | M31 | c |
+| M02 | c | M12 | d | M22 | b | M32 | d |
+| M03 | b | M13 | a | M23 | c | M33 | c |
+| M04 | d | M14 | b | M24 | d | M34 | a |
+| M05 | a | M15 | c | M25 | a | M35 | b |
+| M06 | c | M16 | d | M26 | b | M36 | d |
+| M07 | b | M17 | a | M27 | c | M37 | c |
+| M08 | d | M18 | b | M28 | d | M38 | a |
+| M09 | a | M19 | c | M29 | a | M39 | d |
+| M10 | c | M20 | d | M30 | b | M40 | b |
 
 **W5-M01 — a.** The order is in the links themselves; there are no indices (b)
 and no separate order (d).
@@ -86,6 +90,88 @@ removes a *name*.
 **W5-M22 — b.** `ChainingHashMap` (Week 13) stores an `Array` of chains of `Entry`
 nodes.
 
+**W5-M23 — c.** `node` is the second node, and `node.next = node.next.next`
+skips node 3, so the walk finds `[1, 2, 4]`. But the change bypassed the list's
+methods, so `_size` was never decremented and `len` still says 4. (a) is what
+`remove(3)` would leave. (b) skips the wrong node.
+
+**W5-M24 — d.** `prev` must stop on the node **before** the gap, at index 3.
+It starts at index 0, so `range(index - 1)` moves it 3 times. 4 (c) is one step
+too far: the new node would land at index 5.
+
+**W5-M25 — a.** Reading allows `0 <= index < len`, so `ll[3]` is out of range.
+Inserting allows `0 <= index <= len`, so (b) is a legal append at the end and
+(d) is `push_front`. `ll[-1]` (c) is 3: `__getitem__` adds `_size` to a
+negative index.
+
+**W5-M26 — b.** The sentinel is permanent. It is never `None` (a) and never
+removed (d), and its value is meaningless (c). The first real node is
+`sentinel.next`, so no real node means `sentinel.next is None`.
+
+**W5-M27 — c.** The node before `x` must point past it, and the node after `x`
+must point back past it. (a) and (b) change only `x`'s own references, which
+leaves the neighbours still linked to `x`. (d) makes each neighbour point at
+itself.
+
+**W5-M28 — d.** `new.prev = a`, `new.next = b`, `a.next = new` and
+`b.prev = new`. A singly linked list needs only two of these, which is the
+"twice the bookkeeping" of the doubly linked list.
+
+**W5-M29 — a.** After `pop_front`, `head` is `None` but `_tail` still refers to
+the old node 7. `append` sees a tail that is not `None`, so it links 5 after
+that dead node and never sets `head`. The walk from `head` finds nothing, while
+`_size` went from 0 to 1. It fails silently and raises no error (d). Every
+method that can empty the list must clear `_tail`.
+
+**W5-M30 — b.** The body saves `following = Node(2)`, turns `Node(1).next` round
+to `prev`, which is `None`, then steps forward: `prev` becomes `Node(1)` and
+`current` becomes `Node(2)`. (d) forgets that the link was turned. (c) is the
+state after the **second** pass.
+
+**W5-M31 — c.** `range(0 - 1)` is empty, so `prev` stays on the head, and the new
+node is spliced in after it, at index 1. No error is raised (b), and the list is
+wrong. On an empty list `prev` is `None`, and `prev.next` raises
+`AttributeError`. Position 0 has no node before it, so the head itself must
+change: that is `push_front`.
+
+**W5-M32 — d.** `remove` stops at the **first** node holding the value: here it
+is the head (the special case), so `head` moves on and the second 4 stays. (a)
+would remove every 4.
+
+**W5-M33 — c.** It is a constant factor that Big-O hides. An array's references
+are contiguous, and memory is fetched in blocks (the cache). A list's nodes were
+created one at a time, wherever there was room. Both walks are $\Theta(n)$
+(a), and walking does not touch `_size` (b).
+
+**W5-M34 — a.** Every node has a successor, so `node` is never `None` and the
+loop never ends. A circular walk must stop when it comes back to its starting
+node. Nothing in the loop shown checks for that (d).
+
+**W5-M35 — b.** `a.next` is still `b`, whose value is 2. The tuple assignment
+sets `b.next = None` and `c.next = b`, so `c.next.value` is 2 too, and `b.next`
+prints `None`. (a) reads `c.next` as if it still pointed forward.
+
+**W5-M36 — d.** The contract raises `IndexError("pop from empty list")`, like
+`list.pop()`. Without the check, `self.head.value` would raise `AttributeError`
+(c) on `None`, which is W5-B3.
+
+**W5-M37 — c.** Inserting before a node means changing its **predecessor's**
+`next`, and a singly linked node has no reference back. Inserting **after** it
+is $O(1)$ (a). A doubly linked list makes both $O(1)$.
+
+**W5-M38 — a.** Three `push_front` calls build `[2, 1, 3]` (b), since the last
+one pushed is first. `pop_front` takes the 2, and `append` puts it at the end:
+`[1, 3, 2]`. The front value has moved to the back, a rotation.
+
+**W5-M39 — d.** Only the node at index 1 changes its `next`, to the new node.
+The new node's own `next` is set as it is made. Every node after the gap is
+untouched (c), which is why the splice is $O(1)$ once the walk has found `prev`.
+
+**W5-M40 — b.** After reversing, the old first node is the last node. Saving
+`old_head = self.head` before the loop and setting `self._tail = old_head` after
+it costs $O(1)$, so no walk is needed (c). The last node certainly changes (a),
+unless the list has at most one node.
+
 ---
 
 # Part B — Short answer and essay
@@ -148,6 +234,62 @@ nodes.
   a predecessor and there is no special case for the head (or for an empty list).
   Cost: one extra node, and every method must remember that the first real node is
   `sentinel.next`.
+
+**W5-E6** *(4)*
+
+- **Choice:** a doubly linked list, holding a reference to the current node.
+- **Costs:** *next* is `current = current.next`, $O(1)$. *Previous* is
+  `current = current.prev`, $O(1)$. *Delete the current song* is
+  `current.prev.next = current.next` and `current.next.prev = current.prev`,
+  $O(1)$, with the head and tail handled as special cases (or a sentinel).
+- **Singly linked:** *next* is $O(1)$, but *previous* and *delete* need the node
+  before the current one, so they mean a walk from the head, $O(n)$.
+- **Dynamic array**, holding an index: *next* and *previous* are $O(1)$, but
+  deleting shifts every later song left, $O(n)$.
+
+**W5-E7** *(4)*
+
+- **Steps:** raise `IndexError` unless `0 <= index <= len` (`index == len` means
+  "at the end"). If `index == 0`, call `push_front`, because there is no node
+  before the gap. Otherwise walk `prev` from the head `index - 1` steps, then
+  `prev.next = Node(value, prev.next)` and `_size += 1`.
+- **Why `index - 1`:** only the node **before** the gap holds the reference that
+  must change. It is at index `index - 1`, which is `index - 1` steps from the
+  head.
+- **Cost:** best case $O(1)$, at index 0 or 1. Worst case $O(n)$, at the end. The
+  splice itself is always $O(1)$.
+- **`range(index)`:** the walk goes one node too far. `insert_at(1, 9)` on
+  `[1, 2, 3]` gives `[1, 2, 9, 3]`, with no error. At `index == len`, `prev`
+  walks off the end to `None`, and `prev.next` raises `AttributeError`.
+
+**W5-E8** *(3)*
+
+- **Memory:** an array slot is one 8-byte reference. A `Node` with `__slots__`
+  is about 48 bytes on 64-bit CPython, six times as much per element, plus the
+  value object in both cases.
+- **Speed:** the array's references are contiguous and the processor reads
+  memory in blocks (the cache). Nodes are scattered, so every `next` may jump to
+  a new place. That is the same Big-O with a bigger constant.
+- **Still the right choice:** frequent insertion or removal at the front (a
+  stack); splicing at positions you already hold (an LRU cache, an editor's
+  buffer); never paying for a big copy at an unlucky moment; and short chains
+  inside a hash table.
+
+**W5-E9** *(4)*
+
+- **The invariant:** at the start of each pass, `prev` is the head of the part
+  already reversed (`None` at first) and `current` is the head of the part still
+  to reverse. The loop ends when `current` is `None`, and then `self.head = prev`.
+- **Each pass:** `following = current.next`, then `current.next = prev`, then
+  `prev, current = current, following`. That turns one link round and moves one
+  step forward.
+- **Why save `following` first:** once `current.next` points backwards, it is
+  the only reference to the rest of the list. Without the saved copy, the rest
+  is lost, and the loop steps back onto `prev` (W5-B4).
+- **Space:** three references, whatever n is, so $O(1)$ extra space and $O(n)$
+  time. A reversed copy built by `push_front` also takes $O(n)$ time, but it
+  makes n new nodes, which is $O(n)$ extra space, and it leaves the original
+  list unchanged.
 
 ---
 
