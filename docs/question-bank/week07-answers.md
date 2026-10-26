@@ -13,12 +13,16 @@ lang: en
 
 | Q | Ans | Q | Ans | Q | Ans | Q | Ans |
 |---|---|---|---|---|---|---|---|
-| M01 | b | M07 | c | M13 | d | M19 | c |
-| M02 | d | M08 | a | M14 | c | M20 | b |
-| M03 | a | M09 | b | M15 | a | M21 | d |
-| M04 | b | M10 | d | M16 | b | M22 | a |
-| M05 | c | M11 | a | M17 | d | | |
-| M06 | d | M12 | c | M18 | a | | |
+| M01 | b | M11 | a | M21 | d | M31 | c |
+| M02 | d | M12 | c | M22 | a | M32 | b |
+| M03 | a | M13 | d | M23 | c | M33 | d |
+| M04 | b | M14 | c | M24 | a | M34 | a |
+| M05 | c | M15 | a | M25 | d | M35 | c |
+| M06 | d | M16 | b | M26 | b | M36 | b |
+| M07 | c | M17 | d | M27 | c | M37 | d |
+| M08 | a | M18 | a | M28 | a | M38 | c |
+| M09 | b | M19 | c | M29 | d | M39 | a |
+| M10 | d | M20 | b | M30 | b | M40 | b |
 
 **W7-M01 — b.** Last in, first out (a) is a stack — Week 6.
 
@@ -87,6 +91,97 @@ total less than 2n over n enqueues — Lecture 04's argument.
 **W7-M22 — a.** Same two operations, a different rule — and a different
 structure underneath, the heap.
 
+**W7-M23 — c.** After four enqueues the ring is full (`1 2 3 4`, head 0). Two
+dequeues move head to 2, size 2. The tail is `(2 + 2) % 4 = 0`, so 5 goes into
+slot 0, freed by 1. Slot 4 (b) does not exist: that is the missing `%`. Head 0
+(a) forgets that dequeue moves the head; size 4 (d) counts the dequeued items.
+
+**W7-M24 — a.** The three dequeues leave D, E in slots 3 and 4, with head 3.
+F goes to `(3 + 2) % 5 = 0`, G to slot 1, and slot 2 is still empty. (b) is
+`list(q)`, the queue order, not the block. (d) forgets that `dequeue` clears the
+slot it read, so C is gone. (c) has seven slots in a five-slot block.
+
+**W7-M25 — d.** `_grow` copies in queue order: C D E F go to slots 0–3 and head
+becomes 0. Then G is written at `(0 + 4) % 8 = 4`. (a) is what happens if head
+is kept, which is the naive grow of W7-M09. (b) would overwrite the front.
+
+**W7-M26 — b.** The tail is still computed modulo 4: `(0 + 4) % 4 = 0`, so G
+overwrites C, the front, and `list(q)` reads `G D E F G`. No error is raised,
+which is what makes the bug dangerous: (c) is wrong. (a) is wrong because the
+arithmetic, not the block, decides where G goes.
+
+**W7-M27 — c.** The four dequeues read slots 0–3, so they work, and head ends
+at 4. The enqueue writes E at `(4 + 0) % 4 = 0`, which also works. Then the
+dequeue reads `self._block[4]`, and the `Array` raises `IndexError`. The bug
+hides until the head has gone once round the ring: (b) is what the correct
+code does.
+
+**W7-M28 — a.** After the first dequeue, head is `None` but tail still refers to
+the removed node 1. So `enqueue(2)` takes the `else` branch and links 2 after
+that dead node, and head stays `None`. The next dequeue finds head `None` and
+raises, although `len` says 1. The fix: when the queue becomes empty, reset
+`tail` to `None` too (W7-B4).
+
+**W7-M29 — d.** Each item costs at most four operations: push to `inbox`, pop
+from `inbox`, push to `outbox`, pop from `outbox`. Items 1–4 are dequeued, so
+4 × 4 = 16. Item 5 was poured but not dequeued, so 3 more: 19. Step by step:
+3 pushes; a pour of 3 items (6) and 1 pop; 2 pushes; 2 pops; a pour of 2 (4)
+and 1 pop. (b) and (a) forget to count the pours as two operations per item;
+(c) is not a real count.
+
+**W7-M30 — b.** One slot always stays empty, so that `head == tail` can only mean
+empty. Eight slots hold seven items. (a) would need a size field, which is what
+`dsa/queue.py` keeps.
+
+**W7-M31 — c.** The size is `(tail - head) % 8 = (2 - 3) % 8 = 7`, and full is
+defined as `(tail + 1) % 8 == head`: `3 == 3`. With one slot left unused, 7 is
+the most an 8-slot ring can hold, so (d) is impossible. (a) reads the distance
+the wrong way round; (b) confuses `tail + 1 == head` (full) with
+`head == tail` (empty).
+
+**W7-M32 — b.** The slot is outside the live part of the ring, so the queue is
+correct without clearing it (a, c and d are wrong: `is_empty` uses `_size`,
+`enqueue` uses `(head + size) % capacity`, and `__iter__` walks only `size`
+slots from head). But the block would keep a reference to the object, and
+Python's garbage collector could not free it.
+
+**W7-M33 — d.** A fixed block that overwrites its oldest entry is exactly a ring
+buffer. Brackets (a) and undo (b) need stacks; sorting (c) needs neither.
+
+**W7-M34 — a.** The queue gives breadth-first order: the children of `1` (10,
+11) are dequeued before the children of `10` (100, 101), and those before the
+children of `11` (110, 111). That is the binary numbers 1 to 6, in order. (b) follows one
+branch only (depth-first); (d) swaps 100 and 101; (c) enqueues `s + "1"` first.
+
+**W7-M35 — c.** Queue 1 2 3 4 5 6: move 1, 2, remove 3. Queue 4 5 6 1 2: move
+4, 5, remove 6. Queue 1 2 4 5: move 1, 2, remove 4. Queue 5 1 2: move 5, 1,
+remove 2. Queue 5 1: move 5, 1, remove 5. 1 is left. (a) removes 2 before 4: it
+loses track after the queue wraps.
+
+**W7-M36 — b.** The stack hands back the most recently found node first, so the
+search goes as deep as it can before backing up. That is why Week 14 puts `bfs`
+and `dfs_iterative` side by side: the loops are the same, and only the
+structure differs. (c) cannot happen as long as visited nodes are not added
+again.
+
+**W7-M37 — d.** `popleft()` removes the front in $O(1)$. `deque.pop()` (b)
+removes the **back**, and `deque.pop(0)` (a) is an error: `pop` takes no
+argument. On a `list`, `pop(0)` would work but costs $O(n)$. `deque` has no
+`dequeue` method (c).
+
+**W7-M38 — c.** When a reading arrives, subtract the value that leaves the window
+and add the new one: $O(1)$ per update. Adding up k values each time would cost
+$O(k)$. The ring can be iterated (a), and `_size` tells full from empty (b).
+
+**W7-M39 — a.** Slot of offset i is `(4 + i) % 6`, for i = 0 to 4: 4, 5, then
+round to 0, 1, 2. (b) forgets the `%`; (c) ignores head; (d) walks backwards.
+
+**W7-M40 — b.** With head = 0, the i-th item of the queue really is in slot i,
+so copying slot by slot happens to give the right order. The naive copy goes
+wrong only once the data has wrapped: on the ring of W7-M25 it gives
+`C D None None G`. So (a) is wrong. A test must wrap the ring **before** it grows
+it.
+
 ---
 
 # Part B — Short answer and essay
@@ -149,6 +244,58 @@ structure underneath, the heap.
   memory.
 - **`collections.deque`** combines them: a doubly linked list of fixed blocks —
   $O(1)$ at both ends, few allocations. It is what to use in real Python code.
+
+**W7-E6** *(4)*
+
+- **No `%` on the tail:** once the back reaches the end of the block, the write
+  goes to slot `capacity` and the `Array` raises `IndexError`, although there
+  are free slots at the front. Shortest: `CircularQueue(2)`: enqueue, enqueue,
+  dequeue, enqueue (tail = 1 + 1 = 2).
+- **No `%` on the head:** dequeues work until head reaches `capacity`; the next
+  dequeue reads slot `capacity` and raises. Shortest: `CircularQueue(1)`:
+  enqueue, dequeue (head = 1), enqueue (written to `(1 + 0) % 1 = 0`), dequeue.
+- **`_capacity` not updated in `_grow`:** the new block is bigger, but every
+  `%` still wraps at the old size, so the next enqueue after the grow overwrites
+  the front, silently. Shortest: fill a ring of capacity 1, enqueue twice more.
+- **Why the tests miss them:** while the ring has not wrapped, head is 0 and
+  `head + size` is below the capacity, so `%` changes nothing. Every test must
+  take the ring **round** at least once, and grow it after it has wrapped.
+
+**W7-E7** *(3)*
+
+- **Refuse (bounded):** raise an error, or make the producer wait, or drop data
+  when full. Memory is fixed. Used for audio and network buffers, and keyboard
+  buffers, where memory must not grow.
+- **Grow:** allocate a block twice as big and copy in queue order; enqueue stays
+  amortised $O(1)$. Used for general-purpose queues such as `collections.deque`.
+- **`level_order` and `bfs`** need a growing queue: they cannot know in advance
+  how many nodes will be waiting at once (a whole level of a tree, a whole
+  frontier of a graph), and refusing would make the search fail.
+
+**W7-E8** *(4)*
+
+- **enqueue:** make a node. If the queue is empty, it becomes both `head` and
+  `tail`; otherwise set `tail.next` to it and move `tail` to it. $O(1)$.
+- **dequeue:** `IndexError` if empty; otherwise take `head.value`, move `head`
+  to `head.next`; if `head` is now `None`, set `tail = None` too. $O(1)$.
+- **Front at the head:** removing at the head is $O(1)$; removing the last node
+  of a singly linked list needs the node before it, an $O(n)$ walk. So we add at
+  the tail and remove at the head.
+- **Stale tail:** `tail` still refers to the removed node. If `enqueue` tests
+  `tail` to detect emptiness, the new node is linked after that dead node and
+  `head` stays `None`: `len` says 1, but the next dequeue raises. (If it tests
+  `head`, the bug hides, but `tail` still keeps a dead node alive.)
+
+**W7-E9** *(3)*
+
+- A queue hands items back in the order they were **discovered**: everything at
+  one level is dequeued before anything at the next. From "1": dequeue 1,
+  enqueue 10, 11; dequeue 10, enqueue 100, 101; dequeue 11, enqueue 110, 111…
+- So the order is 1, 10, 11, 100, 101, 110, 111, …: the binary numbers in
+  increasing order, level by level (by length).
+- With a **stack**, the last item found comes out first: 1, 11, 111, 1111, …
+  (with `s + "0"` pushed before `s + "1"`). The search goes deep along one
+  branch and never comes back to 10. That is depth-first order, as in Week 14.
 
 ---
 
