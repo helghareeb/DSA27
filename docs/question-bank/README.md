@@ -37,7 +37,14 @@ Every question is tagged **[what]** (recall), **[how]** (apply) or **[why]**
 
 The multiple-choice part of every week is also an **[online quiz](https://helghareeb.github.io/en/quizzes/)**: pick an
 answer and you see at once whether it is right, with the explanation. Your answers stay on
-your device. The written parts are only here.
+your device. Each week's page also has its **written (essay) questions**: write your answer, open
+the model answer and its marking points, and mark yourself.
+
+**Midterm practice:** the **[midterm exam simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)**
+draws a fresh, timed paper from weeks 1–7 (up to 60 multiple-choice questions, with an optional written
+section) and gives you a report by lecture and by level. Choose a full midterm, the 30 + 30 exam format,
+a half paper, a sprint, your weak spots or your past mistakes, or set every option yourself; share a
+paper code and a whole group sits the same paper.
 
 | Week | Covers | Questions | Answers | Online quiz | Code |
 |---|---|---|---|---|---|
@@ -58,6 +65,7 @@ your device. The written parts are only here.
 | **15** | Lecture 15 (the principles of language translation) | [questions](week15-questions.md) | [answers](week15-answers.md) | [quiz](https://helghareeb.github.io/en/quizzes/dsa27/week-15/) | `practice/week15.py` |
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | | |
 | — | **[Mock exam, weeks 1–7](mock-exam-weeks01-07.md)** — midterm practice, no overlap with the weeks 1–3 paper | | in the weekly answer files | | |
+| — | **[Midterm exam simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)** — weeks 1–7, a new timed paper every time, up to 60 questions | | explained after you submit | [simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/) | |
 | — | **[Mock exam, weeks 1–15](mock-exam-weeks01-15.md)** — final practice, no overlap with the two earlier papers | | in the weekly answer files | | |
 
 Printable PDFs of every file are in [`docs/pdf/`](../pdf/) (`DSA27-QB-...`).
