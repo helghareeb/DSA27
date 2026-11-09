@@ -105,20 +105,26 @@ def kth_smallest(values, k):
     rng = random.Random(10)
     lo, hi, target = 0, len(a) - 1, k - 1
     while True:
-        p = rng.randint(lo, hi)
-        a[p], a[hi] = a[hi], a[p]
-        pivot, boundary = a[hi], lo
-        for j in range(lo, hi):                     # Lomuto, as in quick sort
-            if a[j] < pivot:
-                a[boundary], a[j] = a[j], a[boundary]
-                boundary += 1
-        a[boundary], a[hi] = a[hi], a[boundary]
-        if boundary == target:
-            return a[boundary]
-        if boundary < target:
-            lo = boundary + 1                       # the answer is on the right
+        pivot = a[rng.randint(lo, hi)]
+        # Three regions: < pivot, == pivot, > pivot. Equal keys are discarded
+        # together, so duplicate-heavy inputs do not cause quadratic work.
+        lt, scan, gt = lo, lo, hi
+        while scan <= gt:
+            if a[scan] < pivot:
+                a[lt], a[scan] = a[scan], a[lt]
+                lt += 1
+                scan += 1
+            elif pivot < a[scan]:
+                a[scan], a[gt] = a[gt], a[scan]
+                gt -= 1
+            else:
+                scan += 1
+        if target < lt:
+            hi = lt - 1
+        elif target > gt:
+            lo = gt + 1
         else:
-            hi = boundary - 1                       # the answer is on the left
+            return a[target]
 
 
 def sort_colours(values):

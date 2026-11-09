@@ -787,7 +787,8 @@ Lab 03 told you that `set` membership is "O(1) average"; now you know where the
 | find by key | **$O(1)$** avg | $O(\log n)$ | $O(\log n)$ |
 | insert, delete | **$O(1)$** avg, amortised | $O(n)$ | $O(\log n)$ |
 | min, max, in order | $O(n)$ — **no order** | $O(1)$, $O(n)$ | $O(\log n)$, $O(n)$ |
-| range `[a, b)`, next larger | **no** | $O(\log n)$ | $O(\log n)$ |
+| next larger | $O(n)$ scan | $O(\log n)$ | $O(\log n)$ |
+| report k range results | $O(n)$ scan | $O(\log n + k)$ | $O(\log n + k)$ |
 | worst case | $O(n)$ | guaranteed | guaranteed |
 
 ::: {.handout-only}
@@ -796,9 +797,12 @@ The hash table wins at exactly one thing — "is this key here, and what is its
 value?" — and that one thing is the most common question in software. It loses
 everything that depends on **order**. `lower_bound` (Week 8) can answer "how many
 values lie in [a, b)?" in $O(\log n)$; a hash table must look at every key,
-because hashing deliberately destroys order: 2027114 and 2027115 land far apart
-on purpose. So a database keeps both: a hash index for equality lookups, a tree
-(a B-tree) for ranges and sorting.
+because bucket order does not provide sorted-key order. Adjacent integer keys
+may even occupy adjacent buckets in our implementation; this still does not
+support a general ordered range search. Counting a range in a balanced BST in
+$O(\log n)$ additionally requires subtree-size metadata; balancing alone is
+not enough. Databases may offer hash indexes for equality and B-tree indexes
+for ranges and sorting.
 
 Choose by the questions you will ask. "Have I seen this before?", "count each
 word", "the value for this ID": hash table. "Everything between these two

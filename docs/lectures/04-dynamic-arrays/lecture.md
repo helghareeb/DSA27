@@ -245,8 +245,11 @@ each growth rule, on a logarithmic axis. Growing by 1 and growing by 100 are the
 same shape — quadratic — shifted apart by a constant. Doubling is a different
 shape: it stays under the dotted line 3n, for every n.
 
-This is the plot your `resize_count` lets you draw in the notebook
-`notebooks/04-dynamic-array.ipynb`.
+To reproduce this plot in `notebooks/04-dynamic-array.ipynb`, count copied
+elements separately: in a measurement copy of the class, add the old size to a
+`copied_elements` counter at each resize, then add n for the append writes.
+`resize_count` counts reallocations, not copied elements: with doubling, those
+counts grow logarithmically and linearly respectively.
 
 :::
 
@@ -361,8 +364,10 @@ and both are useful.
 Average-case analysis says: if the inputs are random in a certain way, the
 expected cost is this. It can be wrong for the inputs you actually get.
 
-Amortised analysis makes no assumption at all. It says: whatever you do, any n
-appends in a row cost at most 3n. There is no unlucky input that breaks it.
+Amortised analysis needs no probability distribution over inputs. Starting
+from an empty array of capacity 1, any n appends cost fewer than 3n writes and
+copies. Starting from an already-full array also requires accounting for its
+initial state: its very next append can copy the whole existing array.
 
 When would the worst case still matter? When *one* slow operation is a problem
 in itself — a game that must draw a frame every 16 milliseconds, a controller
@@ -610,8 +615,8 @@ sends you back to the right part of this handout.
 2. Full? **Allocate** a bigger Array, **copy** everything, **switch** — $O(n)$.
 3. Grow by a **constant** → $\Theta(n^2)$ for n appends. Grow by a **factor** →
    $\Theta(n)$.
-4. **Amortised $O(1)$**: any n appends cost < 3n. The worst single append is still
-   $O(n)$.
+4. **Amortised $O(1)$**: n appends from empty cost < 3n writes and copies with
+   doubling. The worst single append is still $O(n)$.
 5. Amortised is a **guarantee over a sequence**, not an average over inputs.
 6. Shrink at **one quarter** full, not one half — or it **thrashes**.
 7. Python's `list` is exactly this, growing by about **1/8**.

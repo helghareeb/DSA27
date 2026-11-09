@@ -252,8 +252,9 @@ catches C and Java programmers:
 
 ## 2.2 Integers never overflow
 
-In C an `int` is usually 32 bits and silently wraps around. A Python `int` grows
-as large as memory allows:
+In C an `int` is usually 32 bits; signed integer overflow is undefined
+behaviour, while unsigned arithmetic wraps modulo its range. A Python `int`
+grows as large as memory allows:
 
 ```python
 >>> 2 ** 100
@@ -509,8 +510,9 @@ There is no separate character type: `word[0]` is simply a string of length 1.
 The best way to remember slices: the indices point **between** characters, as in
 the diagram above. `word[2:5]` is everything between edge 2 and edge 5.
 
-The length of `s[i:j]` is `j - i` when both are in range. That "up to but not
-including" rule is why `range(n)` in Lab 02 stops at `n - 1`, and why so many
+For `0 <= i <= j <= len(s)`, the length of `s[i:j]` is `j - i`. If the
+start is after the stop, the slice is empty: `word[5:2]` is `''`. That "up to
+but not including" rule is why `range(n)` in Lab 02 stops at `n - 1`, and why so many
 algorithms in this course use *half-open* intervals `[lo, hi)`.
 
 Out-of-range **indices** are errors, but out-of-range **slices** are quietly

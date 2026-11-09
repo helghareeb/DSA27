@@ -176,6 +176,13 @@ def test_kth_smallest_is_linear_on_average(order):
     assert Counted.comparisons <= 8 * n, "sorting first is O(n log n): partition, keep one side"
 
 
+@pytest.mark.parametrize("values", [[7] * 2048, [0, 1, 2, 3] * 512])
+def test_kth_smallest_duplicate_heavy_comparison_cost(values):
+    items = counted(values)
+    assert kth_smallest(items, len(items)).value == max(values)
+    assert Counted.comparisons <= 10 * len(items)
+
+
 # -- W10-C4 sort_colours -------------------------------------------------------
 
 

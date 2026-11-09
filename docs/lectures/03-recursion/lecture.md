@@ -235,7 +235,7 @@ frames at once:
 |---|---|---|
 | `factorial(n)` | n + 1 frames | $O(n)$ |
 | `power(x, n)` by halving | about $\log_2 n$ frames | $O(\log n)$ |
-| `hanoi(n)` | n frames | $O(n)$ — though it makes $2^n$ calls |
+| `hanoi(n)` with base case n = 0 | n + 1 recursive frames | $O(n)$ stack; $\Theta(2^n)$ output |
 
 ```python
 >>> import sys
@@ -247,7 +247,9 @@ frames at once:
 
 Space is decided by the **deepest** point, not the total number of calls: frames
 are popped as calls return, so they do not accumulate. `hanoi(20)` makes over a
-million calls, but never more than 20 are on the stack at once.
+million calls, but its recursive helper holds at most 21 frames at once when
+the base case is n = 0 (plus the outer wrapper). The returned list of moves is
+separate output storage: $\Theta(2^n)$ space.
 
 **Python's limit.** CPython refuses to go deeper than about 1,000 frames, and
 raises `RecursionError`. `sys.setrecursionlimit` can raise it, but the real
@@ -596,7 +598,9 @@ lower bound on the problem, not a defect of your code (Lecture 02's Ω).
 
 In the tree, the moves appear in order along the bottom: A→C, A→B, C→B, A→C,
 B→A, B→C, A→C. The exercise `hanoi` returns exactly that list for n = 3. The
-four lines of code are yours to write.
+code is yours to write. To meet the O(2ⁿ) time target, use a helper that appends
+moves to one shared list. Concatenating the two returned move lists at every
+level instead gives T(n) = 2T(n − 1) + Θ(2ⁿ) = Θ(n·2ⁿ).
 
 :::
 
@@ -613,8 +617,9 @@ def binary_strings(n):
 
 ![](figures/choice-tree.png){width=48%}
 
-n decisions, 2 choices each: $2^n$ results, and at least $O(2^n)$ time just to
-write them down.
+n decisions, 2 choices each: $2^n$ results, each n characters long. Writing
+all of them takes at least $\Omega(n 2^n)$ time: count the characters, not just
+the strings.
 
 ::: {.handout-only}
 
@@ -656,14 +661,19 @@ Measure: `len(left) + len(right)`, one less each call — $O(n + m)$ calls.
 
 `merge_sorted` in `dsa/recursion.py` is this idea. You wrote the iterative
 version last week, on `Array`s, in `dsa/array_ops.py`; now write it recursively.
-Two details the tests check:
+Two details to get right:
 
 - **Stability.** When the two heads are equal, take from `left` first. The test
-  uses pairs like `(1, "L")` and `(1, "R")` to see which went first. Stability
-  matters in Week 10, where merge sort's stability is one of its selling points.
-- **Recursion depth.** The depth is n + m, so with Python's limit this version
-  handles only short lists. That is fine for the exercise — and a good reason why
-  merge sort's real merge step, in Week 10, is a loop.
+  uses distinct objects that compare by their numeric key only, then checks
+  their identities. Ordinary `(key, label)` tuples would compare the label too,
+  so different labels would not make a genuine tie.
+- **Linear work.** Pass indices into the two inputs and append to one shared
+  output list. Slicing a tail or concatenating the growing result on every
+  return can turn linear work into quadratic work.
+
+The recursion depth is O(n + m), so Python's limit restricts this version to
+short lists. That is fine for the exercise — and a good reason why merge sort's
+real merge step, in Week 10, is a loop.
 
 :::
 

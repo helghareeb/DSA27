@@ -12,8 +12,8 @@ lang: en
 > **How to read this document.** This is the handout for Lecture 09. It holds
 > everything on the slides, plus what I said out loud. Three simple sorts, each
 > written once as a **generator** so that you can watch it work, one sort that
-> never compares at all, and a proof that no comparison sort can beat
-> $n \log n$. Every count and timing in it was measured on the course's own
+> uses integer keys as indices, and a worst-case lower bound of
+> $\Omega(n \log n)$ for general comparison sorting. Every count and timing in it was measured on the course's own
 > code.
 >
 > Slides: `DSA27-L09-slides.pdf` · Code: `dsa/sorting.py` ·
@@ -59,7 +59,7 @@ on which sort you use.
 3. Watching an algorithm: the `_steps` generator — and its price
 4. Best, worst, average: comparisons and writes, **measured**
 5. Counting sort: sorting without comparing
-6. Why no comparison sort can beat $n \log n$
+6. The worst-case comparison-sorting lower bound
 
 # Two Words Before Any Algorithm
 
@@ -101,8 +101,8 @@ Sort a class list **by name**, then **by grade** with a stable sort:
 
 - the result is by grade, and **by name within each grade**, for free.
 
-This is how spreadsheets sort by two columns, and how every database orders
-`ORDER BY grade, name`.
+This produces the same key priority as `ORDER BY grade, name`. A database
+need not implement that ordering with two stable sorting passes.
 
 ::: {.handout-only}
 
@@ -247,7 +247,8 @@ Round i scans `a[i..n-1]` for its smallest value and swaps it into slot i. After
 round i, `a[0..i]` holds the i + 1 smallest values, in order, in their final
 places. The scan in round i makes $n - 1 - i$ comparisons whatever the data, so
 the total is always $(n-1) + (n-2) + \dots + 1 = n(n-1)/2$: selection sort has
-**no** best case. Sorted input costs as much as reversed input.
+**no asymptotically faster best case**: even sorted input requires the same
+number of comparisons as reversed input, although it may require fewer swaps.
 
 Its virtue is the other count. There is at most one swap per round — none at
 all when the minimum is already in place, as in rounds i = 1, 3 and 4 of the figure
@@ -448,7 +449,7 @@ can hide a factor of two, or of a thousand, in the cases you actually meet.
 
 ## The table
 
-| | best | average | worst | writes | stable | in place |
+| | best | average | worst | element movements | stable | in-place rearrangement |
 |------------------|--------------|--------------|--------------|-----------------|-----|-----|
 | bubble (early exit) | $n$ | $n^2$ | $n^2$ | I swaps | yes | yes |
 | selection | $n^2$ | $n^2$ | $n^2$ | $\le n - 1$ swaps | **no** | yes |
@@ -489,8 +490,9 @@ of the three here, although it compares the most: in Python, a comparison is
 cheap next to the reads and writes of a swap, and selection sort writes almost
 nothing. Counting sort is a straight line of slope 1 — $O(n)$, 9 ms at
 n = 1,600. The dashed line is Python's built-in `sorted`, written in C:
-0.36 ms. That gap is the language, not the algorithm — Week 10's sorts, in
-Python, will not reach it either.
+0.36 ms. That gap combines implementation overhead and algorithm choice: CPython's
+built-in sort is highly optimized C code and exploits ordered runs. This
+measurement does not isolate language from algorithm.
 
 **Right: the same insertion sort on four inputs of the same size.** At
 n = 1,600, reversed input took 6.0 s, random 2.7 s — half, as the inversion
@@ -498,7 +500,9 @@ count predicts — and nearly sorted input **6.7 ms**, about 400 times faster th
 random, and no slower than sorted input. Nearly sorted is its best case in
 practice, not only in theory.
 
-Your times will differ from these; the ratios will not.
+Your times and ratios can differ with hardware, runtime, inputs and
+measurement noise. Look for the growth trend across several sizes, not an
+exact speedup promised by one machine.
 
 :::
 
@@ -517,8 +521,8 @@ Real sorts use it:
 Data in real programs is often nearly sorted: a sorted list with a few new
 records appended, a log whose timestamps are a little out of order, last
 week's ranking with a few changes. Insertion sort handles all of these in close
-to linear time, with no extra memory, and it is stable. It is also fastest of
-all sorts on **tiny** arrays, because its loop does so little per step.
+to linear time, with no extra memory, and it is stable. Its small overhead often makes it effective on **tiny** arrays; which
+implementation is fastest still depends on the data and runtime.
 
 That is why the $O(n \log n)$ sorts you will meet next week are rarely used
 alone. Python's `sorted` is **Timsort** (Tim Peters, 2002), a merge sort that
@@ -528,9 +532,10 @@ insertion sort. C++'s `std::sort` is usually **introsort** (David Musser,
 finishes small pieces with insertion sort. The "slow" sort of today is inside
 the fast sorts of the real world.
 
-If each value is at most k places from its sorted position, each has at most
-k larger values before it, so $I \le nk$ and insertion sort is $O(nk)$ — a
-practice problem (W9-C4).
+If every element is at most k places from its final position (breaking ties
+consistently), an inverted pair cannot start more than 2k positions apart.
+Thus there are $O(nk)$ inversions and insertion sort costs $O(n + nk)$: linear
+when k is a fixed small constant, including k = 0. See practice W9-C4.
 
 :::
 
@@ -541,7 +546,7 @@ practice problem (W9-C4).
 ![](figures/counting.png){width=92%}
 
 Values are small non-negative integers, below k: **count** them, then write
-each value out as many times as it was counted. $O(n + k)$. **No comparisons.**
+each value out as many times as it was counted. $O(n + k)$. **Not comparison-based.**
 
 ::: {.handout-only}
 
@@ -560,6 +565,16 @@ each value out as many times as it was counted. $O(n + k)$. **No comparisons.**
 Time: one pass over the n values, one over the k counts, and n writes: $O(n + k)$.
 Extra space: $O(n + k)$ — not in place.
 
+**Work a small example first.** For `[3, 1, 2, 1, 0, 3]`, n = 6 and k = 4.
+The counters for keys 0, 1, 2, 3 are `[1, 2, 1, 2]`; writing them out gives
+`[0, 1, 1, 2, 3, 3]`. k counts the **possible keys**, not just the distinct
+keys that happen to occur. The `max` call and validation may compare values;
+“not comparison-based” describes how the sorted order is obtained.
+
+**Predict before running:** would you use the same method for `[0, 1000000000]`?
+Only two values are present, but this implementation would need 1,000,000,001
+counters. Explain both the time and memory cost before trying to allocate it.
+
 **The catch is k.** Sorting ten exam marks out of 100 is quick; sorting ten
 phone numbers means an `Array` of ten billion counters. Counting sort is fast
 exactly when the **range** of the values is not much larger than their
@@ -569,11 +584,11 @@ raises `ValueError` for anything else.
 
 :::
 
-## No comparison sort can beat $n \log n$
+## Worst case: comparison sorting needs $\Omega(n \log n)$
 
 ![](figures/decision_tree.png){width=88%}
 
-n values have **n!** possible orders; the sort must tell them all apart.
+n **distinct** values have **n!** possible orders; the sort must tell them all apart.
 Each comparison has 2 outcomes. So the worst case needs at least
 $\log_2 n! \approx n \log_2 n$ comparisons.
 
@@ -602,9 +617,10 @@ values, $\log_2 3{,}628{,}800 \approx 21.8$: at least 22. For a thousand, about
 $\log_2 n! = \Theta(n \log n)$: half the factors of $n!$ are at least $n/2$, so
 $n! \ge (n/2)^{n/2}$, and $\log_2 n! \ge \frac{n}{2} \log_2 \frac{n}{2}$.
 
-So $n \log n$ is a floor for **every** comparison sort, including ones nobody has
-invented yet. Week 10's merge sort and heap sort reach it; nothing that only
-compares can go below it. (The same argument also bounds the average case — a
+So $\Omega(n \log n)$ is a **worst-case** lower bound for every general
+comparison sort, including ones nobody has invented yet. Week 10's merge sort and heap sort reach it; nothing that only
+compares can guarantee a lower asymptotic worst-case cost on arbitrary inputs.
+This does not forbid a linear best case on already-sorted input. (The same argument also bounds the average case — a
 stronger result, and beyond this course.)
 
 :::
@@ -613,7 +629,8 @@ stronger result, and beyond this course.)
 
 The lower bound assumes the sort learns **only by comparing**.
 
-Counting sort never compares: `counts[v] += 1` uses the value **as an address**
+Counting sort does not establish order by pairwise key comparisons:
+`counts[v] += 1` uses the value **as an address**
 — one step with k possible outcomes, not 2.
 
 ::: {.handout-only}
@@ -719,7 +736,7 @@ sends you back to the right part of this handout.
    nearly sorted data, which is why real sorts use it.
 5. A `_steps` generator lets you watch your own code — and a copy per frame
    turns $O(n^2)$ into **$O(n^3)$**.
-6. Counting sort is $O(n + k)$ with **no comparisons** — fast only when k is
+6. Counting sort is $O(n + k)$ and **not comparison-based** — fast only when k is
    small.
 7. Every comparison sort needs **$\log_2 n! = \Theta(n \log n)$** comparisons in
    the worst case.

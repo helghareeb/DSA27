@@ -141,13 +141,27 @@ def merge_sorted(left, right):
     This is the merge step of merge sort. Write it here in week 3 and you have
     already written half of `dsa/sorting.py` week 10.
     """
-    if not left:
-        return list(right)
-    if not right:
-        return list(left)
-    if left[0] <= right[0]:                         # <= takes from left on a tie
-        return [left[0]] + merge_sorted(left[1:], right)
-    return [right[0]] + merge_sorted(left, right[1:])
+    result = []
+
+    def merge_from(i, j):
+        # Move indices, not slices. All calls append to the same output list.
+        if i == len(left):
+            for k in range(j, len(right)):
+                result.append(right[k])
+            return
+        if j == len(right):
+            for k in range(i, len(left)):
+                result.append(left[k])
+            return
+        if left[i] <= right[j]:                     # left wins a genuine tie
+            result.append(left[i])
+            merge_from(i + 1, j)
+        else:
+            result.append(right[j])
+            merge_from(i, j + 1)
+
+    merge_from(0, 0)
+    return result
 
 
 # -- recursion that branches ----------------------------------------------
@@ -165,11 +179,18 @@ def hanoi(n, source="A", target="C", spare="B"):
     The solution is exactly 2**n - 1 moves, which is why n = 64 is not a
     homework question. Target: O(2**n) — unavoidably.
     """
-    if n == 0:
-        return []
-    return (hanoi(n - 1, source, spare, target)     # clear the way
-            + [(source, target)]                    # move the largest disk
-            + hanoi(n - 1, spare, target, source))  # put the rest back on top
+    moves = []
+
+    def move(count, start, finish, spare_peg):
+        if count == 0:
+            return
+        move(count - 1, start, spare_peg, finish)
+        moves.append((start, finish))
+        move(count - 1, spare_peg, finish, start)
+
+    # One shared output avoids copying whole move lists at every level.
+    move(n, source, target, spare)
+    return moves
 
 
 def subsets(items):

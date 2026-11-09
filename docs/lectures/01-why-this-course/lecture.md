@@ -198,9 +198,9 @@ one decision.
 
 **C is still underneath you.** The CPython interpreter running your Python is
 written in C. So are Linux, Windows' kernel, SQLite, git and ffmpeg. When your
-Python `list` grows and quietly doubles its storage — the thing you will
-implement by hand in Week 4 — that doubling is happening in C, a few layers
-below your code.
+Python `list` grows by allocating extra capacity, that work happens in C, a few
+layers below your code. In Week 4 you will build a version that doubles its
+capacity; CPython itself uses a smaller growth factor.
 
 :::
 

@@ -303,8 +303,13 @@ The figure and this table were produced by running the reference `push` on the
 heap `[2, 4, 3, 9, 7, 8, 5, 12, 10]` — every state is checked against the code by
 `tools/figures_l12.py`. The new value climbs from index 9 to the root through
 the indices 9, 4, 1, 0. That path is the chain of parents, and it has at most
-height + 1 nodes, so **push is $O(\log n)$** in the worst case — the worst case
+height + 1 nodes, so **sift-up is $O(\log n)$** in the worst case — the worst case
 being a new value smaller than everything, which climbs all the way.
+
+The complete `push` also appends to a dynamic array. A single capacity expansion
+can copy $\Theta(n)$ elements; therefore `push` is $O(\log n)$ amortised,
+with an occasional $\Theta(n)$ operation. If capacity is already available,
+its worst-case cost is $O(\log n)$.
 
 Most pushes stop much earlier. Half the nodes of a heap are leaves, so a random
 new value is quite likely to belong near the bottom. On random input a push

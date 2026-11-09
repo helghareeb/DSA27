@@ -539,8 +539,11 @@ run reports every error, not just the first. That is beyond this course.
 
 - `Num(value)` — a **leaf**. `BinOp(op, left, right)` — a node with two
   children.
-- Height = the depth of nesting. Size = the number of tokens, minus the
-  parentheses.
+- Height = the longest root-to-leaf path (in edges). Parentheses affect
+  grouping but are not AST nodes.
+- Size = the number of `Num` and `BinOp` nodes. Our unary minus adds a zero
+  node: `-2` becomes `0 - 2` (three nodes).
+- Compare: `(((1)))` has height 0; `1 + 2 + 3 + 4` has height 3.
 
 ```python
 from viz.draw import draw_tree

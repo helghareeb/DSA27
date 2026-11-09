@@ -157,6 +157,10 @@ be** inserted. Remember that; it is the idea behind `lower_bound`.
 
 ## How many comparisons?
 
+Here one **probe** means inspecting one middle element and deciding which way
+to go. Python may evaluate both `==` and `<` in that probe; the table counts
+probes, not individual Boolean operators.
+
 Each comparison halves the range: after k comparisons at most $n / 2^k$ remain.
 
 | n | at most $\lfloor \log_2 n \rfloor + 1$ comparisons |
@@ -247,7 +251,7 @@ half must add an offset. Passing `lo` and `hi` avoids both problems. (Lecture 03
 made the same point about `list_max` on slices.)
 
 The depth is at most about $\log_2 n$ frames — 20 for a million elements — so
-Python's 1,000-frame limit is no concern here, unlike the linear recursions of
+Python's configured recursion limit is usually no concern here, unlike the linear recursions of
 Lecture 03. The loop is still the better tool: same speed, no frames at all.
 
 :::
@@ -276,7 +280,8 @@ questions, and always with a position:
 - **The first occurrence?** `i = lower_bound(v, x)`; it is x if
   `i < len(v) and v[i] == x`.
 - **How many values lie in [a, b)?** `lower_bound(v, b) - lower_bound(v, a)`.
-  A range query in $O(\log n)$ — which no hash table can answer (Week 13).
+  A range-count query in $O(\log n)$ for a <= b. A plain hash table has no
+  ordering information and would need a scan or an additional ordered index.
 
 They are both binary searches that **never stop early**: they keep halving until
 the range is empty and return where it closed. The usual way to write them uses
@@ -309,10 +314,12 @@ inside a block: about $n/m + m$ reads. That sum is smallest when $m = \sqrt{n}$,
 giving $2\sqrt{n}$ — for a million elements, about 2,000 reads against 20 for
 binary search. Slower. So why bother?
 
-Because jump search only ever moves **forward**, in big steps and then small
-ones. On storage where going back is expensive — a tape, or data arriving over a
-network in order — that matters more than the number of comparisons. It is also
-simple enough to be hard to get wrong.
+The jumps inspect increasing block ends, but the final scan returns to the
+**start of the candidate block**. This is not a forward-only algorithm for a
+one-pass stream: it assumes indexed access, or that the candidate block can be
+buffered and revisited. On an ordinary random-access array, binary search uses
+fewer probes asymptotically. Jump search is useful here as a clear example of
+balancing two costs, $n/m$ and $m$.
 
 In the figure, n = 25 and the step is $\sqrt{25} = 5$. The jumps check slots 4,
 9, 14 and 19 — the last element of each block — and stop at 39, the first block
@@ -321,7 +328,7 @@ at slot 18. (`math.isqrt(n)` gives the integer square root.)
 
 :::
 
-## Exponential search: $O(\log i)$
+## Exponential search: $O(\log(i+2))$
 
 ![](figures/exponential.png){width=96%}
 
@@ -332,13 +339,13 @@ between the last two bounds.
 
 If the answer is at index i, the doubling stops after about $\log_2 i$ steps,
 and the binary search that follows runs on a range of about i elements:
-$O(\log i)$ in total. When the target is near the **front**, that beats a
+$O(\log(i+2))$ in total. When the target is near the **front**, that beats a
 binary search over the whole array; when it is near the end, it costs about
 twice as much. In the figure, 23 is at index 11: the bounds 1, 2, 4 and 8 are
 all smaller, 16 is not, so binary search runs on slots 8 to 16.
 
-Its real use is on sequences whose **length you do not know** — a stream, an
-unbounded function, a huge sorted file: you cannot pick a middle without an
+Its real use is on sequences whose **length you do not know** — an indexable sequence, an
+unbounded monotone function, or a sorted file with random access: you cannot pick a middle without an
 end, but you can keep doubling until you have one. Bentley and Yao published it
 in 1976 as "an almost optimal algorithm for unbounded searching". The doubling
 is the same trick as the `DynamicArray`'s growth in Lecture 04: double until big
@@ -460,8 +467,8 @@ but no order — no bounds, no ranges).
 | `binary_search_recursive` | sorted | $O(\log n)$ | $O(\log n)$ stack; never slice |
 | `lower_bound` | sorted | $O(\log n)$ | first `v[i] >= x`; may be `len` |
 | `upper_bound` | sorted | $O(\log n)$ | first `v[i] > x`; may be `len` |
-| `jump_search` | sorted | $O(\sqrt{n})$ | forward only |
-| `exponential_search` | sorted | $O(\log i)$ | unknown length; near the front |
+| `jump_search` | sorted | $O(\sqrt{n})$ | revisit candidate block |
+| `exponential_search` | sorted | $O(\log(i+2))$ | unknown length; near the front |
 | `interpolation_search` | sorted, even | $O(\log \log n)$ avg, $O(n)$ worst | guesses |
 
 # This Week
@@ -591,13 +598,14 @@ gets the same paper.
 5. Recursive: pass `lo` and `hi`; a slice turns $O(\log n)$ into $O(n)$.
 6. `lower_bound`/`upper_bound` return **positions**: insertion points and
    counts of duplicates.
-7. Jump $O(\sqrt{n})$, exponential $O(\log i)$, interpolation
+7. Jump $O(\sqrt{n})$, exponential $O(\log(i+2))$, interpolation
    $O(\log \log n)$ average but **$O(n)$ worst**.
 
 ## Next
 
 **Week 9 — Basic sorting.** Bubble, selection and insertion sort — and counting
-sort, which beats $O(n \log n)$ by never comparing at all.
+sort, which can be linear for a small key range because it does not determine
+order through comparisons between keys.
 
 ::: {.handout-only}
 

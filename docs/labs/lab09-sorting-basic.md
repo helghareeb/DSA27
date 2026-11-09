@@ -232,8 +232,9 @@ fixed seed), and the two tests on the `_steps` form.
 
 The last bug is the dangerous one: all twelve tests pass. Once any pass has
 swapped, `swapped` stays `True` for ever, so the early exit never fires again
-and bubble sort always does all $n - 1$ passes. The output is right; the best
-case is gone. Only a count finds it — Part 6 will.
+and bubble sort does all $n - 1$ passes after any initial swap. The output
+is right, and already-sorted input still exits after one pass; what is lost is
+the ability to stop early after a later pass fixes the remaining disorder. Only a count finds it — Part 6 will.
 
 ---
 
@@ -474,8 +475,9 @@ With the reference solution this prints:
 | `insertion_sort` | 999 | 1,009 | 249,614 | 499,500 |
 
 Yours should match exactly — the three algorithms are fully determined. If your
-`bubble_sort` shows 499,500 on sorted input, its early exit is broken: the
-`swapped` bug of Part 2.4. If your `insertion_sort` shows more than 999 on
+`bubble_sort` shows 499,500 on sorted input, its early exit is broken. To detect the specific failure to reset
+`swapped` in Part 2.4, use `[2, 1, 3, 4, 5]`: the correct algorithm makes
+7 comparisons, whereas the faulty version makes 10. If your `insertion_sort` shows more than 999 on
 sorted input, its walk does not stop at the first value that is not greater.
 
 ---
@@ -641,7 +643,7 @@ merge twice, and it drops to 65,733. Two questions to bring to Lecture 10:
 | Selection sort | $n(n-1)/2$ comparisons always; at most $n - 1$ swaps; not stable. |
 | Insertion sort | One shift per inversion; `j >= 0` first; `>` keeps it stable. |
 | Stability | Only visible with records that compare equal but are different. |
-| Counting sort | $O(n + k)$, no comparisons; k = max + 1; bad when k is huge. |
+| Counting sort | $O(n + k)$, not comparison-based; k = max + 1; bad when k is huge. |
 | Measuring | Count comparisons with a class whose `<` and `>` count. |
 
 ---
