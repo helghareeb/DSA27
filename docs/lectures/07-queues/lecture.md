@@ -53,7 +53,7 @@ lands on the front of the array.
 
 1. The Queue ADT: enqueue, dequeue — FIFO
 2. The obvious design, `SlowQueue`, and its $O(n)$ dequeue
-3. The ring buffer: `CircularQueue`, every operation $O(1)$
+3. The ring buffer: $O(1)$ operations when no growth is needed
 4. Full or empty? — and growing a ring without scrambling it
 5. The linked queue, and a queue made of two stacks
 6. Measured: the gap is the lesson
@@ -73,8 +73,11 @@ lands on the front of the array.
 
 ::: {.handout-only}
 
-That table is the ADT: operations, meaning, cost, and nothing about storage —
-exactly as with the stack. Many textbooks add a `peek` (also called `front` or
+The ADT specifies FIFO behaviour; the cost column is our **efficient-implementation
+target**, not a guarantee of the ADT itself. In the supplied skeletons,
+`CircularQueue` has `is_empty()`; for `SlowQueue`, use `len(q) == 0`. A fixed-capacity ring or linked
+queue meets it; a growing array-based queue has amortised $O(1)$ enqueue, and
+`SlowQueue` deliberately has $O(n)$ dequeue. Many textbooks add a `peek` (also called `front` or
 `first`) that returns the front without removing it; the exercise does not need
 it, but it is one line once the rest works.
 
@@ -139,11 +142,14 @@ Dequeue is now $O(1)$ — nothing moves. The price is that dequeued slots at the
 front are dead. In the figure, eight enqueues and two dequeues leave only six
 items in an eight-slot block, yet there is no room for a ninth at the end. A
 long-running queue with this design grows its block for ever, even if it never
-holds more than three items at a time — a memory leak by design.
+never holds more than three items at a time — unbounded storage waste unless
+we reclaim the unused prefix. Clear removed references too; wasted slots and
+retained objects are related but different problems.
 
 You could compact now and then — shift everything back to index 0 when the dead
 space gets large — and that is a legitimate design with an amortised argument
-like Lecture 04's. But there is a neater answer that never moves anything.
+like Lecture 04's. But a ring reuses these slots without shifting on ordinary operations; it
+only copies items if we choose to grow it.
 
 :::
 
@@ -155,7 +161,7 @@ like Lecture 04's. But there is a neater answer that never moves anything.
 
 After the last slot comes slot 0 again:
 
-- **front** at `head`; **back** at `(head + size) % capacity`
+- **front** at `head`; **next insertion slot** at `(head + size) % capacity`
 - every step forward is `(i + 1) % capacity`
 
 ::: {.handout-only}
@@ -196,12 +202,15 @@ offset from 0 to size − 1.
 2. read the value at `head`; clear that slot
 3. `head = (head + 1) % capacity`; `size -= 1`
 
-Nothing moves. Every step is a little arithmetic: **$O(1)$**.
+Without growth, no live item moves: **$O(1)$** per operation.
+A growing enqueue can cost $O(n)$ once, but is amortised $O(1)$.
 
 ::: {.handout-only}
 
-Those six steps are the whole exercise, apart from the challenge; turning them
-into Python is your job. Two details are worth saying out loud.
+Those steps are the core exercise, apart from the challenge; turning them
+into Python is your job. Dequeue must **return the saved value** after updating
+the indices. Assume positive capacity for the modulo formulas; if you support
+initial capacity zero, grow it to at least one before the first write. Two details are worth saying out loud.
 
 **Why clear the slot?** Setting the dequeued slot back to `None` is not needed
 for the queue to be correct: that slot is outside the live part of the ring and
@@ -338,9 +347,10 @@ way round, every dequeue is $O(n)$.
 - **dequeue:** `IndexError` if empty; otherwise take the head's value and move
   `head` to the next node.
 
-The one trap is the end of dequeue: when the queue becomes empty, `tail` must be
-reset to `None` too, or it keeps pointing at a node that is no longer in the queue and
-the next enqueue links onto it (W7-B4).
+The one trap is the end of dequeue: when the queue becomes empty, reset `tail`
+to `None` too. Otherwise the empty-state invariant is broken: `tail` points at
+a removed node. An enqueue that uses `tail is None` to detect emptiness can
+then attach the new node to that stale node instead of restoring `head` (W7-B4).
 
 :::
 
@@ -355,14 +365,33 @@ Pouring reverses the order — and LIFO reversed is FIFO.
 ::: {.handout-only}
 
 One `dequeue` may pour n items, so a single operation can cost $O(n)$. But each
-item is pushed onto `inbox` once, moved to `outbox` once, and popped from
-`outbox` once: three $O(1)$ steps over its whole life. So n operations cost
+item is pushed onto `inbox` once, popped from `inbox` once, pushed onto
+`outbox` once, and popped from `outbox` once: at most **four stack operations**
+over its whole life. Array-stack pushes are themselves amortised $O(1)$. So n operations cost
 $O(n)$ in total, and each is **amortised $O(1)$** — the aggregate argument of
 Lecture 04 again, and of `next_greater` in W6-C3.
 
-The rule "pour only when `outbox` is empty" is essential. Pouring on every
-dequeue is still correct, but each dequeue then moves everything twice, $O(n)$
-each (W7-K3). It is W7-C1 in the question bank.
+The rule "pour only when `outbox` is empty" is essential **for correctness**.
+Pouring newer items on top of an existing `outbox` serves them before older
+items. A different algorithm can restore all remaining items to `inbox` after
+each dequeue; that can preserve FIFO, but costs $O(n)$ per dequeue. Do not mix
+that algorithm with this lazy-transfer design (W7-K3, W7-C1).
+
+**Trace.** Both stacks below are written **bottom → top**, so the rightmost
+item is popped next. The logical queue is written **front → back**.
+
+| Operation | inbox | outbox | Queue / result |
+|---|---|---|---|
+| enqueue A, B | `A B` | empty | `A B` |
+| dequeue: transfer, then pop | empty | `B` | returns A; queue `B` |
+| enqueue C | `C` | `B` | `B C` |
+| dequeue: no transfer | `C` | empty | returns B; queue `C` |
+| dequeue: transfer, then pop | empty | empty | returns C |
+
+At the third row, incorrectly pouring C onto `outbox` would make it `B C`
+and return C before B. If **both** stacks are empty, dequeue raises
+`IndexError`. The invariant is: `outbox` top-to-bottom, followed by `inbox`
+bottom-to-top, is exactly the FIFO order.
 
 Why would anyone build a queue this way? In languages where the standard
 structures are **immutable**, as in Haskell or Erlang, a stack is a linked list
@@ -415,7 +444,7 @@ pass for both classes, and one of them is quadratic. Plot your own with the
 | Array, head index, no wrap | amortised $O(1)$ | $O(1)$ | **dead slots** grow for ever |
 | `CircularQueue` — ring buffer | $O(1)$ (amortised if it grows) | $O(1)$ | compact, reuses slots |
 | Linked, head + tail | $O(1)$ | $O(1)$ | a node per item |
-| Two stacks | amortised $O(1)$ | amortised $O(1)$ | two arrays |
+| Two stacks | amortised $O(1)$ | amortised $O(1)$ | two stacks, $O(n)$ live items |
 
 ::: {.handout-only}
 
@@ -423,14 +452,15 @@ The ring buffer is the usual choice when the maximum size is known or growth is
 rare: it is contiguous, it allocates nothing per item, and it never moves data
 except while growing. The linked queue has the best worst case, one allocation
 per item. Python's `collections.deque` combines the two: a doubly linked list
-of fixed blocks of 64 slots, so it allocates rarely, like an array, and never
-shifts, like a list of nodes.
+of fixed-size blocks (64 slots in the CPython implementation cited below),
+so it allocates relatively rarely and never shifts all items for an end
+operation. The block size is an implementation detail, not a Python API promise.
 
 :::
 
 # Where Queues Are Used
 
-## FIFO is fairness — and breadth
+## Arrival order, scheduling, and breadth
 
 - **Scheduling:** print jobs, requests to a web server, processes sharing a CPU
   (round-robin).
@@ -443,34 +473,101 @@ shifts, like a list of nodes.
 ::: {.handout-only}
 
 **Round-robin.** An operating system gives each ready process a short time
-slice. A process whose slice runs out goes to the back of the ready queue; the
-next one is dequeued from the front. Everyone gets a turn, in order. The same
+slice. A process still ready to run when its slice expires goes to the back
+of the ready queue; the next one is dequeued from the front. A process that
+finishes leaves; one that blocks waits elsewhere. In this simplified model,
+ready processes get turns, not necessarily equal completion times. Real
+schedulers can also use priorities. The same
 dequeue-then-enqueue step solves the Josephus problem — people in a circle, every
 k-th one leaves — which is W7-C2: put everyone in a queue, then move k − 1
-people from the front to the back and remove the k-th, until one is left.
+people from the front to the back and remove the k-th. Resume counting at the
+new front. The exercise returns the **entire elimination order**, including
+the survivor last; it is not just a function returning the survivor.
 
-**Breadth-first order.** A queue processes things in the order they were
-*discovered*. Start from one node, enqueue its neighbours, then theirs: everything
-one step away is dequeued before anything two steps away. That is why BFS finds
-shortest paths (by number of edges), and why `level_order` in `dsa/tree.py`
-visits a tree row by row. Replace the queue with a stack and the same loop
-becomes depth-first — Week 14 puts them side by side.
+For `A B C D E`, with `k = 2`:
+
+| Queue before round | Move one to back | Remove | Queue after round |
+|---|---|---|---|
+| `A B C D E` | A | B | `C D E A` |
+| `C D E A` | C | D | `E A C` |
+| `E A C` | E | A | `C E` |
+| `C E` | C | E | `C` |
+
+Elimination order is `B D A E C`; C survives. Require `k >= 1`. The direct
+simulation takes $O(nk)$ queue operations, $O(n)$ when k is fixed.
+
+**What FIFO does and does not promise.** It preserves arrival order among
+items in one queue. It does not by itself guarantee short waits, service
+completion order, or fairness between priorities. A long first job can delay
+many short jobs behind it.
+
+**Breadth-first order.** Enqueue the start node and mark it discovered. When
+you dequeue a node, enqueue each **not-yet-discovered** neighbour and mark it
+**when enqueued**, not later. That prevents cycles and multiple predecessors
+from adding the same node repeatedly. FIFO processes every distance-1 node
+before distance-2 nodes, and so on. BFS finds shortest paths **by edge count**
+in an unweighted graph (or when all edge costs are equal), not arbitrary
+minimum-weight paths. `level_order` in `dsa/tree.py` visits a tree row by row.
+
+For a tree with A's children B, C; B's children D, E; and C's child F:
+
+| Dequeued | Queue after adding children |
+|---|---|
+| A | `B C` |
+| B | `C D E` |
+| C | `D E F` |
+| D | `E F` |
+| E | `F` |
+| F | empty |
+
+The visit order is `A B C D E F`. A stack instead explores a branch before
+finishing the level; exact recursive DFS order needs care over neighbour order
+and discovery timing, which Week 14 develops.
 
 A small example you can run now: the binary numbers 1 to n, in order, generated
 breadth-first (W7-C5). Start with "1"; each time you dequeue a string s, enqueue
-s + "0" and s + "1".
+s + "0" and s + "1". Stop after n outputs (and return no outputs for n = 0).
 
-**The last k values.** A `CircularQueue(k)` that dequeues the oldest value
-whenever a new one arrives always holds the latest k: the window of a moving
-average, the last k log lines, the last k readings of a sensor. Keep a running
-total beside it and each new average costs $O(1)$ instead of $O(k)$ — W7-C3.
+| Output s | Queue after appending its two children |
+|---|---|
+| `1` | `10 11` |
+| `10` | `11 100 101` |
+| `11` | `100 101 110 111` |
+| `100` | `101 110 111 1000 1001` |
+| `101` | `110 111 1000 1001 1010 1011` |
+
+For n = 5, return `1, 10, 11, 100, 101`; the remaining queue is not output.
+We append the 0-child **before** the 1-child, which preserves numeric order
+within a bit length. There are $O(n)$ queue operations, but creating and storing
+the strings costs $O(n \log n)$ characters in total, not $O(n)$ character work.
+
+**The last k values.** Require `k >= 1`. On each arrival, dequeue and subtract
+the oldest value **only if the queue is already full**. Then enqueue and add
+the new value. The queue holds the last **up to k** arrivals. For the full-window
+averages in W7-C3, emit `total / k` only once the queue contains k values;
+fewer than k input values produce no averages.
+
+For readings `2, 4, 6, 8, 10` and `k = 3`:
+
+| New value | Removed | Queue | Running total | Full-window average |
+|---|---|---|---|---|
+| 2 | none | `2` | 2 | not yet |
+| 4 | none | `2 4` | 6 | not yet |
+| 6 | none | `2 4 6` | 12 | 4.0 |
+| 8 | 2 | `4 6 8` | 18 | 6.0 |
+| 10 | 4 | `6 8 10` | 24 | 8.0 |
+
+Keep the total beside the queue: subtract, enqueue, add, divide. This is $O(1)$
+work per reading in the usual arithmetic model, $O(n)$ overall with $O(k)$
+queue space. Recomputing the sum of each window would cost $O(k)$ per average.
+For floating-point data, repeated updates may accumulate rounding error.
 
 :::
 
 ## The deque: both ends, both ways
 
 A **deque** (double-ended queue, say "deck"): add and remove at **both** ends,
-all $O(1)$.
+all $O(1)$ without resizing (amortised for a growing array deque).
 
 - only one end used → a **stack**
 - add at one end, remove at the other → a **queue**
@@ -487,6 +584,24 @@ result for a positive capacity, so `(0 - 1) % 8` is 7: the step back from
 slot 0 wraps round to the last slot, exactly as needed. (In C and Java, `-1 % 8`
 is −1, and you must write `(head - 1 + capacity) % capacity` instead.) W7-S3
 draws a deque on a ring, step by step.
+
+**Trace with `collections.deque`.** This is a usage demonstration, not a
+replacement for implementing the course structures. Read values left to right:
+
+| Operation | Deque afterwards | Returns |
+|---|---|---|
+| start | empty | |
+| `append(2)` | `2` | |
+| `appendleft(1)` | `1 2` | |
+| `append(3)` | `1 2 3` | |
+| `pop()` | `1 2` | 3 |
+| `popleft()` | `2` | 1 |
+
+On a ring, `appendleft` first checks capacity, moves `head` back, writes the
+value and increases `size`. `pop` reads `(head + size - 1) % capacity`, clears
+that slot and decreases `size`; it does not move `head`. Both removals reject
+an empty deque. Constant-time end operations do **not** imply constant-time
+middle indexing: Python's `collections.deque` slows to $O(n)$ in the middle.
 
 **Where next.** Week 12 builds a **priority queue**: a queue that serves the
 most **urgent** item rather than the oldest one. The ADT has the same two
@@ -621,8 +736,8 @@ sends you back to the right part of this handout.
 
 ## Seven things to keep
 
-1. A queue is **FIFO**: enqueue at the **back**, dequeue at the **front**, both
-   $O(1)$.
+1. A queue is **FIFO**: enqueue at the **back**, dequeue at the **front**.
+   Efficient designs give $O(1)$ operations (amortised enqueue if growing).
 2. Empty `dequeue` raises **`IndexError`**.
 3. On a plain array, one end is always the front: `pop(0)` or `insert(0)` —
    **$O(n)$**.
