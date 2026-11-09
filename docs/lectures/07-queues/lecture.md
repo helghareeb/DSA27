@@ -142,7 +142,7 @@ Dequeue is now $O(1)$ — nothing moves. The price is that dequeued slots at the
 front are dead. In the figure, eight enqueues and two dequeues leave only six
 items in an eight-slot block, yet there is no room for a ninth at the end. A
 long-running queue with this design grows its block for ever, even if it never
-never holds more than three items at a time — unbounded storage waste unless
+holds more than three items at a time — unbounded storage waste unless
 we reclaim the unused prefix. Clear removed references too; wasted slots and
 retained objects are related but different problems.
 
