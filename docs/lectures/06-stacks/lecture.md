@@ -32,7 +32,7 @@ Week 4: the **dynamic array** — cheap at the **end**.
 Week 5: the **linked list** — cheap at the **front**.
 
 Today: an ADT that only ever touches **one end** — so either structure can keep
-its contract in $O(1)$. Which, and how?
+its target of $O(1)$ per operation (amortised for array push). Which, and how?
 
 ::: {.handout-only}
 
@@ -62,15 +62,15 @@ built yourself.
 
 | Operation | Meaning | Cost |
 |---|---|---|
-| `push(x)` | put x on top | $O(1)$ |
+| `push(x)` | put x on top | $O(1)$ amortised for a dynamic array |
 | `pop()` | remove and return the top — `IndexError` if empty | $O(1)$ |
 | `peek()` | return the top without removing it — `IndexError` if empty | $O(1)$ |
 | `is_empty()`, `len(s)` | | $O(1)$ |
 
 ::: {.handout-only}
 
-That table **is** the ADT: operations, their meaning, their cost — and nothing
-about storage. Everything a stack can do happens at one end, the **top**. There is
+The operations and their meanings define the ADT. The cost column gives our
+implementation targets; an ADT alone does not guarantee a running time. Everything a stack can do happens at one end, the **top**. There is
 no indexing, no search, no access to the middle, by design: a restriction that
 turns out to be exactly what a surprising number of problems need.
 
@@ -91,19 +91,20 @@ can travel a long way through a program before anyone notices.
 
 ![](figures/two-ways.png){width=96%}
 
-- On a **dynamic array**: top = the **end**. `append` and `pop()` — nothing moves.
+- On a **dynamic array**: top = the **end**. `append` and `pop()`; no shifting, but a growing append may copy.
 - On a **linked list**: top = the **head**. `push_front` and `pop_front`.
 
 ::: {.handout-only}
 
-Both are honest stacks: both keep every operation $O(1)$. They differ in the
+Both meet the targets: array push is amortised $O(1)$; the other listed
+operations are worst-case $O(1)$ in these course implementations. They differ in the
 details that Weeks 4 and 5 taught you to see:
 
 | | Array, top at end | Linked list, top at head |
 |---|---|---|
 | push | **amortised** $O(1)$ — the occasional resize copies | $O(1)$ worst case |
 | pop, peek | $O(1)$ | $O(1)$ |
-| memory per item | one reference (+ spare capacity) | a whole node (48 bytes) |
+| memory per item | one reference (+ spare capacity) | a node with value and next references (size depends on Python) |
 | memory locality | contiguous | scattered |
 
 `dsa/stack.py` uses the first: `self._items` is your own `DynamicArray` from
@@ -172,8 +173,26 @@ cases before you write the function.
 The cost: every character is looked at once, and each push and pop is $O(1)$:
 $O(n)$ time, and $O(n)$ space in the worst case (`((((…`).
 
-This is how every compiler and editor checks brackets, and how an HTML or XML
-parser checks that tags nest.
+The invariant: the stack contains exactly the unmatched opening brackets, in
+opening order. Its top is the only opener the next closer may match.
+
+| Character in `(a[b])` | Action | Stack, bottom → top |
+|---|---|---|
+| `(` | push | `(` |
+| `a` | ignore | `(` |
+| `[` | push | `( [` |
+| `b` | ignore | `( [` |
+| `]` | pop matching `[` | `(` |
+| `)` | pop matching `(` | empty |
+| end | accept | empty |
+
+**Check understanding:** `([)]` has equal numbers of openers and closers.
+Why is counting not enough? The nesting order is wrong.
+
+This is a model of delimiter matching, not a complete source-code or HTML
+parser. A real language must handle strings and comments first; a parenthesis
+inside a string need not be a delimiter. Tag matching uses a similar idea,
+but HTML also has void elements, optional end tags and other parsing rules.
 
 :::
 
@@ -208,7 +227,8 @@ parentheses are needed at all.
 ## Evaluating postfix with one stack
 
 - **Number:** push it.
-- **Operator:** pop **two** values, apply, push the result.
+- **Binary operator:** require two values; pop **right**, then **left**;
+  push `left op right`.
 - **End:** exactly one value is left — the answer.
 
 | Token | Action | Stack (top on the right) |
@@ -227,12 +247,27 @@ wrong way round and addition and multiplication still work (they commute), while
 subtraction and division silently give wrong answers. A test with `-` or `/` is
 the only thing that catches it.
 
-**Malformed input.** If an operator finds fewer than two values, or more than one
-value is left at the end, the input was not valid postfix. Raise `ValueError`.
+**Malformed input.** Require two values before each binary operator and
+**exactly one** value at the end: use `len(values) != 1`, not just `> 1`.
+Raise `ValueError` for malformed input, including an empty expression or an
+unrecognised token. Division by zero raises `ZeroDivisionError`. Here `/` is
+true division: `7 2 /` gives `3.5`.
+
+| Postfix tokens | Result or reason for rejection |
+|---|---|
+| `8 3 - 2 -` | `(8 - 3) - 2 = 3` |
+| `8 2 /` | `8 / 2 = 4`, not `2 / 8` |
+| empty | no final value |
+| `3 +` | `+` has only one operand |
+| `3 4` | two values remain |
+
+The stack holds values of subexpressions already evaluated, not operators.
+Read `12 3 +` as three **tokens**, not individual characters.
 
 This is `evaluate_postfix` in `dsa/translation.py` — an exercise for Week 15,
 where the whole calculator comes together. You can write it now: it needs only
-this week's stack. $O(n)$ time.
+this week's stack. $O(n)$ time and $O(n)$ worst-case auxiliary space,
+for $n$ tokens under the usual constant-cost arithmetic model.
 
 :::
 
@@ -240,19 +275,30 @@ this week's stack. $O(n)$ time.
 
 ## The shunting-yard algorithm
 
-Read the infix tokens left to right, with an **output list** and an **operator
-stack**:
+For valid expressions with **binary**, left-associative `+ - * /`, read
+**tokens** left to right with an **output list** and an **operator stack**:
 
 1. **Number** → output.
 2. **Operator** → first pop to the output every operator on the stack with
    **higher or equal precedence**, stopping at a `(`; then push this one.
 3. **`(`** → push.
 4. **`)`** → pop to the output until the `(`; discard the `(`.
-5. **End** → pop everything left to the output.
+5. **End** → pop remaining operators to the output; parentheses never go there.
 
-Precedence: `*` `/` above `+` `-`.
+Precedence: `*` `/` above `+` `-`. The output is postfix **tokens**, not a value.
 
 ::: {.handout-only}
+
+**Input contract.** The Week 6 converter and reference solution assume valid
+infix token sequences. `"( 3 + 4 ) * 2".split()` works because the tokens are
+space-separated; `"(3+4)*2".split()` does not tokenize the expression. Week 15's
+`tokenize` handles that job. Unary minus (`- 5`) and exponentiation are outside
+this converter's scope; the recursive parser later supports unary minus.
+
+**Validation extension, not a claim about the current solution:** reject `)`
+if no matching `(` exists, and reject any `(` left at the end. Also track
+whether an operand or an operator is expected to reject `3 +`, `3 4`, `()` and
+`3 + * 4`. Matching parentheses alone does not validate an expression.
 
 Edsger Dijkstra described this algorithm in 1961, and named it after a railway
 shunting yard: numbers go straight through the junction, while operators wait on
@@ -273,33 +319,54 @@ precedence. The exercise does not include it.)
 
 ## Trace: `3 + 4 * 2`
 
+Stack top is on the right; `—` means empty.
 
-| Token | Output | Stack |
+| Token | Output | Operator stack |
 |---|---|---|
-| 3 | 3 | |
-| + | 3 | + |
-| 4 | 3 4 | + |
-| * | 3 4 | + *  ← `+` is lower, so it stays |
-| 2 | 3 4 2 | + * |
-| end | **3 4 2 * +** | |
+| `3` | `3` | — |
+| `+` | `3` | `+` |
+| `4` | `3 4` | `+` |
+| `*` | `3 4` | `+ *` |
+| `2` | `3 4 2` | `+ *` |
+| end | `3 4 2 * +` | — |
+
+`+` stays when `*` arrives: it has lower precedence.
 
 ## Trace: `( 3 + 4 ) * 2`
 
-
-| Token | Output | Stack |
+| Token | Output | Operator stack, top right |
 |---|---|---|
-| ( | | ( |
-| 3, +, 4 | 3 4 | ( + |
-| ) | 3 4 + | ← pop to `(` |
-| *, 2 | 3 4 + 2 | * |
-| end | **3 4 + 2 *** | |
+| `(` | — | `(` |
+| `3` | `3` | `(` |
+| `+` | `3` | `( +` |
+| `4` | `3 4` | `( +` |
+| `)` | `3 4 +` | — |
+| `*` | `3 4 +` | `*` |
+| `2` | `3 4 + 2` | `*` |
+| end | `3 4 + 2 *` | — |
+
+## Trace: equal precedence in `8 - 3 - 2`
+
+| Token | Output | Operator stack, top right |
+|---|---|---|
+| `8` | `8` | — |
+| first `-` | `8` | `-` |
+| `3` | `8 3` | `-` |
+| second `-` | `8 3 -` | `-` |
+| `2` | `8 3 - 2` | `-` |
+| end | `8 3 - 2 -` | — |
+
+Pop the old `-` **before** pushing the new one. The answer is `3`, not `7`.
 
 ::: {.handout-only}
 
-These are exactly the two cases in `tests/test_stack_queue.py::test_infix_to_postfix`.
-Trace `8 - 3 - 2` and `2 * 3 + 4` yourself before writing the function: one checks
-the "equal precedence pops" rule, the other checks that a lower-precedence
-operator empties the higher ones first.
+The first two cases are in `test_infix_to_postfix`; the third is covered by
+`test_infix_to_postfix_is_left_associative`. Now trace `2 * 3 + 4`: when `+`
+arrives, `*` leaves first. Postfix is `2 3 * 4 +`, giving `10`.
+
+Why is the nested `while` not $O(n^2)$? Each operator enters the stack once and
+leaves once over the **whole** scan. Time is $O(n)$ and auxiliary space is $O(n)$.
+The conversion stack holds **operators**; the evaluation stack holds **values**.
 
 **The whole calculator.** Infix → (shunting-yard) → postfix → (evaluation) → a
 value: two passes, two stacks, $O(n)$, no tree and no recursion. Week 15 builds
@@ -315,7 +382,8 @@ this is where it starts.
 
 ![](../03-recursion/figures/call-stack.png){width=94%}
 
-Each call **pushes** a frame; each `return` **pops** one. Recursion **is** a stack.
+In the usual Python call model, a call pushes a frame and returning removes it.
+The latest unfinished call resumes first: **LIFO**.
 
 ::: {.handout-only}
 
@@ -323,9 +391,15 @@ Lecture 03's figure, seen again: the call stack is a stack of frames, managed by
 Python for you. That is why any recursive algorithm can be rewritten with a loop
 and an explicit stack — the stack you now know how to build. Week 14 does exactly
 that for depth-first search: `dfs` recursive, and `dfs_iterative` with your own
-`Stack`, visiting the nodes in the same order.
+`Stack`. Matching recursive visit order requires pushing neighbours in the
+right order; an explicit stack does not automatically preserve it.
 
-An example you can write now: summing a nested list without recursion.
+A frame stores arguments, local variables and where to resume, not just the
+function name. For `factorial(3)`, calls descend through `3 → 2 → 1`; returns
+unwind `1 → 2 → 6`, with each caller resuming its pending multiplication.
+
+An example you can write now: summing a finite, acyclic nested list of integers
+without recursion. Run it after implementing your `Stack` and `DynamicArray`.
 
 ```python
 from dsa.stack import Stack
@@ -336,18 +410,41 @@ def nested_sum(nested):
         item = pending.pop()
         if isinstance(item, list):
             for inner in item:
-                pending.push(inner)        # "call" on every inner item
+                pending.push(inner)        # schedule work for later
         else:
             total += item
     return total
 ```
 
-Every `push` is a recursive call that has not happened yet; every `pop` is one
-being made. And unlike the call stack, this one has no 1,000-frame limit.
+This is a **work stack**, not a literal copy of Python's call frames. Pushing
+children left to right processes them right to left. For integer addition the
+sum is unchanged, but visit order matters for printing, side effects and
+floating-point rounding. To visit left to right, push children in reverse order.
 
-**Undo and redo** use two stacks: doing an action pushes it on the undo stack;
-*Undo* pops it and pushes it on the redo stack; *Redo* moves it back; any new
-action clears the redo stack.
+For `nested_sum([1, [2, 3], 4])`, with the top on the right:
+
+| Popped item | Pending after processing | Total |
+|---|---|---|
+| `[1, [2, 3], 4]` | `1, [2, 3], 4` | `0` |
+| `4` | `1, [2, 3]` | `4` |
+| `[2, 3]` | `1, 2, 3` | `4` |
+| `3` | `1, 2` | `7` |
+| `2` | `1` | `9` |
+| `1` | empty | `10` |
+
+This version avoids Python's recursion-depth limit, whose value is configurable
+(`sys.getrecursionlimit()`), but it is still limited by available memory.
+Each item occurrence is processed once: $O(n)$ time and up to $O(n)$ pending
+space. A wide flat list can put many items on this stack even at shallow depth.
+
+**Undo and redo** use two stacks of reversible action records. *Undo* must
+actually reverse the action before moving its record to redo; *Redo* reapplies
+it before moving the record back. Moving a record alone does not change the
+text. Empty undo/redo stacks mean there is nothing to do. A new edit after undo
+clears redo, because it starts a different history.
+
+Example: type `A`, type `B` → `AB`; undo → `A`; redo → `AB`.
+Undo again, then type `C` → `AC`: the old `B` action must no longer be redoable.
 
 :::
 
@@ -475,7 +572,7 @@ sends you back to the right part of this handout.
 
 ## Seven things to keep
 
-1. A stack is **LIFO**: push, pop and peek act on the **top** only, all $O(1)$.
+1. A stack is **LIFO**: push, pop and peek act on the **top** only, with array push **amortised** $O(1)$.
 2. Empty `pop` and `peek` raise **`IndexError`**.
 3. On an array the top is the **end**; on a linked list the **head**. Both honest.
 4. Top at index 0 of an array: **$O(n)$** per operation — same tests pass, wrong
@@ -484,8 +581,9 @@ sends you back to the right part of this handout.
    the end.
 6. **Postfix**: push numbers; an operator pops two — **second popped is the left
    operand**.
-7. **Shunting-yard**: operators wait on a stack and leave on **higher or equal**
-   precedence, or at `)`.
+7. **Shunting-yard**: before pushing an incoming left-associative operator, pop
+   stacked operators of **higher or equal** precedence; also drain at `)` and
+   at end, never outputting parentheses.
 
 ## Next
 
