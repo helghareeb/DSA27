@@ -780,6 +780,17 @@ Lab 03 told you that `set` membership is "O(1) average"; now you know where the
 
 :::
 
+::: {.handout-only}
+
+**An empty slot is not an empty key.** The diagrams use `None` to make unused
+slots readable. To allow `None` as a real key, the reference implementation
+uses a private `_EMPTY = object()` sentinel instead, and initializes its key
+array with that marker. Test insertion, overwrite, resize, deletion and
+reinsertion of `None`. Keep `_EMPTY` separate from `TOMBSTONE`: an unused slot
+ends a probe, whereas a deleted slot does not.
+
+:::
+
 ## Hash table, sorted array or tree?
 
 | | Hash table | Sorted array | Balanced BST |

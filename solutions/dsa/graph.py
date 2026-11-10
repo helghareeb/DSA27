@@ -318,8 +318,10 @@ def shortest_path_unweighted(graph, start, goal):
         node = queue.dequeue()
         if node == goal:
             path = []
-            while node is not None:                  # walk the links back to start
+            while True:                             # None can itself be a node
                 path.append(node)
+                if node == start:
+                    break
                 node = parent.get(node)
             path.reverse()
             return path

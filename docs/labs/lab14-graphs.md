@@ -294,7 +294,8 @@ Y–Z: a short route A–B–Z and a long one A–X–Y–Z.
 2. BFS as in Part 3, but when you take a node off the queue, first check whether
    it is the goal; and when you discover a neighbour, record its parent.
 3. When the goal is taken: start from it, follow `parent.get(...)` until you
-   reach `None`, collecting the nodes; that list runs goal-first — reverse it.
+   reach `start`, including it in the collected nodes; then reverse the list.
+   Do not stop just because a node equals `None`: `None` can itself be a node.
 4. If the queue empties, return `None`.
 
 `shortest_path_unweighted(g, "A", "A")` must be `["A"]`: the goal is the first

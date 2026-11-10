@@ -19,6 +19,7 @@ from __future__ import annotations
 from dsa.array import Array
 
 _MISSING = object()
+_EMPTY = object()  # Never-used slot; unlike None, this is not a user key.
 #: Marks a slot whose key was deleted but which a probe chain still runs through.
 TOMBSTONE = object()
 
@@ -139,7 +140,7 @@ class OpenAddressingHashMap:
     """
 
     def __init__(self, capacity=8, max_load=0.66):
-        self._keys = Array(capacity)         # None marks a never-used slot
+        self._keys = Array(capacity, fill=_EMPTY)  # private marker, so None is a valid key
         self._values = Array(capacity)
         self._size = 0
         self._tombstones = 0                 # slots holding TOMBSTONE
@@ -157,7 +158,7 @@ class OpenAddressingHashMap:
             yield (start + step) % capacity
 
     def put(self, key, value):
-        # Tombstones fill slots too: count them, or probes can find no None.
+        # Tombstones fill slots too: count them, or probes can find no unused slot.
         capacity = len(self._keys)
         if (self._size + self._tombstones + 1) / capacity > self.max_load:
             if (self._size + 1) / capacity > self.max_load:
@@ -166,7 +167,7 @@ class OpenAddressingHashMap:
         first_free = None
         for i in self._probe(key):
             slot = self._keys[i]
-            if slot is None:                     # end of the chain: key absent
+            if slot is _EMPTY:                     # end of the chain: key absent
                 if first_free is None:
                     first_free = i
                 break
@@ -186,7 +187,7 @@ class OpenAddressingHashMap:
         """Slot index holding `key`, or -1."""
         for i in self._probe(key):
             slot = self._keys[i]
-            if slot is None:                     # a never-used slot ends the chain
+            if slot is _EMPTY:                     # a never-used slot ends the chain
                 return -1
             if slot is not TOMBSTONE and slot == key:
                 return i
@@ -201,7 +202,7 @@ class OpenAddressingHashMap:
         return default
 
     def delete(self, key):
-        """Remove `key`, leaving TOMBSTONE behind rather than None."""
+        """Remove `key`, leaving TOMBSTONE behind rather than the empty-slot marker."""
         i = self._find(key)
         if i < 0:
             raise KeyError(key)
@@ -213,15 +214,15 @@ class OpenAddressingHashMap:
     def _resize(self, capacity):
         """Rebuild, dropping tombstones as you go."""
         old_keys, old_values = self._keys, self._values
-        self._keys = Array(capacity)
+        self._keys = Array(capacity, fill=_EMPTY)
         self._values = Array(capacity)
         self._size = 0
         self._tombstones = 0
         for i in range(len(old_keys)):
             key = old_keys[i]
-            if key is not None and key is not TOMBSTONE:
+            if key is not _EMPTY and key is not TOMBSTONE:
                 for j in self._probe(key):       # no tombstones, no duplicates:
-                    if self._keys[j] is None:    # the first None is ours
+                    if self._keys[j] is _EMPTY:    # the first unused slot is ours
                         self._keys[j] = key
                         self._values[j] = old_values[i]
                         self._size += 1
@@ -239,5 +240,5 @@ class OpenAddressingHashMap:
 
     def __iter__(self):
         for key in self._keys:
-            if key is not None and key is not TOMBSTONE:
+            if key is not _EMPTY and key is not TOMBSTONE:
                 yield key

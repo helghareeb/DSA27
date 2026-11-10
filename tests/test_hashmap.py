@@ -94,3 +94,21 @@ def test_open_addressing_delete_preserves_probe_chain():
     m.put(b, "second")
     m.delete(a)
     assert m.get(b) == "second"
+
+
+@pytest.mark.parametrize("cls", [ChainingHashMap, OpenAddressingHashMap])
+def test_none_key_survives_overwrite_resize_delete_and_reinsert(cls):
+    table = cls()
+    table.put(None, "first")
+    table.put(None, "updated")
+    for i in range(100):
+        table.put(i, i)
+    assert len(table) == 101
+    assert table.get(None) == "updated"
+    assert None in table and None in list(table)
+    table.delete(None)
+    assert None not in table
+    with pytest.raises(KeyError):
+        table.get(None)
+    table.put(None, None)
+    assert None in table and table.get(None) is None

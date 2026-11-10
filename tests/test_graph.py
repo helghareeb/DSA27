@@ -282,3 +282,17 @@ def test_to_networkx_round_trip():
     converted = to_networkx(graph)
     assert sorted(converted.nodes()) == ["A", "B", "C", "D"]
     assert converted.number_of_edges() == 4
+
+
+@BOTH
+@pytest.mark.parametrize("nodes", [(None, "A", "B"), ("A", None, "B"), ("A", "B", None)])
+def test_shortest_path_preserves_none_vertex(cls, nodes):
+    graph = build(cls, zip(nodes, nodes[1:]), directed=True)
+    assert shortest_path_unweighted(graph, nodes[0], nodes[-1]) == list(nodes)
+
+
+@BOTH
+def test_shortest_path_none_to_itself(cls):
+    graph = cls()
+    graph.add_node(None)
+    assert shortest_path_unweighted(graph, None, None) == [None]
