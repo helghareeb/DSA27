@@ -117,6 +117,7 @@ Faculty of Computers and Information Sciences, Mansoura University — Fall 2026
 | Mock exam — weeks 1–3 | [`DSA27-QB-Mock-Exam-Weeks01-03.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-03.pdf) |
 | Mock exam — weeks 1–7 (midterm practice) | [`DSA27-QB-Mock-Exam-Weeks01-07.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-07.pdf) |
 | Mock exam B — weeks 1–7 (midterm practice, self-contained) | [`DSA27-QB-Mock-Exam-B-Weeks01-07.pdf`](pdf/DSA27-QB-Mock-Exam-B-Weeks01-07.pdf) · [answers](pdf/DSA27-QB-Mock-Exam-B-Weeks01-07-Answers.pdf) |
+| Midterm exam, November 2026 (the paper as set) | [Model 1](question-bank/midterm-2026-11-model1.md) · [answers](question-bank/midterm-2026-11-model1-answers.md) · [Model 2](question-bank/midterm-2026-11-model2.md) · [answers](question-bank/midterm-2026-11-model2-answers.md) |
 | Mock exam — weeks 1–15 (final practice) | [`DSA27-QB-Mock-Exam-Weeks01-15.pdf`](pdf/DSA27-QB-Mock-Exam-Weeks01-15.pdf) |
 | DSA in your program | [`DSA27-DSA-In-Your-Program.pdf`](pdf/DSA27-DSA-In-Your-Program.pdf) |
 | **Official bylaws** | [`course/regulations/`](course/regulations/) |
@@ -178,6 +179,7 @@ docs/
 │   ├── mock-exam-weeks01-03.md     30 marks MCQ + 30 marks written
 │   ├── mock-exam-weeks01-07.md     midterm practice
 │   ├── mock-exam-b-weeks01-07.md   midterm practice, printed in full (+ -answers.md)
+│   ├── midterm-2026-11-model{1,2}.md   the November 2026 midterm (+ -answers.md)
 │   └── mock-exam-weeks01-15.md     final practice
 ├── labs/
 │   ├── README.md                   the lab manual: how labs run

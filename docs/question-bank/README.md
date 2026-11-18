@@ -71,6 +71,7 @@ Add `&code=ABC123` to any of these links and everyone who opens it gets the same
 | — | **[Mock exam, weeks 1–3](mock-exam-weeks01-03.md)** — 30 marks MCQ + 30 marks written | | in the weekly answer files | | |
 | — | **[Mock exam, weeks 1–7](mock-exam-weeks01-07.md)** — midterm practice, no overlap with the weeks 1–3 paper | | in the weekly answer files | | |
 | — | **[Mock exam B, weeks 1–7](mock-exam-b-weeks01-07.md)** — midterm practice, every question printed in full, its own answer key | | [answers](mock-exam-b-weeks01-07-answers.md) | | |
+| — | **Midterm exam, November 2026** — the paper as set, 20 questions, 10 marks: [Model 1](midterm-2026-11-model1.md) · [Model 2](midterm-2026-11-model2.md) | | [Model 1 answers](midterm-2026-11-model1-answers.md) · [Model 2 answers](midterm-2026-11-model2-answers.md) | | |
 | — | **[Midterm exam simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/)** — weeks 1–7, a new timed paper every time, up to 60 questions | | explained after you submit | [simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/) | |
 | — | **[Mock exam, weeks 1–15](mock-exam-weeks01-15.md)** — final practice, no overlap with the earlier papers | | in the weekly answer files | | |
 
