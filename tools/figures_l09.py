@@ -256,6 +256,91 @@ def figure_insertion():
     return base.save(fig, "insertion")
 
 
+def step_rows(ax, rows, n, note_x=None):
+    """Draw one row per step: (values, fills, label, note, note colour)."""
+    note_x = n * 0.8 + 0.3 if note_x is None else note_x
+    for r, (values, fills, label, note, colour) in enumerate(rows):
+        y = -r * 0.95
+        row(ax, y, values, fills, w=0.8, h=0.58)
+        if label:
+            ax.text(-0.25, y + 0.29, label, ha="right", va="center", fontsize=9.5,
+                    color=SLATE)
+        ax.text(note_x, y + 0.29, note, va="center", fontsize=10, color=colour)
+    return -(len(rows) - 1) * 0.95
+
+
+def figure_bubble_pass():
+    """Pass 1 of bubble sort on A, one comparison per row."""
+    a, n, rows = list(A), len(A), []
+    for j in range(n - 1):
+        x, y = a[j], a[j + 1]
+        fills = [HILITE if k in (j, j + 1) else FILL for k in range(n)]
+        rows.append((list(a), fills, f"j = {j}",
+                     f"{x} > {y}: swap" if x > y else f"{x} < {y}: keep",
+                     RED if x > y else SLATE))
+        if x > y:
+            a[j], a[j + 1] = y, x
+    assert a[-1] == max(A) and a == bubble_passes(A)[0][0]
+    rows.append((a, [FILL] * (n - 1) + [DONE], "after",
+                 f"{a[-1]} is in its final place", GREEN))
+    fig, ax = plt.subplots(figsize=(9.0, 4.4))
+    bottom = step_rows(ax, rows, n)
+    clean(ax, (-1.4, 8.4), (bottom - 0.2, 0.8))
+    title(ax, "Pass 1: compare neighbours, swap when the left one is larger")
+    return base.save(fig, "bubble_pass")
+
+
+def figure_selection_scan():
+    """Round i = 0 of selection sort on A: scan for the minimum, then one swap."""
+    a, n, rows, smallest = list(A), len(A), [], 0
+    for j in range(1, n):
+        fills = [FILL] * n
+        fills[smallest], fills[j] = DONE, HILITE
+        if a[j] < a[smallest]:
+            note, colour = f"{a[j]} < {a[smallest]}: smallest = {j}", RED
+            smallest = j
+        else:
+            note, colour = f"{a[j]} > {a[smallest]}: keep", SLATE
+        rows.append((list(a), fills, f"j = {j}", note, colour))
+    a[0], a[smallest] = a[smallest], a[0]
+    assert a == selection_rounds(A)[0][0]
+    rows.append((a, [DONE] + [FILL] * (n - 1), "swap",
+                 f"swap slots 0 and {smallest}: {a[0]} is in its final place", GREEN))
+    fig, ax = plt.subplots(figsize=(9.6, 4.4))
+    bottom = step_rows(ax, rows, n)
+    ax.text(0, 0.95, "green = smallest so far,  amber = the value being compared",
+            fontsize=9, color=MUTED)
+    clean(ax, (-1.4, 9.6), (bottom - 0.2, 1.3))
+    title(ax, "Round 0: find the smallest value, then swap it into slot 0")
+    return base.save(fig, "selection_scan")
+
+
+def figure_insertion_hole():
+    """The last round of insertion sort on A: shift larger values, drop into the hole."""
+    i = len(A) - 1
+    a = insertion_rounds(A)[i - 2][0]                 # the state before round i
+    n, current, j = len(a), a[i], i - 1
+    rows = [(list(a), [FILL] * i + [HILITE], "", f"take current = {current}", SLATE)]
+    a[i] = ""
+    rows.append((list(a), [FILL] * i + [PINK], "", "its slot is now a hole", SLATE))
+    while j >= 0 and a[j] > current:
+        moved = a[j]
+        a[j + 1], a[j] = a[j], ""
+        rows.append((list(a), [PINK if v == "" else FILL for v in a], "",
+                     f"{moved} > {current}: shift {moved} right", SLATE))
+        j -= 1
+    rows.append((list(a), [PINK if v == "" else FILL for v in a], "",
+                 f"{a[j]} > {current} is false: stop", RED))
+    a[j + 1] = current
+    assert a == sorted(A)
+    rows.append((a, [DONE] * n, "", f"drop {current} into the hole", GREEN))
+    fig, ax = plt.subplots(figsize=(9.0, 5.6))
+    bottom = step_rows(ax, rows, n)
+    clean(ax, (-0.3, 9.0), (bottom - 0.2, 0.8))
+    title(ax, f"Round i = {i}: shift larger values right, drop {current} into the hole")
+    return base.save(fig, "insertion_hole")
+
+
 def figure_frames():
     """Every frame of bubble_sort_steps([5, 2, 9, 1, 7]), as the animation shows it."""
     from dsa import sorting
@@ -590,8 +675,8 @@ def figure_watching():
     return base.save(fig, "watching")
 
 
-FIGURES = [figure_stability, figure_bubble, figure_selection, figure_insertion,
-           figure_frames, figure_counting, figure_decision_tree, figure_counts,
+FIGURES = [figure_stability, figure_bubble_pass, figure_bubble, figure_selection_scan,
+           figure_selection, figure_insertion_hole, figure_insertion, figure_frames, figure_counting, figure_decision_tree, figure_counts,
            figure_measured, figure_watching]
 
 
