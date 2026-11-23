@@ -81,8 +81,8 @@ you look, it is sorted. `step_slider` hides the bug by copying each frame as it
 arrives; `list(generator)` does not.
 
 **W9-M21 — b.** $n^2/2$ copies of n values each: $\Theta(n^3)$. The reference
-fixes it with `snapshot=_live` in the plain sort (Lecture 09, "The price of
-watching").
+fixes it with `snapshot=_live` in the plain sort (Lecture 09, "Watching your own
+code", the box "Deeper — the price of watching").
 
 **W9-M22 — c.** Reversed input has every pair inverted:
 $6 \times 5 / 2 = 15$ inversions, and bubble sort makes one swap per inversion.

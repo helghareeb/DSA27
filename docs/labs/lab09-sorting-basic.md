@@ -95,7 +95,7 @@ week:
 
 - **Do not call a library sort.** No `sorted`, `list.sort`, `min` or `max` of
   the values inside the three basic sorts. (`counting_sort` may use `max` to
-  find k — the lecture's step 1.)
+  find k — the lecture's `max(a) + 1`.)
 - **Write each algorithm once.** The plain form must reuse the `_steps` form,
   not copy its loops (Part 1).
 
@@ -103,8 +103,9 @@ week:
 
 # Part 1 — The pattern: one generator, two uses
 
-Lecture 09, "The code, written as a generator" and "One yield, one frame". The
-lecture shows `bubble_sort_steps` in full. Read it, close it, and write it from
+Lecture 09, "Bubble sort: the code" and "Watching your own code". The
+lecture shows the plain `bubble_sort`, and where the `yield` lines go to turn it
+into `bubble_sort_steps`. Read them, close them, and write the generator from
 memory in Part 2; here you learn to **use** such a generator before you write
 one.
 
@@ -290,7 +291,7 @@ $n - 1$. Count its swaps once you have Part 6.
 
 # Part 4 — `insertion_sort_steps` and `insertion_sort`
 
-Lecture 09, "Insertion sort" and "Insertion sort counts inversions". Grow a
+Lecture 09, "Insertion sort" and "Why 8 = 8: inversions". Grow a
 sorted prefix: take `current = a[i]`, shift every larger value in `a[0..i-1]`
 one slot right, and drop `current` into the hole.
 
@@ -484,7 +485,8 @@ sorted input, its walk does not stop at the first value that is not greater.
 
 # Part 7 — The price of watching, and the fix
 
-Lecture 09, "The price of watching". Your plain sorts run the `_steps`
+Lecture 09, "Watching your own code" (the box "Deeper — the price of
+watching"). Your plain sorts run the `_steps`
 generator to the end, and each yield makes a `list(a)` copy — $O(n)$ — before
 each of about $n^2/2$ comparisons.
 
