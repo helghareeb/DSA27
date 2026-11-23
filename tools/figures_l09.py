@@ -8,14 +8,13 @@ Run it from the repository root:
 Same conventions as `tools/figures.py`. The pass-by-pass diagrams are drawn from
 traces computed here on plain lists and checked against Python's `sorted`, so
 they need nothing from `dsa/`. The frames figure runs `bubble_sort_steps`, and
-the three measured figures time and count **your** `dsa/sorting.py`: they need a
+the two measured figures time and count **your** `dsa/sorting.py`: they need a
 working implementation (the lecture's copies were made from the instructor's
 reference solution). Without one, every other figure is still drawn.
 """
 
 from __future__ import annotations
 
-import inspect
 import random
 import sys
 import time
@@ -631,53 +630,9 @@ def figure_measured():
     return base.save(fig, "measured")
 
 
-def figure_watching():
-    """What exhausting a _steps generator costs when every frame is a copy."""
-    from dsa import sorting
-
-    if not working(sorting):
-        print("  (skipped watching.png: dsa/sorting.py is not implemented yet)")
-        return None
-    rng = random.Random(3)
-    sizes = [50, 100, 200, 400]
-
-    def exhaust_with_copies(values):
-        for _ in sorting.bubble_sort_steps(values):
-            pass
-
-    fig, ax = plt.subplots(figsize=(7.6, 4.4))
-    series = [("exhaust bubble_sort_steps: a list copy per frame", exhaust_with_copies,
-               RED)]
-    if "snapshot" in inspect.signature(sorting.bubble_sort_steps).parameters:
-        series.append(("bubble_sort: snapshot=_live, no copies", sorting.bubble_sort,
-                       GREEN))
-    for label, func, colour in series:
-        seconds = [best_time(func, lambda n=n: rng.sample(range(n), n), repeat=2)
-                   for n in sizes]
-        ax.plot(sizes, [s * 1e3 for s in seconds], "o-", color=colour, label=label,
-                linewidth=2.0, markersize=5)
-        ratios = [round(b / a, 1) for a, b in zip(seconds, seconds[1:])]
-        print(f"    {label:52s}", [round(s * 1e3, 1) for s in seconds], "ratios", ratios)
-    ax.set_xscale("log", base=2)
-    ax.set_yscale("log")
-    ax.set_ylim(1, 1e5)
-    ax.set_xticks(sizes)
-    ax.set_xticklabels([str(n) for n in sizes])
-    ax.set_xlabel("n (log scale)")
-    ax.set_ylabel("milliseconds (log scale)")
-    ax.grid(True, alpha=0.25, linewidth=0.7)
-    ax.legend(frameon=False, fontsize=9, loc="upper left")
-    for side in ("right", "top"):
-        ax.spines[side].set_visible(False)
-    ax.set_title("The price of watching: ×8 per doubling (n³) against ×4 (n²)",
-                 fontsize=12, fontweight="bold", color=SLATE)
-    fig.tight_layout()
-    return base.save(fig, "watching")
-
-
 FIGURES = [figure_stability, figure_bubble_pass, figure_bubble, figure_selection_scan,
-           figure_selection, figure_insertion_hole, figure_insertion, figure_frames, figure_counting, figure_decision_tree, figure_counts,
-           figure_measured, figure_watching]
+           figure_selection, figure_insertion_hole, figure_insertion, figure_frames,
+           figure_counting, figure_decision_tree, figure_counts, figure_measured]
 
 
 def main():
