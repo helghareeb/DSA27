@@ -11,18 +11,18 @@ lang: en
 
 > **How to read this document.** This is the handout for Lecture 09. It holds
 > everything on the slides, plus what I said out loud. Three simple sorts, each
-> written once as a **generator** so that you can watch it work, one sort that
-> uses integer keys as indices, and a worst-case lower bound of
-> $\Omega(n \log n)$ for general comparison sorting. Every count and timing in it was measured on the course's own
-> code.
+> taught the same way — the idea, one step, the code, the whole run, the cost —
+> on one list, so that you learn the pattern once and then only the
+> differences. Then a sort that does not compare at all, and the reason no
+> comparison sort can beat $n \log n$. Boxes marked **Deeper** hold the parts
+> that are examined but are not needed to follow the lecture; read them second.
 >
 > Slides: `DSA27-L09-slides.pdf` · Code: `dsa/sorting.py` ·
 > Tests: `tests/test_sorting.py` ·
+> Interactive demo: [Sorting Lab](https://helghareeb.github.io/DSA27/lectures/09-sorting-basic/sorting-lab.html) ·
 > Practise online: [Week 9 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-09/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/))
 
 :::
-
-# Where We Are
 
 ## Sorting buys searching
 
@@ -39,29 +39,46 @@ Today: **where the sorted data comes from — and what it costs.**
 
 Lecture 08 ended with a promise it could not keep by itself: binary search,
 `lower_bound`, jump and interpolation search all assume that the input is
-sorted, and nothing in them makes it so. This week and next are about paying
-that bill. The answer to "is sorting first worth it?" depends entirely on what
-the sort costs. With the $O(n \log n)$ sorts of Week 10, sorting a million
-values costs about 20 million comparisons, and pays for itself after about
-twenty searches. With today's $O(n^2)$ sorts it costs about 500 **billion**
-comparisons, and pays for itself after half a million searches. The same idea
-— sort, then search — is either obviously right or obviously wrong, depending
-on which sort you use.
+sorted. This week and next are about paying that bill. With the
+$O(n \log n)$ sorts of Week 10, sorting a million values costs about 20 million
+comparisons and pays for itself after about twenty searches. With today's
+$O(n^2)$ sorts it costs about 500 **billion** comparisons and pays for itself
+only after half a million searches. The same idea — sort, then search — is
+obviously right or obviously wrong, depending on the sort.
 
-*Sorting* in Arabic: الترتيب. *Sorting algorithm*: خوارزمية ترتيب.
+*Sorting*: الترتيب. *Sorting algorithm*: خوارزمية ترتيب.
 
 :::
 
-## Today
+## Today: one list, one pattern
 
-1. Two words first: **in place** and **stable**
-2. Bubble, selection and insertion sort — $O(n^2)$ each, but not the same
-3. Watching an algorithm: the `_steps` generator — and its price
-4. Best, worst, average: comparisons and writes, **measured**
-5. Counting sort: sorting without comparing
-6. The worst-case comparison-sorting lower bound
+$$A = [5,\ 2,\ 9,\ 1,\ 7,\ 3]$$
 
-# Two Words Before Any Algorithm
+Every sort today, on the same list, in the same five beats:
+
+1. **Idea** — one sentence
+2. **One step** — a picture
+3. **Code** — ten lines of plain Python
+4. **The whole run** — predict first, then look
+5. **Cost** — best, worst, stable or not
+
+Then: a sort that never compares, and a floor that no comparison sort can break.
+
+::: {.handout-only}
+
+Use the same list for everything, on paper, in the demo and in the question
+bank: there, too, **A** is this list. Because the input never changes, the
+differences you see are the differences between the algorithms. By the end you
+will know three facts about A that summarise the whole lecture:
+
+| on A | bubble | selection | insertion |
+|---|---|---|---|
+| comparisons | 14 | 15 | **11** — the fewest |
+| swaps or shifts | 8 swaps | **2 swaps** — the fewest | 8 shifts |
+
+and why bubble sort's 8 and insertion sort's 8 are the same number.
+
+:::
 
 ## In place, and stable
 
@@ -75,47 +92,25 @@ on which sort you use.
 *In place*: في المكان. *Stable*: مستقر. *Key*: المفتاح — the part of an
 element the sort compares.
 
-Both words describe **how** a sort arrives at the sorted order, not the order
-itself. A sort of plain integers cannot show you whether it is stable: two 3s
-look the same whichever came first. Stability only becomes visible when the
-elements carry more than their key — records sorted by one field.
+Both words describe **how** a sort reaches the sorted order, not the order
+itself. A sort of plain integers cannot show stability: two 3s look the same
+whichever came first. It becomes visible only when the elements carry more than
+their key — records sorted by one field. In the figure, four students are
+sorted by grade. Omar arrived before Laila and both have a B. A stable sort
+keeps Omar before Laila; the unstable one put Laila first. Both outputs are
+sorted by grade. Only one kept the promise.
 
-In the figure, four students are sorted by grade. Omar arrived before Laila and
-both have a B. A stable sort promises Omar still comes before Laila; the
-unstable one here swapped Laila over him. Both outputs are **sorted by
-grade**. Only one kept the promise.
+**Why it matters.** Sort a class list by name, then by grade with a stable
+sort: the result is by grade, and **by name within each grade**, for free —
+the same order as `ORDER BY grade, name`. Sort from the least important key to
+the most important. Python's `sorted` and `list.sort` are guaranteed stable for
+exactly this reason.
 
-`dsa/sorting.py` works on a copy: the list you pass is copied into a course
-`Array`, the sort rearranges the `Array`, and a new list comes back
-(`test_does_not_mutate_the_input`). The rearranging itself uses $O(1)$ extra
-slots in all three sorts of today — so we call them in place, even though the
-function as a whole returns a new list. Python makes the same distinction:
-`values.sort()` sorts in place and returns `None`; `sorted(values)` returns a
-new list.
-
-:::
-
-## Why stability matters
-
-Sort a class list **by name**, then **by grade** with a stable sort:
-
-- the result is by grade, and **by name within each grade**, for free.
-
-This produces the same key priority as `ORDER BY grade, name`. A database
-need not implement that ordering with two stable sorting passes.
-
-::: {.handout-only}
-
-Sorting by several keys with a stable sort works from the **least** important
-key to the most important: first by name, then by grade. The second sort
-reorders only students with different grades; students with the same grade
-compare equal, so a stable sort leaves them in the name order the first sort
-gave them. An unstable sort would scramble them.
-
-Python's own `sorted` and `list.sort` are guaranteed stable, for exactly this
-reason, and the documentation says so. Of today's three sorts, bubble and
-insertion sort are stable and selection sort is not — the figure's unstable
-output is what selection sort really does to those four records.
+`dsa/sorting.py` copies your list into a course `Array`, sorts the `Array`, and
+returns a new list (`test_does_not_mutate_the_input`). The rearranging itself
+uses $O(1)$ extra slots in all three sorts of today, so we call them in place.
+Python makes the same distinction: `values.sort()` sorts in place and returns
+`None`; `sorted(values)` returns a new list.
 
 :::
 
@@ -123,295 +118,276 @@ output is what selection sort really does to those four records.
 
 ## Bubble sort
 
-![](figures/bubble.png){width=92%}
+**Idea:** compare **neighbours**; swap them when the left one is larger.
 
-Compare **neighbours**; swap them if they are out of order. Each pass carries
-the largest remaining value to the end. A pass with **no swap** means sorted:
-stop.
+![](figures/bubble_pass.png){width=72%}
 
 ::: {.handout-only}
 
 *Bubble sort*: ترتيب الفقاعات — the large values rise to the end like bubbles.
 
-On the running example `[5, 2, 9, 1, 7, 3]`, pass 1 walks the whole array. The
-9 is larger than everything it meets, so it is swapped at every step until it
-reaches the end: after one pass, the largest value is **in its final place**
-(green). Pass 2 does the same for the 7 — and need not look at the last slot,
-because it already holds the largest value. Pass k needs only $n - k$
-comparisons.
-
-The **early exit** is what makes bubble sort worth studying at all. If a whole
-pass makes no swap, every neighbour pair is in order, which means the whole
-array is sorted: stop. Here pass 4 finds nothing to swap and the sort ends
-after 14 comparisons instead of $5 + 4 + 3 + 2 + 1 = 15$. On input that is
-already sorted, the first pass swaps nothing and the sort ends after $n - 1$
-comparisons: the best case is $O(n)$.
-
-The worst case is reversed input: every comparison swaps, and all $n - 1$
-passes run — $n(n-1)/2$ comparisons and as many swaps. $O(n^2)$.
-
-**Stable**, because it swaps only when `a[j] > a[j + 1]` — strictly greater.
-Two equal neighbours are never swapped, so equal keys never pass each other.
+**One step** is one pass. Pass 1 on A walks the whole array, one comparison per
+row. The 9 is larger than everything it meets, so it is swapped at every step
+until it reaches the end. After one pass, the largest value is **in its final
+place** — so the next pass can stop one slot earlier.
 
 :::
 
-## The code, written as a generator
+## Bubble sort: the code
+
+```python
+def bubble_sort(a):
+    n = len(a)
+    for end in range(n - 1, 0, -1):      # a[end+1:] is already in place
+        swapped = False
+        for j in range(end):
+            if a[j] > a[j + 1]:          # strictly greater: stable
+                a[j], a[j + 1] = a[j + 1], a[j]
+                swapped = True
+        if not swapped:                  # a pass with no swap: sorted
+            break
+    return a
+```
+
+**Common mistake:** setting `swapped = False` once, before the loops.
+
+::: {.handout-only}
+
+`end` is the last slot the current pass still looks at. `swapped` records
+whether this pass changed anything, so it must be reset at the start of
+**every** pass: set it once, before the loops, and the first swap keeps it
+`True` forever — the early exit never fires. If a whole pass swaps nothing,
+every neighbour pair is in order, so the whole array is sorted: stop.
+
+This is plain Python on a plain list, so that the algorithm is all you see.
+The course version in `dsa/sorting.py` has the same loops; see "Watching your
+own code" for the two things it adds.
+
+:::
+
+## Bubble sort, the whole run
+
+**Predict:** how many passes does A need? Will the early exit fire?
 
 ::: {.slides-only}
 
-```python
-def bubble_sort_steps(values, snapshot=list):
-    a = _copy(values)
-    n = len(a)
-    yield snapshot(a), ()
-    for end in range(n - 1, 0, -1):
-        swapped = False
-        for j in range(end):
-            yield snapshot(a), (j, j + 1)
-            if a[j] > a[j + 1]:
-                a[j], a[j + 1] = a[j + 1], a[j]
-                swapped = True
-        if not swapped:
-            break
-    yield snapshot(a), ()
-
-
-def bubble_sort(values):
-    return _finish(bubble_sort_steps(values, snapshot=_live))
-```
+. . .
 
 :::
 
-::: {.handout-only}
-
-```python
-def bubble_sort_steps(values, snapshot=list):
-    a = _copy(values)
-    n = len(a)
-    yield snapshot(a), ()
-    for end in range(n - 1, 0, -1):          # a[end+1:] is already in place
-        swapped = False
-        for j in range(end):
-            yield snapshot(a), (j, j + 1)      # about to compare
-            if a[j] > a[j + 1]:
-                a[j], a[j + 1] = a[j + 1], a[j]
-                swapped = True
-        if not swapped:
-            break
-    yield snapshot(a), ()
-
-
-def bubble_sort(values):
-    return _finish(bubble_sort_steps(values, snapshot=_live))
-```
-
-:::
+![](figures/bubble.png){width=90%}
 
 ::: {.handout-only}
 
-This is the reference solution, exactly (`solutions/dsa/sorting.py`). Read it
-as two things at once.
+Pass k needs only $n - k$ comparisons, because the last $k - 1$ slots are
+already final: 5, 4, 3, 2. Pass 4 finds nothing to swap, so the sort stops
+there: **14 comparisons instead of 15**, and 8 swaps.
 
-**The algorithm** is the loops and the `if`. `end` is the last slot the current
-pass still has to look at; after the pass, `a[end]` holds the largest value of
-`a[0..end]`, so the next pass stops one earlier. `swapped` records whether this
-pass changed anything. `_copy(values)` copies the input into a fresh course
-`Array`, so the caller's list is never touched.
-
-**The film** is the `yield` lines. Before each comparison, the generator hands
-out a picture of the array and the pair it is about to compare, `(j, j + 1)`,
-and pauses. Whoever is iterating decides what to do with each picture: draw it,
-count it, or ignore it. A generator (Lab 03, "Generators") runs only as far as
-it is asked to — which is what makes a step-by-step animation possible.
-
-**The plain sort** `bubble_sort` is not a second implementation. `_finish` runs
-the generator to its end and returns the last state as a list. There is one
-piece of code to keep correct, and the animation shows exactly the code the
-tests grade. The `snapshot` parameter, and `_live`, are the subject of
-"The price of watching" below.
+**Cost.** On sorted input the first pass swaps nothing: $n - 1$ comparisons,
+the best case is $O(n)$. On reversed input every comparison swaps and all
+$n - 1$ passes run: $n(n-1)/2$ comparisons and as many swaps, $O(n^2)$.
+**Stable**, because it swaps only when `a[j] > a[j + 1]` — strictly greater —
+so equal neighbours never pass each other.
 
 :::
 
 ## Selection sort
 
-![](figures/selection.png){width=92%}
+**Idea:** find the **smallest** value of the unsorted part; swap it into the next slot.
 
-Find the **minimum** of the unsorted part; **swap** it into the next slot.
-Always $n(n-1)/2$ comparisons — but at most $n - 1$ swaps.
+![](figures/selection_scan.png){width=74%}
 
 ::: {.handout-only}
 
 *Selection sort*: الترتيب بالاختيار.
 
-Round i scans `a[i..n-1]` for its smallest value and swaps it into slot i. After
-round i, `a[0..i]` holds the i + 1 smallest values, in order, in their final
-places. The scan in round i makes $n - 1 - i$ comparisons whatever the data, so
-the total is always $(n-1) + (n-2) + \dots + 1 = n(n-1)/2$: selection sort has
-**no asymptotically faster best case**: even sorted input requires the same
-number of comparisons as reversed input, although it may require fewer swaps.
+**One step** is one round. Round 0 scans all of A and remembers where the
+smallest value **so far** is (green). It changes its mind twice: at 2, then at
+1. Only after the scan does it write anything — one swap, slots 0 and 3. Many
+comparisons, almost no writes: that is selection sort in one picture.
 
-Its virtue is the other count. There is at most one swap per round — none at
-all when the minimum is already in place, as in rounds i = 1, 3 and 4 of the figure
-— so at most $n - 1$ swaps in total. That is the fewest of any of today's sorts,
-and it matters when a write is much more expensive than a read: moving large
-records, or writing to flash memory, which wears out with every write.
+:::
 
-**Not stable.** The swap moves `a[i]` a long way to the right, possibly over an
-element equal to it. In the stability figure, round i = 1 swaps Omar (B) with
-Ali (A), the minimum of the rest: Omar lands at the back, behind Laila, who had
-arrived after him.
+## Selection sort: the code
 
-Two details in the reference: the scan compares with `a[smallest]`, the best
-seen **so far** — not with `a[i]` — and the swap is skipped when
-`smallest == i`.
+```python
+def selection_sort(a):
+    n = len(a)
+    for i in range(n - 1):
+        smallest = i
+        for j in range(i + 1, n):
+            if a[j] < a[smallest]:       # the best so far, not a[i]
+                smallest = j
+        if smallest != i:
+            a[i], a[smallest] = a[smallest], a[i]
+    return a
+```
+
+**Common mistake:** comparing with `a[i]` instead of `a[smallest]`.
+
+::: {.handout-only}
+
+Compare with `a[i]` and the scan finds the **last** value smaller than `a[i]`,
+not the smallest one: on A, round 0 would pick the 3 in slot 5 instead of the 1.
+The `if smallest != i` skips the swap when the minimum is already in place.
+
+:::
+
+## Selection sort, the whole run
+
+**Predict:** how many swaps will A need?
+
+::: {.slides-only}
+
+. . .
+
+:::
+
+![](figures/selection.png){width=90%}
+
+::: {.handout-only}
+
+Only **2 swaps**: in rounds 1, 3 and 4 the minimum is already in place. But
+every round scans the whole unsorted part, whatever the data: $5 + 4 + 3 + 2 +
+1 = 15$ comparisons.
+
+**Cost.** Always $n(n-1)/2$ comparisons — even on sorted input, so there is
+**no fast best case**: $O(n^2)$ always. But at most $n - 1$ swaps, the fewest
+of today's sorts. That matters when a write costs much more than a read:
+moving large records, or writing to flash memory, which wears out with every
+write. **Not stable:** the swap can carry a value far to the right, over an
+equal one. In the stability figure, round 1 swaps Omar (B) with Ali (A), and
+Omar lands behind Laila, who arrived after him.
 
 :::
 
 ## Insertion sort
 
-![](figures/insertion.png){width=92%}
+**Idea:** grow a **sorted prefix**: take the next value, shift larger values right, drop it into the hole.
 
-Grow a **sorted prefix**. Take the next value; shift every larger value in the
-prefix one slot right; drop the value into the hole.
+![](figures/insertion_hole.png){width=60%}
 
 ::: {.handout-only}
 
-*Insertion sort*: الترتيب بالإدراج.
+*Insertion sort*: الترتيب بالإدراج. This is how most people sort a hand of cards.
 
-This is how most people sort a hand of cards. At round i, `a[0..i-1]` is sorted
-(green); `current = a[i]` is the next card. Walk left from `j = i - 1` while
-`a[j] > current`, shifting each of those values one slot right; when the walk
-stops — at a value not greater than `current`, or off the front of the array —
-put `current` in the gap. The highlighted value in each row of the figure is the
-one just inserted.
-
-Lab 08's bridge did the same thing with `lower_bound` and `list.insert`. Here
-the shifting is written out, and it is the shifting that costs: finding the
-place faster would not help, because the elements still have to move.
-
-**Stable**, because the walk stops at a value **equal** to `current` — the loop
-condition is `a[j] > current`, strictly greater — so `current` never passes an
-equal key. Write `>=` there and the sort still sorts, but loses stability;
-`test_insertion_sort_is_stable` catches it.
-
-**Watch the order of the condition**: `j >= 0 and a[j] > current`. The other
-way round, `a[j]` is read when `j` is -1. On a Python list that silently reads
-the **last** element; the course `Array` refuses negative indices and raises
-`IndexError` — one more bug the `Array` catches for you.
-
-The reference's `insertion_sort_steps` writes `current` into the hole after
-every shift, not only at the end, so that every frame of the animation is a real
-permutation of the input — no value duplicated, none missing. That costs a
-second write per shift; the textbook version writes `current` once, after the
-loop. The comparisons are the same.
+**One step** is one round. In the last round of A, `[1, 2, 5, 7, 9]` is
+already sorted and `current = 3` must find its place. Its slot becomes a hole
+(pink). Each larger value moves one slot right, and the hole moves one slot
+left. At 2 the walk stops — 2 is not greater than 3 — and 3 drops into the
+hole.
 
 :::
 
-## Insertion sort counts inversions
+## Insertion sort: the code
 
-An **inversion** is a pair $i < j$ with $a[i] > a[j]$ — a pair in the wrong
-order.
+```python
+def insertion_sort(a):
+    for i in range(1, len(a)):
+        current = a[i]
+        j = i - 1
+        while j >= 0 and a[j] > current:   # j >= 0 FIRST
+            a[j + 1] = a[j]                # shift right
+            j -= 1
+        a[j + 1] = current                 # drop into the hole
+    return a
+```
 
-- Each shift fixes **exactly one** inversion.
-- So insertion sort does **one shift per inversion**: 8 for the example.
-- Sorted: 0 inversions. Reversed: $n(n-1)/2$. Random: about $n(n-1)/4$.
+**Common mistake:** `a[j] >= current` — it still sorts, but it is no longer stable.
+
+::: {.handout-only}
+
+**Stable**, because the walk stops at a value **equal** to `current`, so
+`current` never passes an equal key. Write `>=` and the sort still sorts but
+loses stability; `test_insertion_sort_is_stable` catches it.
+
+**The order of the condition matters too.** Written the other way round,
+`a[j]` is read when `j` is -1. On a Python list that silently reads the
+**last** element; the course `Array` refuses negative indices and raises
+`IndexError` — one more bug the `Array` catches for you.
+
+:::
+
+## Insertion sort, the whole run
+
+**Predict:** in which round does nothing move?
+
+::: {.slides-only}
+
+. . .
+
+:::
+
+![](figures/insertion.png){width=74%}
+
+::: {.handout-only}
+
+Round 2: 9 is larger than everything before it, so the walk stops after one
+comparison and nothing moves. On sorted input **every** round is like this one:
+$n - 1$ comparisons, no shifts, the best case $O(n)$. On A: 8 shifts and 11
+comparisons, the fewest of the three sorts.
+
+The reference `insertion_sort_steps` writes `current` into the hole after
+every shift, not only at the end, so that every frame of the animation is a
+real permutation of the input. That costs a second write per shift; the
+comparisons are the same.
+
+:::
+
+## Why 8 = 8: inversions
+
+An **inversion** is a pair $i < j$ with $a[i] > a[j]$ — a pair in the wrong order.
+
+- A has **8**: (5,2) (5,1) (5,3) (2,1) (9,1) (9,7) (9,3) (7,3)
+- Each bubble swap and each insertion shift fixes **exactly one**.
+- So both make exactly **I** moves: $O(n + I)$ for insertion sort.
+- Sorted: $I = 0$. Reversed: $n(n-1)/2$. Random: about $n(n-1)/4$.
 
 ::: {.handout-only}
 
 *Inversion*: انعكاس.
 
-The inversions of `[5, 2, 9, 1, 7, 3]` are (5,2), (5,1), (5,3), (2,1), (9,1),
-(9,7), (9,3) and (7,3): eight, and the figure counts eight shifts. When
-`current` moves past a larger value, that pair was inverted and now is not; no
-other pair changes its order. So the number of shifts is exactly the number of
-inversions, and insertion sort runs in $O(n + I)$ time, where I is the number
-of inversions.
+When two neighbours that are out of order change places, that one pair is
+fixed, and no other pair changes its order. A bubble swap does exactly that;
+an insertion shift moves `current` past one larger value, which is the same
+thing. So bubble sort makes exactly I swaps, insertion sort exactly I shifts,
+and insertion sort runs in $O(n + I)$ time.
 
-That one formula explains its best, worst and average case. Sorted input has no
-inversions: $n - 1$ comparisons and no shifts — $O(n)$. Reversed input has every
-pair inverted: $n(n-1)/2$ shifts — $O(n^2)$. In a random permutation each pair
-is inverted with probability ½, so the average is $n(n-1)/4$ — still
-$\Theta(n^2)$, but half the worst case. Bubble sort's swaps obey the same law:
-each swap of neighbours also fixes exactly one inversion, so bubble sort makes
-exactly I swaps too.
+That one formula explains its three cases. Sorted input has no inversions:
+$O(n)$. Reversed input has every pair inverted: $O(n^2)$. In a random
+permutation each pair is inverted with probability ½, so the average is
+$n(n-1)/4$ — still $\Theta(n^2)$, but half the worst case.
 
 :::
 
-# Watching an Algorithm
+# Which One, When
 
-## One yield, one frame
+## The table
 
-![](figures/frames.png){width=100%}
+| | best | average | worst | A: compares · moves | stable | memory |
+|---|---|---|---|---|---|---|
+| bubble (early exit) | $n$ | $n^2$ | $n^2$ | 14 · 8 | yes | $O(1)$ |
+| selection | $n^2$ | $n^2$ | $n^2$ | 15 · **2** | **no** | $O(1)$ |
+| insertion | $n$ | $n^2$ | $n^2$ | **11** · 8 | yes | $O(1)$ |
+| counting | $n + k$ | $n + k$ | $n + k$ | 0 · — | — | $O(n + k)$ |
 
-```python
-from viz.animate import step_slider, animate_bars
-step_slider(bubble_sort_steps([5, 2, 9, 1, 7]))     # scrub by hand
-animate_bars(bubble_sort_steps([5, 2, 9, 1, 7]))    # play it
-```
+**Choose:** few writes → selection · nearly sorted or tiny → insertion · bubble → teaching only.
 
 ::: {.handout-only}
 
-Each `yield` of `bubble_sort_steps` becomes one frame: the values as bars, the
-pair about to be compared in amber. Twelve yields for five values — the first
-state, ten comparisons, the last state — and twelve frames. `viz/animate.py`
-does not know which algorithm it is showing; it only needs a generator that
-yields `(values, highlight)` pairs. That is the contract of every `_steps`
-function in `dsa/sorting.py`, and it is what lets you watch **your own** code
-in the notebook, not a video of someone else's.
+Best, worst and average are about **inputs of the same size**: the kindest
+input of size n, the cruellest, and the expected cost over all $n!$ orders.
+They are three different functions of n, which is why "insertion sort is
+$O(n^2)$" and "insertion sort is $O(n)$ on sorted input" are both true.
 
-`step_slider` is the better tool for learning: you go at your pace, you can go
-back, and you can stop on the frame you do not understand. In a notebook,
-display an animation with `HTML(animate_bars(...).to_jshtml())`.
-
-Two rules make the frames right, and the tests check both:
-
-- **Each frame must be its own list.** Yield `list(a)`, a fresh copy, not the
-  working `Array`. The animation keeps every frame; if they were all the same
-  object, they would all show its final state
-  (`test_step_frames_are_independent_snapshots`).
-- **The last frame must be sorted.** Yield once more after the loops
-  (`test_step_form_is_a_generator_ending_sorted`).
+Exact comparison counts: bubble sort makes $n - 1$ at best and $n(n-1)/2$ at
+worst; selection sort exactly $n(n-1)/2$ always; insertion sort between
+$n - 1$ and $n(n-1)/2$, and $I + n - 1$ at most. The stability entry for
+counting sort is a dash because `counting_sort` rebuilds integers from counts:
+equal integers are indistinguishable, so there is nothing to keep in order.
+The stable version, which moves whole records, is practice problem W9-C5.
 
 :::
-
-## The price of watching
-
-![](figures/watching.png){width=74%}
-
-A copy per frame is $O(n)$. Copy before each of $n^2/2$ comparisons:
-**$O(n^3)$**.
-
-The plain sort passes `snapshot=_live` — no copies — and is $O(n^2)$ again.
-
-::: {.handout-only}
-
-The first reference version of `dsa/sorting.py` built `bubble_sort` by running
-`bubble_sort_steps` to the end — with a `list(a)` copy at every one of its
-$n(n-1)/2$ yields. Each copy costs $n$, so the plain sort cost $\Theta(n^3)$.
-The tests could not notice: their largest list has 40 values. Measurement did:
-the red line rises **eight** times per doubling of n, the signature of $n^3$
-(Lecture 02), and sorting 800 values took over a minute.
-
-The fix keeps one implementation. `snapshot` is the function that turns the
-working `Array` into the frame to yield. The default, `list`, makes a copy —
-right for an animation. The plain sort passes `_live`:
-
-```python
-def _live(a):
-    """The working Array itself — no copy. For the plain sorts only."""
-    return a
-```
-
-Now each yield costs $O(1)$, and `_finish` makes one copy at the very end. The
-green line rises four times per doubling: $O(n^2)$, as promised. The lesson is
-not about sorting. **Instrumenting code changes its cost**, and only measuring
-tells you by how much. A print statement inside a loop, a log line, an
-assertion that checks `is_sorted` at every step: each one is an $O(n)$ that can
-hide inside your $O(n^2)$.
-
-:::
-
-# Best, Worst, Average
 
 ## Counting comparisons and writes
 
@@ -419,61 +395,24 @@ hide inside your $O(n^2)$.
 
 ::: {.handout-only}
 
-Time depends on your machine; **counts** do not. The figure counts, for n = 1,000
-values, every comparison — by sorting objects whose `<` and `>` add 1 to a
-counter — and every write into the course `Array`, by counting calls to its
-`__setitem__`. `tools/figures_l09.py` does both; the lab asks you to write the
-comparison counter yourself.
+Time depends on your machine; **counts** do not. The figure counts, for
+n = 1,000 values, every comparison — by sorting objects whose `<` and `>` add
+1 to a counter — and every write into the course `Array`. The lab asks you to
+write the comparison counter yourself.
 
-What to read off it:
-
-- **Selection sort compares 499,500 times on every input** — $n(n-1)/2$ — even
-  on sorted data. But it writes at most 1,998 times: two writes per swap, at
-  most $n - 1$ swaps. On reversed input it swaps only 500 times: each swap
-  fixes both ends.
-- **Bubble and insertion sort** do $n - 1 = 999$ comparisons on sorted input and
-  about 1,000–2,000 on nearly sorted input (1% of neighbours swapped): **the
-  early exit and the stopping walk pay off.**
-- **Writes follow the inversions.** On the random input, with 248,621
-  inversions, bubble sort writes 2 × 248,621 = 497,242 times — two writes per
-  swap. Insertion sort writes 498,241: two per shift in the reference (see
-  "Insertion sort"), plus one final write per value.
-- **Random input:** insertion sort makes about half the comparisons of bubble
-  sort (249,614 against 491,874). Bubble sort's early exit rarely fires on
-  random data, so it does nearly all $n(n-1)/2$.
-
-All three are $O(n^2)$ in the worst case. The counts show that the same class
-can hide a factor of two, or of a thousand, in the cases you actually meet.
-
-:::
-
-## The table
-
-| | best | average | worst | element movements | stable | in-place rearrangement |
-|------------------|--------------|--------------|--------------|-----------------|-----|-----|
-| bubble (early exit) | $n$ | $n^2$ | $n^2$ | I swaps | yes | yes |
-| selection | $n^2$ | $n^2$ | $n^2$ | $\le n - 1$ swaps | **no** | yes |
-| insertion | $n$ | $n^2$ | $n^2$ | I shifts | yes | yes |
-| counting | $n + k$ | $n + k$ | $n + k$ | $2n$ | — | **no**, $O(n + k)$ |
-
-**I** = the number of inversions: 0 when sorted, $n(n-1)/2$ when reversed.
-
-::: {.handout-only}
-
-Best, worst and average are about **inputs of the same size**: the best case is
-the kindest input of size n, the worst case the cruellest, and the average case
-the expected cost over all $n!$ orders, each equally likely. They are three
-different functions of n, and each can be given its own $O$ — which is why
-"insertion sort is $O(n^2)$" and "insertion sort is $O(n)$ on sorted input" are
-both true.
-
-Exact comparison counts: bubble sort with the early exit makes $n - 1$ at best
-and $n(n-1)/2$ at worst; selection sort exactly $n(n-1)/2$ always; insertion
-sort between $n - 1$ and $n(n-1)/2$, and $I + n - 1$ at most. The "stable"
-column for counting sort is a dash because `counting_sort` rebuilds integers
-from counts: equal integers are indistinguishable, so there is nothing to keep
-in order. The stable version, which moves whole records, is a practice
-problem (W9-C5).
+> **Deeper — reading the counts.**
+>
+> - **Selection sort compares 499,500 times on every input** — $n(n-1)/2$ —
+>   but writes at most 1,998 times: two writes per swap. On reversed input it
+>   swaps only 500 times: each swap fixes both ends.
+> - **Bubble and insertion sort** make 999 comparisons on sorted input and
+>   about 1,000–2,000 on nearly sorted input (1% of neighbours swapped).
+> - **Writes follow the inversions.** On the random input, with 248,621
+>   inversions, bubble sort writes 2 × 248,621 = 497,242 times. Insertion sort
+>   writes 498,241: two per shift in the reference, plus one final write per
+>   value.
+> - **Random input:** insertion sort makes about half the comparisons of
+>   bubble sort (249,614 against 491,874).
 
 :::
 
@@ -484,25 +423,18 @@ problem (W9-C5).
 ::: {.handout-only}
 
 **Left: random input.** Each doubling of n multiplies the time of the three
-$O(n^2)$ sorts by about four: bubble sort went from 72 ms at n = 200 to 4.9 s at
-n = 1,600 — 8 times the data, 68 times the time. Selection sort is the fastest
-of the three here, although it compares the most: in Python, a comparison is
-cheap next to the reads and writes of a swap, and selection sort writes almost
-nothing. Counting sort is a straight line of slope 1 — $O(n)$, 9 ms at
-n = 1,600. The dashed line is Python's built-in `sorted`, written in C:
-0.36 ms. That gap combines implementation overhead and algorithm choice: CPython's
-built-in sort is highly optimized C code and exploits ordered runs. This
-measurement does not isolate language from algorithm.
+$O(n^2)$ sorts by about four. Selection sort is the fastest of the three here,
+although it compares the most: in Python a comparison is cheap next to the
+reads and writes of a swap, and selection sort writes almost nothing. Counting
+sort is a straight line of slope 1, $O(n)$. The dashed line is Python's
+built-in `sorted`, written in C and highly optimised; the gap mixes language
+and algorithm.
 
-**Right: the same insertion sort on four inputs of the same size.** At
-n = 1,600, reversed input took 6.0 s, random 2.7 s — half, as the inversion
-count predicts — and nearly sorted input **6.7 ms**, about 400 times faster than
-random, and no slower than sorted input. Nearly sorted is its best case in
-practice, not only in theory.
-
-Your times and ratios can differ with hardware, runtime, inputs and
-measurement noise. Look for the growth trend across several sizes, not an
-exact speedup promised by one machine.
+**Right: insertion sort on four inputs of the same size.** At n = 1,600,
+reversed input took 6.0 s and random 2.7 s — half, as the inversion count
+predicts — and nearly sorted input **6.7 ms**, about 400 times faster than
+random. Your times will differ; look for the growth trend, not the exact
+numbers.
 
 :::
 
@@ -519,23 +451,20 @@ Real sorts use it:
 ::: {.handout-only}
 
 Data in real programs is often nearly sorted: a sorted list with a few new
-records appended, a log whose timestamps are a little out of order, last
-week's ranking with a few changes. Insertion sort handles all of these in close
-to linear time, with no extra memory, and it is stable. Its small overhead often makes it effective on **tiny** arrays; which
-implementation is fastest still depends on the data and runtime.
-
-That is why the $O(n \log n)$ sorts you will meet next week are rarely used
-alone. Python's `sorted` is **Timsort** (Tim Peters, 2002), a merge sort that
-first finds the runs already in order and extends short ones with (binary)
-insertion sort. C++'s `std::sort` is usually **introsort** (David Musser,
-1997): quicksort that switches to heap sort if the recursion goes too deep, and
+records appended, a log whose timestamps are a little out of order. Insertion
+sort handles these in close to linear time, with no extra memory, and it is
+stable. That is why the $O(n \log n)$ sorts of next week are rarely used alone.
+Python's `sorted` is **Timsort** (Tim Peters, 2002), a merge sort that first
+finds the runs already in order and extends short ones with binary insertion
+sort. C++'s `std::sort` is usually **introsort** (David Musser, 1997):
+quicksort that switches to heap sort if the recursion goes too deep, and
 finishes small pieces with insertion sort. The "slow" sort of today is inside
 the fast sorts of the real world.
 
-If every element is at most k places from its final position (breaking ties
-consistently), an inverted pair cannot start more than 2k positions apart.
-Thus there are $O(nk)$ inversions and insertion sort costs $O(n + nk)$: linear
-when k is a fixed small constant, including k = 0. See practice W9-C4.
+> **Deeper — why $I \le nk$.** If every element is at most k places from its
+> final position, an inverted pair cannot start more than 2k positions apart.
+> So there are $O(nk)$ inversions and insertion sort costs $O(n + nk)$: linear
+> when k is a small constant. See practice W9-C4.
 
 :::
 
@@ -545,83 +474,90 @@ when k is a fixed small constant, including k = 0. See practice W9-C4.
 
 ![](figures/counting.png){width=92%}
 
-Values are small non-negative integers, below k: **count** them, then write
-each value out as many times as it was counted. $O(n + k)$. **Not comparison-based.**
+**Idea:** the values are small integers, below k — **count** them, then write each value out as many times as it was counted. $O(n + k)$.
 
 ::: {.handout-only}
 
 *Counting sort*: الترتيب بالعد.
 
-`counting_sort(values, max_value=None)` works in three steps:
+The value **is** the index — that is the whole trick. For
+`[3, 1, 4, 1, 5, 0, 3]`, k = 6: one counter for each possible value 0 .. 5.
+One pass over the values fills the counters `[1, 2, 0, 2, 1, 1]`; one pass
+over the counters writes the output. k counts the **possible** keys, not only
+the ones that occur: the 2 has a counter, with nothing in it.
 
-1. **k.** With no `max_value`, find the largest value; `k = max + 1` slots,
-   one per possible value 0 .. max. An empty list is sorted already — return
-   `[]` before `max` sees it.
-2. **Count.** A course `Array` of k zeros; for each value v, add 1 to
-   `counts[v]`. The value **is** the index — that is the whole trick.
-3. **Write out.** For v from 0 to k - 1, write v into the output `counts[v]`
-   times.
+**The catch is k.** Sorting a hundred exam marks out of 100 is quick; sorting
+ten phone numbers needs ten billion counters. Counting sort is fast exactly
+when the **range** of the values is not much larger than their **number**. It
+also needs keys that can be used as indices: non-negative integers, or things
+that map to them (letters, grades, ages). The reference raises `ValueError`
+for anything else.
 
-Time: one pass over the n values, one over the k counts, and n writes: $O(n + k)$.
-Extra space: $O(n + k)$ — not in place.
+:::
 
-**Work a small example first.** For `[3, 1, 2, 1, 0, 3]`, n = 6 and k = 4.
-The counters for keys 0, 1, 2, 3 are `[1, 2, 1, 2]`; writing them out gives
-`[0, 1, 1, 2, 3, 3]`. k counts the **possible keys**, not just the distinct
-keys that happen to occur. The `max` call and validation may compare values;
-“not comparison-based” describes how the sorted order is obtained.
+## Counting sort: the code
 
-**Predict before running:** would you use the same method for `[0, 1000000000]`?
-Only two values are present, but this implementation would need 1,000,000,001
-counters. Explain both the time and memory cost before trying to allocate it.
+```python
+def counting_sort(a):
+    if not a:                            # max([]) would fail
+        return []
+    counts = [0] * (max(a) + 1)          # k = max + 1 counters
+    for v in a:
+        counts[v] += 1                   # the value IS the index
+    result = []
+    for v in range(len(counts)):
+        for _ in range(counts[v]):       # write v, counts[v] times
+            result.append(v)
+    return result
+```
 
-**The catch is k.** Sorting ten exam marks out of 100 is quick; sorting ten
-phone numbers means an `Array` of ten billion counters. Counting sort is fast
-exactly when the **range** of the values is not much larger than their
-**number**. It also needs keys that can be used as indices: non-negative
-integers, or things that map to them (letters, grades, ages). The reference
-raises `ValueError` for anything else.
+**Predict:** what does `counting_sort([0, 1000000000])` cost?
+
+::: {.handout-only}
+
+Time: one pass over the n values, one over the k counters, and n writes —
+$O(n + k)$. Extra space: $O(n + k)$, so it is **not** in place. For
+`[0, 1000000000]`, only two values are present, but the code allocates
+1,000,000,001 counters and then reads every one: the k term is the whole cost.
+
+This version uses Python lists and does not check its input. The course
+version uses a course `Array` for the counters, accepts a `max_value`, and
+raises `ValueError` for a negative or non-integer value.
 
 :::
 
 ## Worst case: comparison sorting needs $\Omega(n \log n)$
 
-![](figures/decision_tree.png){width=88%}
+![](figures/decision_tree.png){width=80%}
 
-n **distinct** values have **n!** possible orders; the sort must tell them all apart.
-Each comparison has 2 outcomes. So the worst case needs at least
+n **distinct** values have **n!** orders, and the sort must tell them all apart.
+Each comparison has 2 outcomes, so the worst case needs at least
 $\log_2 n! \approx n \log_2 n$ comparisons.
 
 ::: {.handout-only}
 
 *Lower bound*: الحد الأدنى. *Decision tree*: شجرة القرار.
 
-The argument, intuitively. Take any sort that learns about its input **only**
-by comparing two elements. Draw every comparison it might make as a node, with
-two branches for the two answers: that is its **decision tree**. The figure is
-insertion sort's tree for three values a, b and c. A run of the sort on one
-input is a path from the root to a leaf, and the number of comparisons is the
-length of the path.
+Take any sort that learns about its input **only** by comparing two elements.
+Draw every comparison it might make as a node, with two branches for the two
+answers: that is its **decision tree**. The figure is insertion sort's tree
+for three values. A run is a path from the root to a leaf, and its length is
+the number of comparisons. Each leaf must correspond to **one** order of the
+input — if two orders reached the same leaf, the sort would do the same moves
+on both and get one of them wrong. So the tree needs at least $n!$ leaves, and
+a binary tree of height h has at most $2^h$: $h \ge \log_2 n!$.
 
-Each leaf must correspond to **one** order of the input. If two different orders
-reached the same leaf, the sort would do the same moves on both and get one of
-them wrong. There are $n!$ orders, so the tree needs at least $n!$ leaves. A
-binary tree of height h has at most $2^h$ leaves, so
-$2^h \ge n!$, that is $h \ge \log_2 n!$. The height is the worst-case number of
-comparisons.
+For 3 values, $\log_2 6 \approx 2.6$: at least **3** comparisons in the worst
+case, and the tree achieves it. For a thousand values, about 8,530 — against
+499,500 for today's sorts. Week 10's merge sort and heap sort reach this floor.
+The bound is about the **worst** case: bubble and insertion sort still make
+only $n - 1$ comparisons on sorted input.
 
-How big is $\log_2 n!$? For 3 values, $\log_2 6 \approx 2.6$: at least **3**
-comparisons in the worst case, and the tree in the figure achieves it. For 10
-values, $\log_2 3{,}628{,}800 \approx 21.8$: at least 22. For a thousand, about
-8,530 — against 499,500 for today's sorts. In general
-$\log_2 n! = \Theta(n \log n)$: half the factors of $n!$ are at least $n/2$, so
-$n! \ge (n/2)^{n/2}$, and $\log_2 n! \ge \frac{n}{2} \log_2 \frac{n}{2}$.
-
-So $\Omega(n \log n)$ is a **worst-case** lower bound for every general
-comparison sort, including ones nobody has invented yet. Week 10's merge sort and heap sort reach it; nothing that only
-compares can guarantee a lower asymptotic worst-case cost on arbitrary inputs.
-This does not forbid a linear best case on already-sorted input. (The same argument also bounds the average case — a
-stronger result, and beyond this course.)
+> **Deeper — why $\log_2 n! = \Theta(n \log n)$.** Half the factors of $n!$
+> are at least $n/2$, so $n! \ge (n/2)^{n/2}$ and
+> $\log_2 n! \ge \frac{n}{2} \log_2 \frac{n}{2}$. In the other direction,
+> $n! \le n^n$, so $\log_2 n! \le n \log_2 n$. (The same tree also bounds the
+> average case — a stronger result, beyond this course.)
 
 :::
 
@@ -629,20 +565,19 @@ stronger result, and beyond this course.)
 
 The lower bound assumes the sort learns **only by comparing**.
 
-Counting sort does not establish order by pairwise key comparisons:
-`counts[v] += 1` uses the value **as an address**
-— one step with k possible outcomes, not 2.
+Counting sort never compares two keys: `counts[v] += 1` uses the value **as an
+address** — one step with k possible outcomes, not 2.
 
 ::: {.handout-only}
 
-This is the honest reading of the lower bound: it is not a law about sorting,
-it is a law about **comparison** sorting. Counting sort gets more information
-per step because it assumes more about the data — that the keys are small
-integers — and uses the key to choose one of k slots at once. The price is the
-$O(k)$ memory and the restriction on the keys.
+The lower bound is not a law about sorting; it is a law about **comparison**
+sorting. Counting sort gets more information per step because it assumes more
+about the data — small integer keys — and pays for it with $O(k)$ memory and
+the restriction on the keys. (The `max` call may compare values; "not
+comparison-based" describes how the order is obtained.)
 
-Radix sort (not examined in this course) pushes the same idea further: it sorts
-large integers digit by digit, with a **stable** counting sort per digit,
+Radix sort (not examined in this course) pushes the same idea further: it
+sorts large integers digit by digit, with a **stable** counting sort per digit,
 in $O(d(n + b))$ time for d digits in base b. That is why the stable version of
 counting sort matters, and why W9-C5 asks you to write it.
 
@@ -650,33 +585,81 @@ counting sort matters, and why W9-C5 asks you to write it.
 
 # This Week
 
-## Exercises: `dsa/sorting.py`
+## Watching your own code
+
+`dsa/sorting.py` = the same loops + a copy into an `Array` + `yield` lines:
+
+```python
+        for j in range(end):
+            yield list(a), (j, j + 1)    # one frame: a copy, and the pair
+            if a[j] > a[j + 1]:
+```
+
+![](figures/frames.png){width=80%}
+
+::: {.handout-only}
+
+Each sort in `dsa/sorting.py` has a second form, `bubble_sort_steps` and so on:
+the code of this lecture with `yield` lines added — one at the start, one before
+each comparison, one at the end. A generator (Lab 03, "Generators") runs only
+as far as it is asked to, so the notebook draws one frame per `yield` and you
+step through **your own** code. The plain `bubble_sort` runs the generator to
+its end and returns the last state, so there is only one copy of the loops to
+keep correct. The figure shows all 12 frames of `bubble_sort_steps([5, 2, 9, 1, 7])`.
+
+Two rules, and the tests check both: yield `list(a)`, a fresh copy, so that
+each frame is its own list (`test_step_frames_are_independent_snapshots`); and
+yield once more after the loops, so that the last frame is sorted
+(`test_step_form_is_a_generator_ending_sorted`).
+
+> **Deeper — the price of watching.** A copy costs $O(n)$. Made before each of
+> about $n^2/2$ comparisons, it turns an $O(n^2)$ sort into $O(n^3)$: the time
+> grows 8 times per doubling of n instead of 4. The fix keeps one
+> implementation: each `_steps` function takes a `snapshot` parameter, `list`
+> by default for the animation, and the plain sort passes `_live`, which
+> returns the working `Array` without a copy. Lab 09 Parts 1 and 7 walk you
+> through the pattern, the measurement and the fix. The lesson is wider than
+> sorting: **instrumenting code changes its cost** — a print, a log line or an
+> `is_sorted` check inside a loop can hide an $O(n)$ inside your $O(n^2)$.
+
+:::
+
+## Exercises, and the Sorting Lab
 
 | Function | The trap |
 |---|---|
-| `bubble_sort_steps` | yield `list(a)`, not `a`; `range(end)`; reset `swapped` each pass |
-| `selection_sort_steps` | compare with `a[smallest]`, not `a[i]`; one swap per round |
-| `insertion_sort_steps` | `j >= 0` **first**; `>` not `>=` (stability) |
-| `bubble_sort`, `selection_sort`, `insertion_sort` | exhaust the generator; copy nothing per step |
-| `counting_sort` | `k = max + 1`; the empty list; the value is the index |
+| `bubble_sort_steps` | yield `list(a)`, not `a`; reset `swapped` each pass |
+| `selection_sort_steps` | compare with `a[smallest]`, not `a[i]` |
+| `insertion_sort_steps` | `j >= 0` **first**; `>` not `>=` |
+| `counting_sort` | `k = max + 1`; the empty list |
 
 ```powershell
 pytest tests/test_sorting.py -v `
     -k "bubble or selection or insertion or counting or is_sorted"
 ```
 
+[**Sorting Lab**](https://helghareeb.github.io/DSA27/lectures/09-sorting-basic/sorting-lab.html): today's four sorts, line by line, on A or on your own list.
+
 ::: {.handout-only}
 
 Thirty-nine tests (`is_sorted` is given, and its one test already passes).
-Every sort is held to the same contract by parametrised tests: eight fixed
-cases (empty, one value, two, duplicates, sorted, reversed, negatives), twenty
-random lists, "does not mutate the input", and the two tests on the `_steps`
-form. Merge, quick and heap sort share the file and are Week 10's — the `-k`
-filter leaves them out.
+Every sort is held to the same contract: eight fixed cases (empty, one value,
+two, duplicates, sorted, reversed, negatives), twenty random lists, "does not
+mutate the input", and the two tests on the `_steps` form. Merge, quick and
+heap sort share the file and are Week 10's — the `-k` filter leaves them out.
+Start from the code on the slides and add the `yield` lines. Store the working
+copy in a course `Array` (`Array.from_values(values)`); return a list. Do not
+call `sorted`, `list.sort` or `min` inside `dsa/sorting.py`.
 
-Store the working copy in a course `Array` (`Array.from_values(values)`), as
-the storage rule requires; return a list. Do not call `sorted`, `list.sort` or
-`min` inside `dsa/sorting.py` — the point is to write the sort, not to call one.
+**The Sorting Lab** runs the code of this lecture, one line at a time: the bars,
+the variables, the comparisons and the swaps, the inversions still left. Try
+the presets — sorted, reversed, nearly sorted — and watch the counters; switch
+on **What happens next?** to answer before each step; and use the **cards**
+input to watch selection sort break a tie.
+
+- **Online:** <https://helghareeb.github.io/DSA27/lectures/09-sorting-basic/sorting-lab.html>
+- **Offline:** open `docs/lectures/09-sorting-basic/sorting-lab.html` from your
+  copy of the repository. It is a single file and needs no installation.
 
 :::
 
@@ -688,14 +671,15 @@ the storage rule requires; return a list. Do not call `sorted`, `list.sort` or
 3. **Count.** Write a class whose `<` and `>` count, sort 1,000 of them
    sorted, reversed and random, and compare with the figure.
 4. **Break it.** Change `>` to `>=` in your insertion sort. Which tests fail?
-   Now sort `[(1, 'a'), (1, 'b')]` — why can a list of tuples not show the
-   bug?
+   Now sort `[(1, 'a'), (1, 'b')]` — why can a list of tuples not show the bug?
+
+Then: the [**Week 9 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-09/) — 22 questions and 5 written ones, every answer explained ([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/)).
 
 ::: {.handout-only}
 
 For item 3, the class needs `__init__`, `__lt__` and `__gt__` (Lab 03,
-"Special methods"), and a counter they share — a class attribute. The
-lab walks you through it.
+"Special methods"), and a counter they share — a class attribute. The lab walks
+you through it.
 
 For item 4, look at how tuples compare: `(1, 'a') < (1, 'b')` is `True`. Two
 tuples that are "equal by their first item" are not equal to Python, so the
@@ -703,49 +687,27 @@ sort orders them by their second item — which happens to be their arrival
 order. `test_insertion_sort_is_stable` uses cards that compare by key **only**
 for exactly this reason.
 
-:::
-
-## Practise online
-
-- [**Week 9 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-09/): 22 multiple-choice questions, every answer explained
-- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
-- In Arabic: [week 9](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/)
-
-::: {.handout-only}
-
-Everything runs in the browser and keeps your results on your own device.
-Do the quiz **after** the homework, as a check, not instead of it: it
-shows you which ideas did not stick, and the explanation of each answer
-sends you back to the right part of this handout.
-
-- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-09/>
+Do the quiz **after** the homework, as a check, not instead of it. Everything
+runs in the browser and keeps your results on your own device.
 
 :::
-
-# Summary
 
 ## Seven things to keep
 
-1. Sorting is what makes Week 8's searches possible — **and its cost decides**
-   whether sort-then-search is worth it.
+1. Sorting makes Week 8's searches possible — **its cost decides** whether
+   sort-then-search pays.
 2. **Stable:** equal keys keep their order. Bubble and insertion are; selection
    is not.
-3. Bubble and insertion sort: **$O(n)$ best, $O(n^2)$ worst**. Selection sort:
+3. Bubble and insertion: **$O(n)$ best, $O(n^2)$ worst**. Selection:
    $n(n-1)/2$ comparisons always, but at most $n - 1$ swaps.
-4. Insertion sort does one shift per **inversion**: $O(n + I)$ — near-linear on
-   nearly sorted data, which is why real sorts use it.
-5. A `_steps` generator lets you watch your own code — and a copy per frame
-   turns $O(n^2)$ into **$O(n^3)$**.
-6. Counting sort is $O(n + k)$ and **not comparison-based** — fast only when k is
-   small.
-7. Every comparison sort needs **$\log_2 n! = \Theta(n \log n)$** comparisons in
-   the worst case.
+4. Each bubble swap and each insertion shift fixes **one inversion**:
+   $O(n + I)$ — near-linear on nearly sorted data, which is why real sorts use it.
+5. A copy per animation frame turns $O(n^2)$ into **$O(n^3)$** — watching costs.
+6. Counting sort: $O(n + k)$, **no comparisons** — fast only when k is small.
+7. Every comparison sort needs **$\log_2 n! = \Theta(n \log n)$** comparisons
+   in the worst case.
 
-## Next
-
-**Week 10 — Advanced sorting.** Merge sort, quicksort and heap sort: three ways
-to reach the $n \log n$ floor — and why quicksort's pivot decides between
-$n \log n$ and $n^2$.
+**Next — Week 10:** merge sort, quicksort and heap sort reach the $n \log n$ floor.
 
 ::: {.handout-only}
 
