@@ -10,7 +10,7 @@ Requires pandoc and xelatex on PATH. `tools/build.ps1` is a thin wrapper.
 
 Fonts. The course look was designed with Segoe UI / Consolas (Windows). Where
 they are absent (Linux, macOS) the script falls back to Noto Sans / Noto Sans
-Mono, with Noto Sans Arabic carrying the Arabic runs. `fc-list` decides.
+Mono. Arabic runs use Amiri when available. `fc-list` decides.
 
 Compiled documents (the three the faculty receives):
 
@@ -45,12 +45,14 @@ def _installed(family: str) -> bool:
 
 
 def fonts() -> dict[str, str]:
+    amiri = shutil.which("fc-list") is not None and _installed("Amiri")
     if _installed("Segoe UI") and _installed("Consolas"):
+        arabic = "Amiri" if amiri else "Segoe UI"
         return {"main": "Segoe UI", "mono": "Consolas",
-                "arabic": "Segoe UI", "arabicbold": "Segoe UI Bold", "symbol": "Consolas"}
+                "arabic": arabic, "arabicbold": arabic + " Bold", "symbol": "Consolas"}
     main = "Noto Sans" if _installed("Noto Sans") else "DejaVu Sans"
     mono = "Noto Sans Mono" if _installed("Noto Sans Mono") else "DejaVu Sans Mono"
-    arabic = "Noto Sans Arabic" if _installed("Noto Sans Arabic") else "Amiri"
+    arabic = "Amiri" if amiri or not _installed("Noto Sans Arabic") else "Noto Sans Arabic"
     return {"main": main, "mono": mono, "arabic": arabic, "arabicbold": arabic + " Bold",
             "symbol": mono}
 

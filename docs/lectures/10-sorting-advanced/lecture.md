@@ -785,41 +785,61 @@ $O(n + k)$. That is not a contradiction; it is a different game.
 
 # What Python Actually Uses
 
-## `sorted()` and `list.sort()`: Timsort
+## `sorted()` and `list.sort()`: Timsort with Powersort
 
 *Enrichment — not examinable.*
 
 1. Find the **runs** already in the data (reversing descending ones).
-2. Extend short runs to 32–64 elements with **insertion sort**.
-3. **Merge** the runs, like merge sort — stable, $O(n)$ extra space.
+2. Extend short runs with **binary insertion sort**.
+3. **Merge** adjacent runs, stably, using $O(n)$ extra space. Since CPython
+   3.11, **Powersort** chooses the merge order.
 
 Sorted input: one run, **n – 1 comparisons**. Worst case: $O(n \log n)$.
 
 ::: {.handout-only}
 
-Python's sort is not quicksort. It is **Timsort**, written by Tim Peters for
-Python 2.3 in 2002 and described in his notes `listsort.txt` in the CPython
-source. It is a merge sort that takes the data's existing order seriously:
+Tim Peters's **Timsort** is a stable, adaptive merge sort. It finds **natural
+runs** by scanning for stretches that already have an order. It turns descending
+runs around, preserving the order of equal keys, and uses binary insertion sort
+to extend short runs. During a merge, when values keep coming from the same run,
+it can switch to **galloping**: an exponential search (Lecture 08) for how much
+of that run can be copied at once. On already sorted input, CPython finds a
+single run in $n-1$ comparisons and has nothing to merge.
 
-- It scans for **natural runs** — stretches that are already ascending, or
-  strictly descending (which it reverses in place). Real data is full of them.
-- A run shorter than a minimum length (between 32 and 64, chosen from n) is
-  extended with **binary insertion sort** — Week 9's insertion sort, which is the
-  fastest thing there is on short or nearly sorted ranges.
-- The runs are **merged** in an order that keeps the merges balanced, using a
-  temporary array — merge sort's price. During a merge, when one run keeps
-  winning, it switches to **galloping**: an exponential search (Lecture 08) for
-  how far that run can be copied at once.
+**What changed in CPython 3.11?** CPython adopted Munro and Wild's **Powersort**
+to choose which adjacent runs to merge first. Run detection, binary insertion
+sort, stable merging, and galloping are still part of the sort. The change is
+in the order of the merges.
 
-It is **stable** — Python guarantees it — and it is what you measured on the
-right-hand side of the figure: n – 1 comparisons on sorted input, because the
-whole list is one run and there is nothing to merge. Since Python 3.11 the
-order in which runs are merged follows the *powersort* rule of Munro and Wild
-(2018). Java uses Timsort to sort objects, and a dual-pivot quicksort for
-primitive types, where stability cannot be observed. Even Timsort had a bug in
-its run-merging invariant, found in 2015 by a team **formally verifying** it
-(de Gouw et al.) — the binary-search story of Lecture 08 again: correct-looking
-code, broken on an input nobody had tried.
+**Why does order matter?** Suppose the three runs are `A(96) | B(32) | C(32)`.
+Use the sum of the two run lengths as the cost of a merge.
+
+| Merge order | First merge | Final merge | Total cost |
+|---|---:|---:|---:|
+| `(A + B) + C` | 128 | 160 | 288 |
+| `A + (B + C)` | 64 | 160 | 224 |
+
+Merging the two short runs first lets the 96 items of `A` take part in only
+one merge. The table counts run lengths as a model of work. Actual comparison
+counts also depend on the values and on shortcuts such as galloping.
+
+**How does Powersort choose?** Each boundary between two runs gets a *node
+power*. On a scale from 0 to 1, look at the two run midpoints and find the
+first binary digit where they differ. That digit's position, counting from 1,
+is the power. In the example, the midpoints are 0.30, 0.70, and 0.90. The
+`A | B` boundary has power 1 because the midpoints straddle $1/2$. The
+`B | C` boundary has power 2 because both midpoints are in the right half
+but straddle $3/4$. Higher powers sit deeper in the merge tree and are merged
+first here, so `B + C` comes before the final merge with `A`. This rule gives
+near-optimal merge cost for the distribution of run lengths.
+
+The [CPython 3.11 changelog](https://docs.python.org/3.11/whatsnew/changelog.html#python-3-11-0-alpha-1)
+records the change, and the [CPython design notes](https://github.com/python/cpython/blob/main/Objects/listsort.txt)
+explain how the run stack uses the powers.
+
+Java uses Timsort for object arrays and dual-pivot quicksort for primitive
+arrays. In 2015, de Gouw and colleagues found a bug in OpenJDK's Timsort while
+formally verifying its run-stack invariant.
 
 What this means for you: in your own programs, use `sorted()` or
 `list.sort()`, and `key=` for anything but plain values. In `dsa/sorting.py`,
@@ -979,7 +999,8 @@ sends you back to the right part of this handout.
 6. **Heap sort:** the array is the tree; build-heap $O(n)$; $O(n \log n)$
    always, $O(1)$ extra, not stable.
 7. No comparison sort beats $\log_2(n!) \approx n \log_2 n$. Python's
-   `sorted()` is **Timsort**: merge sort that exploits existing runs.
+   `sorted()` exploits existing runs. CPython 3.11 and later use **Powersort**
+   to schedule their merges.
 
 ## Next
 
