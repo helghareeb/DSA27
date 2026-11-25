@@ -9,11 +9,11 @@ lang: en
 
 ::: {.handout-only}
 
-> **How to read this document.** This is the handout for Lecture 08. It holds
-> everything on the slides, plus what I said out loud. Eight functions, one idea:
-> an array that is kept **sorted** can be searched without looking at most of
-> it. This week is also the midterm window, so the handout ends with a map of
-> what weeks 1–7 expect of you.
+> **How to use this lecture.** Trace one small array by hand first. Look for a
+> match, a miss, and the ends of a run of duplicates. Then replay the steps in
+> the [Searching Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-08)
+> and use the quiz questions beside each topic to check that you can search a
+> different array. The later notes give the derivations and the midterm review.
 >
 > Slides: `DSA27-L08-slides.pdf` · Code: `dsa/searching.py` ·
 > Tests: `tests/test_searching.py` ·
@@ -48,42 +48,44 @@ search below uses that knowledge in a different way.
 
 ## Today
 
-1. Linear search: the baseline
-2. Binary search: halving — and why it is so easy to get wrong
-3. `lower_bound` and `upper_bound`: positions, duplicates, insertion
-4. Jump, exponential and interpolation search
-5. Measured: eight functions, one picture
-6. When is sorting first worth it?
+1. Find the first match by scanning.
+2. Use sorted order to discard a range safely.
+3. Find the two boundaries of a run of duplicates.
+4. Choose a search for the data you have.
+
+## One array, three questions
+
+Keep **`A = [1, 2, 2, 2, 5, 7]`** on the board. Indices start at 0.
+
+| Question | What to report |
+|---|---|
+| Where is a 2? | A matching index. A first-match search must give 1. |
+| Is 4 present? | A search for a value reports `-1`. |
+| Where would 4 go? | The insertion position is 4, before 5. |
+
+**Predict:** Is every search for 2 required to return the same index?
 
 # Linear Search
 
 ## Look at everything
 
-![](figures/linear.png){width=86%}
+Scan left to right, stopping at the **first** equal value.
 
-- Works on **any** sequence, sorted or not.
-- Found at index i: i + 1 comparisons. Missing: **n**. Worst case $O(n)$.
+| Search | Indices inspected | Result |
+|---|---|---:|
+| `linear_search(A, 2)` | 0, 1 | 1 |
+| `linear_search(A, 4)` | 0 through 5 | -1 |
+| Search for 1 in `[5, 2, 7, 2, 1, 2]` | 0 through 4 | 4 |
+
+The scan works even when the array is unsorted. It makes up to `n`
+equality tests and uses constant extra space.
 
 ::: {.handout-only}
 
-`linear_search` is the one function in `dsa/searching.py` that must work on
-**unsorted** data (`test_linear_search_works_on_unsorted_data`). Return the
-index of the **first** match, or −1 when there is none.
-
-**Best, worst, average.** Best case: the target is first, 1 comparison. Worst
-case: it is last or missing, n comparisons. Average, if the target is present
-and equally likely to be at any position: $(1 + 2 + \dots + n)/n = (n+1)/2$
-comparisons — still $\Theta(n)$. Halving the constant does not change the class
-(Lecture 02).
-
-**On sorted data** a linear search can stop early, as soon as it passes a value
-larger than the target: a miss then costs, on average, half the array instead
-of all of it. Still $O(n)$. To do fundamentally better, you must stop looking at
-the elements **in order**.
-
-Linear search is not a bad algorithm. For a few dozen elements it is often the
-fastest search there is; it needs no sorting, no extra memory, and it is what
-Python's `in` and `list.index` do.
+If the target is present and equally likely to be at any index, the
+expected number of equality tests is $(n+1)/2$. One search on an
+unsorted array need not pay the cost of sorting. Try **W8-M01** after
+the first Searching Lab scenario.
 
 :::
 
@@ -91,24 +93,16 @@ Python's `in` and `list.index` do.
 
 ## Halve what is left
 
-![](figures/halving.png){width=96%}
+On sorted `A`, the first middle index is 2. Searching for 2 finds
+`A[2] == 2` at once. The result **2** is a valid matching index.
 
-Compare the target with the **middle** element. Equal: found. Smaller: it can
-only be on the left. Larger: only on the right.
+**Predict:** Why did the linear search return 1 instead?
 
 ::: {.handout-only}
 
-This is how you look up a word in a paper dictionary: open it in the middle, see
-whether your word comes before or after, and throw away the half it cannot be
-in. Each comparison halves the part still in play. In the figure, 16 values
-become 8, then 4, then 1: **four** comparisons find 41, where a linear search
-would need 13.
-
-It works **only** because the values are sorted. On unsorted data the
-comparison with the middle tells you nothing about either half, and binary
-search returns wrong answers without any error. Nothing checks that the input is
-sorted — checking would itself cost $O(n)$ and defeat the purpose. The sorted
-order is a **precondition**: the caller's promise.
+Linear search finds the first match by visiting indices in order.
+Ordinary binary search stops at the match it encounters. A later
+section finds the first match explicitly with `lower_bound`.
 
 :::
 
@@ -140,7 +134,9 @@ This is the whole of `binary_search`. The steps are written out here in words
 on purpose: turning them into Python, and getting every `+ 1` and `<=` right, is
 the exercise.
 
-**A miss, traced.** Searching the same 16 values for 20:
+**A miss on the quiz array V.** Search
+`[3, 6, 8, 12, 15, 19, 21, 24, 27, 31, 34, 38, 41, 45, 48, 52]` for 20.
+Predict the first two middle indices before attempting **W8-M05 and W8-M06**.
 
 | lo | hi | mid | values[mid] | Decision |
 |---|---|---|---|---|
@@ -150,27 +146,63 @@ the exercise.
 | 6 | 6 | 6 | 21 | 21 > 20 → hi = 5 |
 | 6 | 5 | | | lo > hi: return −1 |
 
-Four comparisons, and the loop ends with `lo` = 6: the position where 20 **would
-be** inserted. Remember that; it is the idea behind `lower_bound`.
+Four middle probes, and the loop ends with `lo` = 6: the position where 20
+**would be** inserted. That is the idea behind `lower_bound`.
 
 :::
 
-## How many comparisons?
+## Trace a binary-search miss
+
+Find 4 in `A`. The interval **includes** both ends.
+
+| lo | hi | mid | A[mid] | Next interval |
+|---:|---:|---:|---:|---|
+| 0 | 5 | 2 | 2 | `[3, 5]` |
+| 3 | 5 | 4 | 5 | `[3, 3]` |
+| 3 | 3 | 3 | 2 | empty, since `lo = 4` and `hi = 3` |
+
+**Predict:** When `lo == hi == 3`, is that interval empty?
+
+::: {.handout-only}
+
+There is one last candidate. Check it, then return `-1` when the interval
+is empty. At each step, keeping only the chosen half preserves the invariant
+because every discarded value is either too small or too large. Reproduce
+the trace in the lab, then give the invariant in **W8-M07 and W8-E1**.
+
+:::
+
+## The sorted-order promise
+
+Now try the same binary-search rule for 1 on `[5, 2, 7, 2, 1, 2]`.
+Index 2 holds 7, so the rule discards the right side, where 1 actually sits.
+
+**Check:** The search returns `-1` even though index 4 holds 1.
+
+::: {.handout-only}
+
+The function assumes sorted input and does not spend a linear pass checking
+it. Explain why a quiet wrong result is possible in **W8-M04**.
+
+:::
+
+## How many probes?
 
 Here one **probe** means inspecting one middle element and deciding which way
 to go. Python may evaluate both `==` and `<` in that probe; the table counts
 probes, not individual Boolean operators.
 
-Each comparison halves the range: after k comparisons at most $n / 2^k$ remain.
+Each unsuccessful probe leaves at most half the candidates. For $n \ge 1$,
+the worst case is $\lfloor \log_2 n \rfloor + 1$ probes.
 
-| n | at most $\lfloor \log_2 n \rfloor + 1$ comparisons |
+| n | At most this many middle positions inspected |
 |---|---|
 | 1,000 | 10 |
 | 1,000,000 | 20 |
 | 1,000,000,000 | 30 |
 
-Binary search is **$O(\log n)$** — a thousand times more data costs 10 more
-comparisons.
+Binary search takes **$O(\log n)$** time and the loop uses $O(1)$ extra
+space. Use the table to explain **W8-M02 and W8-M03**.
 
 ::: {.handout-only}
 
@@ -190,111 +222,64 @@ the point of the test.
 
 :::
 
-## Easy to state, hard to get right
+## The last candidate can be the answer
 
-- `while lo < hi` with an inclusive `hi` → **misses** the last candidate.
-- `hi = mid` with an inclusive `hi` → can **loop for ever**.
-- `lo = mid` → can **loop for ever** when `hi = lo + 1`.
-- `mid = (lo + hi) / 2` in Java or C → **overflows** when `lo + hi` exceeds the
-  largest `int`.
+Search `A` for **7**. The first two probes leave `lo = hi = 5`.
 
-::: {.handout-only}
+| Loop condition | What happens next |
+|---|---|
+| `lo <= hi` | Probe index 5 and find 7. |
+| `lo < hi` | Exit before checking 7. |
 
-Binary search has a famous history of being wrong. Knuth records that the first
-binary search was published in 1946, and the first that works correctly for
-**every** n not until 1962 (*TAOCP* vol. 3, §6.2.1). Jon Bentley gave the
-problem to professional programmers in courses at Bell Labs and IBM, with two
-hours to write it: about ninety percent of the programs had bugs
-(*Programming Pearls*, column 4). And in 2006 Joshua Bloch reported that the
-binary search in Java's own library — `java.util.Arrays.binarySearch`, which
-he had written himself — failed on arrays of more than about a billion
-elements, because `(low + high) / 2` overflowed a 32-bit `int`. The fix is
-`low + (high - low) / 2`. The bug had been in the library for nine years.
-
-Python integers do not overflow, so the last bug cannot happen here — but you
-will write binary search in C or Java one day, so name it now.
-
-The other three bugs have one cure: **decide what `lo` and `hi` mean, and keep
-every line faithful to it.** With `hi` inclusive (the range is `values[lo..hi]`),
-the loop runs while the range is non-empty, `lo <= hi`, and both updates must
-move past `mid`, because `mid` has just been ruled out. The infinite loops happen
-when an update does not move: with `lo = 5`, `hi = 6`, `mid` is 5, and `lo = mid`
-leaves everything as it was. Test the sizes 0, 1 and 2 by hand: nearly every
-binary-search bug shows up on one of them. The tests check the empty list and
-one element (`test_handles_empty_and_single_element`), and the first and last
-positions (`test_finds_first_and_last_element`).
-
-:::
-
-## Recursive binary search
-
-Same idea: search the half that can hold the target, **by a call**.
-
-- $O(\log n)$ time, but also **$O(\log n)$ stack** — the loop is $O(1)$ space.
-- Pass `lo` and `hi` down. **Never slice**: `values[mid + 1:]` copies — $O(n)$
-  per call.
-
-::: {.handout-only}
-
-`binary_search_recursive(values, target, lo=0, hi=None)` keeps the same
-contract. The base case is the empty range, `lo > hi`: return −1. `hi=None` is
-the usual trick for a default that depends on another argument: the first call
-replaces it with `len(values) - 1`.
-
-**The slicing trap.** A recursive search that calls itself on
-`values[:mid]` or `values[mid + 1:]` looks elegant and is wrong twice. It is
-slow: each slice copies up to n/2 elements, so the total is
-$n/2 + n/4 + \dots = O(n)$ — as slow as a linear search, while looking like a
-binary one. And it loses the position: the index returned by a call on a slice
-is an index into the slice, not into the original list, so every call on a right
-half must add an offset. Passing `lo` and `hi` avoids both problems. (Lecture 03
-made the same point about `list_max` on slices.)
-
-The depth is at most about $\log_2 n$ frames — 20 for a million elements — so
-Python's configured recursion limit is usually no concern here, unlike the linear recursions of
-Lecture 03. The loop is still the better tool: same speed, no frames at all.
-
-:::
+**Predict:** Which condition would you use if the right endpoint
+were excluded? Compare the two contracts in **W8-M08 and W8-E2**.
 
 # Bounds: Searching for Positions
 
 ## `lower_bound` and `upper_bound`
 
-![](figures/bounds.png){width=78%}
+Both functions find a **boundary position** in a sorted array.
 
-- `lower_bound(v, x)`: the first index with `v[i] >= x`
-- `upper_bound(v, x)`: the first index with `v[i] > x`
-- Both may return **`len(v)`**. Neither returns −1.
+| Function | First position whose value is | At equality |
+|---|---|---|
+| `lower_bound` | at least the target | Keep the left portion |
+| `upper_bound` | greater than the target | Continue to the right |
+
+Start with `[lo, hi) = [0, len(A))`. The right endpoint is excluded.
+Keep going while `lo < hi`, then return the point where they meet.
 
 ::: {.handout-only}
 
-`binary_search` answers "is it there, and where?", and with duplicates the
-"where" is **any** of the matching positions. The bounds answer more useful
-questions, and always with a position:
+Elements before `lo` fail the chosen comparison and those at or beyond
+`hi` satisfy it, where those indices exist. If all items fail, the
+boundary is `len(A)`. It is a valid insertion position and cannot be
+read as an array element. To check for the first occurrence, test
+`i < len(A)` before testing `A[i] == target`.
 
-- **Where would x go?** `lower_bound(v, x)` is the index at which inserting x
-  keeps the array sorted — the insertion point.
-- **How many copies of x?** `upper_bound(v, x) - lower_bound(v, x)`. In the
-  figure, 4 − 1 = 3 copies of 2, and 4 − 4 = 0 copies of 3
-  (`test_bounds_count_duplicates`).
-- **The first occurrence?** `i = lower_bound(v, x)`; it is x if
-  `i < len(v) and v[i] == x`.
-- **How many values lie in [a, b)?** `lower_bound(v, b) - lower_bound(v, a)`.
-  A range-count query in $O(\log n)$ for a <= b. A plain hash table has no
-  ordering information and would need a scan or an additional ordered index.
+Python's `bisect_left` and `bisect_right` give these boundaries. Insertion,
+counting duplicates and counting an interval are three uses to explain
+in **W8-M16 and W8-E3**.
 
-They are both binary searches that **never stop early**: they keep halving until
-the range is empty and return where it closed. The usual way to write them uses
-a **half-open** range `[lo, hi)` — `lo` included, `hi` excluded — starting from
-`lo = 0, hi = len(v)`, so that `len(v)` is a possible answer. The loop runs
-while `lo < hi`, and the only difference between the two functions is which
-comparison sends the search right.
+:::
 
-Python has them already, in the standard library: `bisect.bisect_left` is
-`lower_bound`, `bisect.bisect_right` is `upper_bound`, and `bisect.insort`
-inserts into a sorted list. C++ calls them `std::lower_bound` and
-`std::upper_bound`, which is where the names in `dsa/searching.py` come from.
-Write your own first; then use the library.
+## Trace both bounds on the run of 2s
+
+| Search | Intervals in order | Result |
+|---|---|---:|
+| Lower bound of 2 | `[0, 6) → [0, 3) → [0, 1) → [1, 1)` | 1 |
+| Upper bound of 2 | `[0, 6) → [4, 6) → [4, 5) → [4, 4)` | 4 |
+
+The run is `A[1:4]`. Its length is **4 − 1 = 3**.
+
+**Predict:** What does `lower_bound(A, 8)` return?
+
+::: {.handout-only}
+
+It returns 6, so 8 belongs after the final element. If the two
+bounds are equal, the target has zero copies. Use the same difference
+`lower_bound(A, b) - lower_bound(A, a)` for the number of values
+in the value interval `[a, b)`. Work **W8-M12 through W8-M15** and
+write out the middle indices for **W8-T2**.
 
 :::
 
@@ -304,8 +289,8 @@ Write your own first; then use the library.
 
 ![](figures/jump.png){width=96%}
 
-Jump ahead **√n** at a time until you pass the target; then walk forward inside
-that one block.
+Inspect the ends of blocks of size **√n** until the end reaches or passes
+the target. Then scan inside that block.
 
 ::: {.handout-only}
 
@@ -332,8 +317,9 @@ at slot 18. (`math.isqrt(n)` gives the integer square root.)
 
 ![](figures/exponential.png){width=96%}
 
-Check slots 1, 2, 4, 8, … until one passes the target; then binary search
-between the last two bounds.
+After checking slot 0, inspect slots 1, 2, 4, 8, … until a value reaches or
+passes the target, or the next index falls beyond the array. Then binary
+search between the last two bounds, with the right end capped at the end.
 
 ::: {.handout-only}
 
@@ -344,12 +330,11 @@ binary search over the whole array; when it is near the end, it costs about
 twice as much. In the figure, 23 is at index 11: the bounds 1, 2, 4 and 8 are
 all smaller, 16 is not, so binary search runs on slots 8 to 16.
 
-Its real use is on sequences whose **length you do not know** — an indexable sequence, an
-unbounded monotone function, or a sorted file with random access: you cannot pick a middle without an
-end, but you can keep doubling until you have one. Bentley and Yao published it
-in 1976 as "an almost optimal algorithm for unbounded searching". The doubling
-is the same trick as the `DynamicArray`'s growth in Lecture 04: double until big
-enough, and the total work stays proportional to the final size.
+Doubling also works when no upper index is given, provided you can look
+up values by index and detect the end of a finite sequence. The course
+function uses `len(values)` to check the bounds explicitly. Bentley and
+Yao published the unbounded-search idea in 1976. Doubling is also the
+growth strategy from Lecture 04.
 
 Watch the edge cases: check slot 0 first (the doubling starts at 1), and do not
 let the bound run past `len(values) - 1`.
@@ -362,7 +347,8 @@ let the bound run past `len(values) - 1`.
 
 $$\text{pos} = \text{lo} + \frac{(\text{target} - v[\text{lo}])\,(\text{hi} - \text{lo})}{v[\text{hi}] - v[\text{lo}]}$$
 
-Evenly spread values: $O(\log \log n)$ on average. Skewed: **$O(n)$**.
+Roughly uniform numeric data: $O(\log \log n)$ on average in the uniform
+model. Skewed data can take **$O(n)$**.
 
 ::: {.handout-only}
 
@@ -390,6 +376,17 @@ catch:
 - **Integer division**: the position must be an `int` index. Use `//`.
 
 :::
+
+## Choose what to probe next
+
+| Method | Worked search | What to inspect |
+|---|---|---|
+| Jump | 37 in the first 25 odd numbers | Block ends 4, 9, 14, 19. Then scan 15 through 18. |
+| Exponential | 23 in the same array | After index 0, try 1, 2, 4, 8, 16. Then bisect 8 through 16. |
+| Interpolation | 70 in `[10, 20, ..., 100]` | The distance between the endpoint values puts the first guess at index 6. |
+
+**Predict:** Which method needs values that behave like numbers and
+benefits from even spacing? Practise **W8-M17 through W8-M22**.
 
 # Measured
 
@@ -431,30 +428,26 @@ tells them apart.
 
 ## When is sorting first worth it?
 
-Binary search needs sorted data, and sorting costs $O(n \log n)$ (Weeks 9–10).
-
-| k searches on n values | Cost |
+| Searches on one fixed array | Cost model |
 |---|---|
-| linear search, k times | $O(kn)$ |
-| sort once, then binary search k times | $O(n \log n + k \log n)$ |
+| Scan each time | $O(kn)$ for $k$ searches |
+| Sort once and then bisect | $O(n \log n + k \log n)$ |
 
-Sorting wins once **k is larger than about $\log n$** — for a million values,
-after a few dozen searches.
+**Predict:** If you need only one result from an unsorted array, why
+pay to sort the entire array first?
 
 ::: {.handout-only}
 
-For n = 1,000,000: one linear search reads up to a million values; a good sort
-does about $n \log_2 n \approx 20$ million comparisons. So after roughly twenty
-searches the sort has paid for itself, and every search after that costs 20
-reads instead of a million. That is the reasoning behind every database index:
-pay once to keep data ordered, then answer questions fast for ever.
+For a million elements, a full scan can inspect a million positions;
+a binary search uses at most 20 probes after sorting. A comparison sort
+has work on the scale of 20 million comparisons. These figures explain
+the roughly logarithmic break-even scale in **W8-E5**. Real timing
+depends on the sort, the data, and how often scans stop early.
 
-It is also why **keeping** an array sorted as it changes matters: inserting at
-`lower_bound` keeps it sorted, but the insertion itself shifts elements —
-$O(n)$ (Lecture 02). A sorted array is fast to search and slow to change. Weeks
-11 and 13 give two answers: the binary search **tree** (fast to search and to
-change, while it stays balanced) and the **hash table** ($O(1)$ average lookup,
-but no order — no bounds, no ranges).
+The cost table assumes the data stay fixed. If you need original
+indices, carry those indices as you sort. If you insert a new value
+at its lower bound, finding the position is logarithmic, but shifting
+the array can still take linear time.
 
 :::
 
@@ -468,13 +461,14 @@ but no order — no bounds, no ranges).
 | `lower_bound` | sorted | $O(\log n)$ | first `v[i] >= x`; may be `len` |
 | `upper_bound` | sorted | $O(\log n)$ | first `v[i] > x`; may be `len` |
 | `jump_search` | sorted | $O(\sqrt{n})$ | revisit candidate block |
-| `exponential_search` | sorted | $O(\log(i+2))$ | unknown length; near the front |
-| `interpolation_search` | sorted, even | $O(\log \log n)$ avg, $O(n)$ worst | guesses |
+| `exponential_search` | sorted | $O(\log(i+2))$ | useful near the front |
+| `interpolation_search` | sorted numbers | $O(\log \log n)$ uniform avg, $O(n)$ worst | guesses |
 
 ## Watch it run: the Searching Lab
 
-- Trace a binary-search miss and see how lower and upper bounds count duplicates.
-- At each step, predict which index or interval endpoint changes.
+- Scan the unsorted example and see why a binary-search shortcut can fail.
+- Test a miss and a last-position hit. Then find both ends of the duplicate run.
+- Compare jump, exponential and interpolation probes before choosing a method.
 
 [Open the Searching Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-08)
 
@@ -498,7 +492,7 @@ pytest tests/test_searching.py -v
 
 ::: {.handout-only}
 
-Forty tests. The four searches on sorted data are run against the same cases —
+The four searches on sorted data are run against the same cases —
 found, missing, empty, one element, first, last — and against linear search on
 30 random sorted lists (`test_agrees_with_linear_search_on_random_data`, with a
 fixed seed so a failure is repeatable). The values in those tests are distinct,
@@ -511,7 +505,7 @@ they only read them and store nothing.
 
 ## Homework 8 — before Lecture 09
 
-1. **Implement** `dsa/searching.py` until all forty tests pass.
+1. **Implement** `dsa/searching.py` until the searching tests pass.
 2. **Trace** `binary_search` on `[2, 5, 8, 12, 16, 23, 38, 56, 72, 91]` for 23
    and for 60, as tables of `lo`, `hi`, `mid`.
 3. **Measure** linear against binary search in `notebooks/08-searching.ipynb`,
@@ -527,28 +521,6 @@ tell it from a list. `tools/figures_l08.py` has one, `CountingReads`.
 
 For item 4, predict before you run: which **positions** can a `lo < hi` search
 never examine?
-
-:::
-
-## The midterm window
-
-Weeks 1–7 are examinable. For each week, can you:
-
-- **1–2:** define an ADT; give Θ of a loop; prove a Big-O bound?
-- **3:** write a recurrence and trace a call stack?
-- **4:** explain amortised $O(1)$ append?
-- **5–7:** draw a linked list, stack, queue or ring **after every operation**?
-
-The [mock exam for weeks 1–7](../../question-bank/mock-exam-weeks01-07.md) is in
-the question bank.
-
-::: {.handout-only}
-
-The exact date and format of the midterm will be announced in the lecture and on
-the WhatsApp channel. Until then, the safest preparation is the one the final
-rewards: the weekly question banks, done **before** reading their answers, and
-the mock exam under exam conditions — in one sitting, closed book, no computer.
-Searching is not on the weeks 1–7 mock; it is on the final.
 
 :::
 
@@ -569,6 +541,92 @@ sends you back to the right part of this handout.
 
 :::
 
+# Implementation Notes and Deeper Analysis
+
+## Reference for the lab
+
+Use the later handout sections for implementation details and derivations after tracing the worked examples.
+
+::: {.handout-only}
+
+## Easy to state, hard to get right
+
+- `while lo < hi` with an inclusive `hi` → **misses** the last candidate.
+- `hi = mid` with an inclusive `hi` → can **loop for ever**.
+- `lo = mid` → can **loop for ever** when `hi = lo + 1`.
+- `mid = (lo + hi) / 2` in Java or C → **overflows** when `lo + hi` exceeds the
+  largest `int`.
+
+
+Binary search has a famous history of being wrong. Knuth records that the first
+binary search was published in 1946, and the first that works correctly for
+**every** n not until 1962 (*TAOCP* vol. 3, §6.2.1). Jon Bentley gave the
+problem to professional programmers in courses at Bell Labs and IBM, with two
+hours to write it: about ninety percent of the programs had bugs
+(*Programming Pearls*, column 4). And in 2006 Joshua Bloch reported that the
+binary search in Java's own library — `java.util.Arrays.binarySearch`, which
+he had written himself — failed on arrays of more than about a billion
+elements, because `(low + high) / 2` overflowed a 32-bit `int`. The fix is
+`low + (high - low) / 2`. The bug had been in the library for nine years.
+
+Python integers do not overflow, so the last bug cannot happen here — but you
+will write binary search in C or Java one day, so name it now.
+
+The other three bugs have one cure: **decide what `lo` and `hi` mean, and keep
+every line faithful to it.** With `hi` inclusive (the range is `values[lo..hi]`),
+the loop runs while the range is non-empty, `lo <= hi`, and both updates must
+move past `mid`, because `mid` has just been ruled out. The infinite loops happen
+when an update does not move: with `lo = 5`, `hi = 6`, `mid` is 5, and `lo = mid`
+leaves everything as it was. Test the sizes 0, 1 and 2 by hand: nearly every
+binary-search bug shows up on one of them. The tests check the empty list and
+one element (`test_handles_empty_and_single_element`), and the first and last
+positions (`test_finds_first_and_last_element`).
+
+## Recursive binary search
+
+Same idea: search the half that can hold the target, **by a call**.
+
+- $O(\log n)$ time, but also **$O(\log n)$ stack** — the loop is $O(1)$ space.
+- Pass `lo` and `hi` down. **Never slice**: `values[mid + 1:]` copies — $O(n)$
+  per call.
+
+
+`binary_search_recursive(values, target, lo=0, hi=None)` keeps the same
+contract. The base case is the empty range, `lo > hi`: return −1. `hi=None` is
+the usual trick for a default that depends on another argument: the first call
+replaces it with `len(values) - 1`.
+
+**The slicing trap.** A recursive search that calls itself on
+`values[:mid]` or `values[mid + 1:]` looks elegant and is wrong twice. It is
+slow: each slice copies up to n/2 elements, so the total is
+$n/2 + n/4 + \dots = O(n)$ — as slow as a linear search, while looking like a
+binary one. And it loses the position: the index returned by a call on a slice
+is an index into the slice, not into the original list, so every call on a right
+half must add an offset. Passing `lo` and `hi` avoids both problems. (Lecture 03
+made the same point about `list_max` on slices.)
+
+The depth is at most about $\log_2 n$ frames — 20 for a million elements — so
+Python's configured recursion limit is usually no concern here, unlike the linear recursions of
+Lecture 03. The loop is still the better tool: same speed, no frames at all.
+
+## Midterm review for Weeks 1–7
+
+Weeks 1–7 are examinable. For each week, can you:
+
+- **1–2:** define an ADT; give Θ of a loop; prove a Big-O bound?
+- **3:** write a recurrence and trace a call stack?
+- **4:** explain amortised $O(1)$ append?
+- **5–7:** draw a linked list, stack, queue or ring **after every operation**?
+
+The [mock exam for weeks 1–7](../../question-bank/mock-exam-weeks01-07.md) is in
+the question bank.
+
+
+Use this Weeks 1–7 checklist for revision. Work the question banks before
+checking the answers, and time yourself on a mock. Lecture 08 is separate
+from that review. Its quiz and written practice prepare you for Searching
+on the final.
+
 ## Train for the midterm online
 
 The [midterm simulator](https://helghareeb.github.io/en/quizzes/dsa27/midterm/) draws a new paper from the bank every time:
@@ -584,7 +642,6 @@ On paper: [mock exam, weeks 1–7](../../question-bank/mock-exam-weeks01-07.md) 
 [mock exam B](../../question-bank/mock-exam-b-weeks01-07.md), with its own
 [answers](../../question-bank/mock-exam-b-weeks01-07-answers.md).
 
-::: {.handout-only}
 
 The same page in Arabic: <https://helghareeb.github.io/ar/quizzes/dsa27/midterm/>. Each link above opens the simulator with
 that paper already chosen, so you can bookmark it or share it with your group;
@@ -598,8 +655,8 @@ gets the same paper.
 ## Seven things to keep
 
 1. Linear search needs no order and costs **$O(n)$**.
-2. Binary search needs **sorted** data and costs **$O(\log n)$**: 20 comparisons
-   for a million.
+2. Binary search needs **sorted** data and costs **$O(\log n)$**: at most
+   20 middle probes for a million.
 3. Its invariant: if the target is anywhere, it is in `values[lo..hi]`.
 4. Get the boundaries right: `lo <= hi`, `mid ± 1` — test sizes 0, 1, 2.
 5. Recursive: pass `lo` and `hi`; a slice turns $O(\log n)$ into $O(n)$.
