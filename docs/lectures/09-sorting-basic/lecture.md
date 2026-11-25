@@ -26,7 +26,8 @@ lang: en
 
 ## Sorting buys searching
 
-Week 8: on **sorted** data, a search reads 20 values out of a million.
+Week 8: on **sorted** data, binary search inspects at most 20 middle
+positions out of a million.
 
 | k searches on n values | Cost |
 |---|---|
@@ -353,9 +354,15 @@ an insertion shift moves `current` past one larger value, which is the same
 thing. So bubble sort makes exactly I swaps, insertion sort exactly I shifts,
 and insertion sort runs in $O(n + I)$ time.
 
-That one formula explains its three cases. Sorted input has no inversions:
-$O(n)$. Reversed input has every pair inverted: $O(n^2)$. In a random
-permutation each pair is inverted with probability ½, so the average is
+The number of bubble swaps does not tell you its comparison count.
+On `[2, 3, ..., n, 1]` there are only $n-1$ inversions, but each pass
+moves 1 left by one position. Bubble sort can still make
+$n(n-1)/2$ comparisons. Compare swaps and comparisons in **W9-E2**.
+
+The insertion sort formula explains all three cases in **W9-E3**.
+Sorted input has no inversions: $O(n)$. Reversed input has every pair
+inverted: $O(n^2)$. In a random permutation each pair is inverted
+with probability ½, so the average is
 $n(n-1)/4$ — still $\Theta(n^2)$, but half the worst case.
 
 :::
@@ -454,9 +461,10 @@ Data in real programs is often nearly sorted: a sorted list with a few new
 records appended, a log whose timestamps are a little out of order. Insertion
 sort handles these in close to linear time, with no extra memory, and it is
 stable. That is why the $O(n \log n)$ sorts of next week are rarely used alone.
-Python's `sorted` is **Timsort** (Tim Peters, 2002), a merge sort that first
-finds the runs already in order and extends short ones with binary insertion
-sort. C++'s `std::sort` is usually **introsort** (David Musser, 1997):
+CPython's `sorted()` uses Timsort's adaptive approach: find existing runs
+and extend short ones with binary insertion sort. Since CPython 3.11,
+Powersort chooses the order in which runs are merged, as Lecture 10
+explains. C++'s `std::sort` is usually **introsort** (David Musser, 1997):
 quicksort that switches to heap sort if the recursion goes too deep, and
 finishes small pieces with insertion sort. The "slow" sort of today is inside
 the fast sorts of the real world.
@@ -480,7 +488,7 @@ the fast sorts of the real world.
 
 *Counting sort*: الترتيب بالعد.
 
-The value **is** the index — that is the whole trick. For
+The value **is** the index. For the Sorting Lab's **Counting example**
 `[3, 1, 4, 1, 5, 0, 3]`, k = 6: one counter for each possible value 0 .. 5.
 One pass over the values fills the counters `[1, 2, 0, 2, 1, 1]`; one pass
 over the counters writes the output. k counts the **possible** keys, not only
@@ -585,45 +593,6 @@ counting sort matters, and why W9-C5 asks you to write it.
 
 # This Week
 
-## Watching your own code
-
-`dsa/sorting.py` = the same loops + a copy into an `Array` + `yield` lines:
-
-```python
-        for j in range(end):
-            yield list(a), (j, j + 1)    # one frame: a copy, and the pair
-            if a[j] > a[j + 1]:
-```
-
-![](figures/frames.png){width=80%}
-
-::: {.handout-only}
-
-Each sort in `dsa/sorting.py` has a second form, `bubble_sort_steps` and so on:
-the code of this lecture with `yield` lines added — one at the start, one before
-each comparison, one at the end. A generator (Lab 03, "Generators") runs only
-as far as it is asked to, so the notebook draws one frame per `yield` and you
-step through **your own** code. The plain `bubble_sort` runs the generator to
-its end and returns the last state, so there is only one copy of the loops to
-keep correct. The figure shows all 12 frames of `bubble_sort_steps([5, 2, 9, 1, 7])`.
-
-Two rules, and the tests check both: yield `list(a)`, a fresh copy, so that
-each frame is its own list (`test_step_frames_are_independent_snapshots`); and
-yield once more after the loops, so that the last frame is sorted
-(`test_step_form_is_a_generator_ending_sorted`).
-
-> **Deeper — the price of watching.** A copy costs $O(n)$. Made before each of
-> about $n^2/2$ comparisons, it turns an $O(n^2)$ sort into $O(n^3)$: the time
-> grows 8 times per doubling of n instead of 4. The fix keeps one
-> implementation: each `_steps` function takes a `snapshot` parameter, `list`
-> by default for the animation, and the plain sort passes `_live`, which
-> returns the working `Array` without a copy. Lab 09 Parts 1 and 7 walk you
-> through the pattern, the measurement and the fix. The lesson is wider than
-> sorting: **instrumenting code changes its cost** — a print, a log line or an
-> `is_sorted` check inside a loop can hide an $O(n)$ inside your $O(n^2)$.
-
-:::
-
 ## Exercises, and the Sorting Lab
 
 | Function | The trap |
@@ -673,8 +642,6 @@ input to watch selection sort break a tie.
 4. **Break it.** Change `>` to `>=` in your insertion sort. Which tests fail?
    Now sort `[(1, 'a'), (1, 'b')]` — why can a list of tuples not show the bug?
 
-Then: the [**Week 9 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-09/) — 22 questions and 5 written ones, every answer explained ([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/)).
-
 ::: {.handout-only}
 
 For item 3, the class needs `__init__`, `__lt__` and `__gt__` (Lab 03,
@@ -692,6 +659,62 @@ runs in the browser and keeps your results on your own device.
 
 :::
 
+## Practise online
+
+- On **A**, predict the next pass or round before stepping through
+  bubble, selection, and insertion. Then try **W9-M06 through W9-M08**.
+- Use **Cards** to compare equal keys. Try **W9-M03 and W9-E1**.
+- Select **Counting example** and predict the counter array before
+  pressing Step. Try **W9-M14 through W9-M16** on different inputs.
+
+[Sorting Lab](https://helghareeb.github.io/DSA27/lectures/09-sorting-basic/sorting-lab.html)
+· [Week 9 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-09/)
+· [Arabic quiz](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/)
+
+# Implementation Notes
+
+## Watching your own code
+
+`dsa/sorting.py` = the same loops + a copy into an `Array` + `yield` lines:
+
+```python
+        for j in range(end):
+            yield list(a), (j, j + 1)    # one frame: a copy, and the pair
+            if a[j] > a[j + 1]:
+```
+
+![](figures/frames.png){width=80%}
+
+::: {.handout-only}
+
+Each of the three comparison sorts has a `_steps` form. It adds
+`yield` lines to the sorting loop, so the notebook can draw the starting
+state, intermediate steps and the result. A generator (Lab 03,
+"Generators") runs only
+as far as it is asked to, so the notebook draws one frame per `yield` and you
+step through **your own** code. The plain `bubble_sort` runs the generator to
+its end and returns the last state, so there is only one copy of the loops to
+keep correct. The figure shows all 12 frames of `bubble_sort_steps([5, 2, 9, 1, 7])`.
+
+Two rules, and the tests check both: yield `list(a)`, a fresh copy, so that
+each frame is its own list (`test_step_frames_are_independent_snapshots`); and
+yield once more after the loops, so that the last frame is sorted
+(`test_step_form_is_a_generator_ending_sorted`).
+
+> **Deeper — the price of watching.** A copy costs $O(n)$. Made before each of
+> about $n^2/2$ comparisons, it turns an $O(n^2)$ sort into $O(n^3)$: the time
+> grows 8 times per doubling of n instead of 4. The fix keeps one
+> implementation: each `_steps` function takes a `snapshot` parameter, `list`
+> by default for the animation, and the plain sort passes `_live`, which
+> returns the working `Array` without a copy. Lab 09 Parts 1 and 7 walk you
+> through the pattern, the measurement and the fix. The lesson is wider than
+> sorting: **instrumenting code changes its cost** — a print, a log line or an
+> `is_sorted` check inside a loop can hide an $O(n)$ inside your $O(n^2)$.
+
+:::
+
+# Summary
+
 ## Seven things to keep
 
 1. Sorting makes Week 8's searches possible — **its cost decides** whether
@@ -700,8 +723,8 @@ runs in the browser and keeps your results on your own device.
    is not.
 3. Bubble and insertion: **$O(n)$ best, $O(n^2)$ worst**. Selection:
    $n(n-1)/2$ comparisons always, but at most $n - 1$ swaps.
-4. Each bubble swap and each insertion shift fixes **one inversion**:
-   $O(n + I)$ — near-linear on nearly sorted data, which is why real sorts use it.
+4. Bubble makes $I$ swaps and insertion makes $I$ shifts. **Insertion sort**
+   runs in $O(n + I)$ time. Bubble can still make quadratic comparisons.
 5. A copy per animation frame turns $O(n^2)$ into **$O(n^3)$** — watching costs.
 6. Counting sort: $O(n + k)$, **no comparisons** — fast only when k is small.
 7. Every comparison sort needs **$\log_2 n! = \Theta(n \log n)$** comparisons

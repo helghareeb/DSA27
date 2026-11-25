@@ -410,6 +410,9 @@ you use?
 Before deleting 1, node 2 has two children. The number of children
 **at the time of deletion** decides the case.
 
+Replay **Delete a leaf, then a one-child node** in the Tree Lab before
+applying the three-case rule in **W11-E3**.
+
 :::
 
 ## Two children: the in-order successor
@@ -430,8 +433,9 @@ child, because it is the leftmost node of that subtree. If it has a **right**
 child, link its parent to that child when removing the old successor.
 Simply clearing that link would drop a whole subtree.
 
-[Replay the deletion in the Tree Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-11)
-and then try **W11-M17 through W11-M19** on the quiz's larger tree.
+Choose **Delete a node with two children** in the
+[Tree Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-11),
+then try **W11-M17 through W11-M19**.
 
 :::
 
@@ -733,8 +737,8 @@ or answer "all values between 20 and 40".
 
 ## Watch it run: the Tree Lab
 
-- Search for 5, turn the miss for 0 into an insertion, and predict the
-  replacement for a root with two children.
+- Search for 5 and turn the miss for 0 into an insertion. Then try
+  deleting a leaf, a one-child node, and a root with two children.
 - Compare all four traversals on the original tree. Follow the queue
   before choosing the next key in level-order.
 

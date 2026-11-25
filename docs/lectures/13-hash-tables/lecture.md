@@ -723,12 +723,17 @@ Lab 03 told you that `set` membership is "O(1) average"; now you know where the
 
 ::: {.handout-only}
 
-**An empty slot is not an empty key.** The diagrams use `None` to make unused
-slots readable. To allow `None` as a real key, the reference implementation
-uses a private `_EMPTY = object()` sentinel instead, and initializes its key
-array with that marker. Test insertion, overwrite, resize, deletion and
-reinsertion of `None`. Keep `_EMPTY` separate from `TOMBSTONE`: an unused slot
-ends a probe, whereas a deleted slot does not.
+**A live key can be `None`.** In the reference implementation,
+`put(None, None)` stores a real entry whose key and value are both
+`None`. A lookup returns `None` and membership is true. Deleting the
+entry leaves `TOMBSTONE` so another key's probe can still pass that slot.
+
+If you start from a skeleton that fills key slots with `None`, use a
+private `_EMPTY = object()` marker for new key arrays. Use identity
+checks for that marker and for `TOMBSTONE` in probing, resizing, and
+iteration. Compare live keys for equality. The old quiz notation for
+an unused slot means the marker, whereas a lookup default of `None`
+has its usual meaning. Replay **Store a real None key** in the lab.
 
 :::
 
@@ -767,6 +772,7 @@ dates", "the next appointment after 10:00", "the smallest": sorted array or tree
 - Insert the same keys into a chain and into successive slots.
 - Delete 13, then look up 21 and 29 to compare a hit with a miss.
 - Change capacity to 16 and recompute each home index.
+- Store a real `None` key and distinguish it from an unused slot.
 
 [Open the Hash Table Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-13)
 

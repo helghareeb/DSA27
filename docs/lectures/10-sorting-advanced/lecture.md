@@ -175,6 +175,45 @@ both two-item calls make one.
 The **partition** rearranges the array in place. Recursive calls use stack
 space. Swapping across the boundary can reorder equal keys.
 
+::: {.handout-only}
+
+```{=latex}
+\par\noindent\begin{minipage}{\linewidth}
+```
+
+:::
+
+## Compare pivots on the sorted result
+
+Start with `[1, 2, 3, 5, 7, 9]`, the sorted version of our list.
+
+Total partition comparisons on the six keys:
+
+- **First.** Pivot 1 leaves sides of sizes 0 and 5. Total **15**.
+- **Median of three.** Pivot 3 leaves sides of sizes 2 and 3. Total **8**.
+
+**Predict:** After the first partition, which strategy still has a
+five-element range to sort?
+
+::: {.handout-only}
+
+```{=latex}
+\end{minipage}\par
+```
+
+:::
+
+::: {.handout-only}
+
+With `first`, each pivot is the smallest remaining key, so the partitions
+make `5 + 4 + 3 + 2 + 1 = 15` comparisons. With `median3`, the first
+partition takes five comparisons. The two-element side takes one and the
+three-element side takes two. The counts compare keys **to the pivot**
+during partitioning. Choosing the median also requires comparisons.
+Replay the split sizes in the lab and try **W10-M11, W10-M12 and W10-E3**.
+
+:::
+
 # Heap Sort
 
 ## Read the array as a tree
@@ -240,7 +279,8 @@ The course wrappers can also copy inputs and produce animation frames.
 - Start with the same six values and step through all three sorts.
 - Predict the next merged value, the final pivot position, or the first
   extracted maximum before you reveal the answer.
-- Compare what has become final after each step.
+- Compare what has become final after each step, then compare two
+  pivot strategies on the sorted result.
 
 [Open the Advanced Sorting Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10)
 
@@ -985,10 +1025,16 @@ values that are equal **but distinguishable**?)
 
 ## Practise online
 
-- [**Advanced Sorting Lab**](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10): step through a merge, a partition, and the shrinking heap
-- [**Week 10 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-10/): 22 multiple-choice questions, every answer explained
-- **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
-- In Arabic: [week 10](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/)
+- Trace one merge and predict which run supplies the next key. Then try
+  **W10-M03, W10-M04 and W10-E1**.
+- Predict the final pivot position and compare pivot strategies. Try
+  **W10-M08 through W10-M12**.
+- Mark the heap boundary before sifting. Try **W10-M15 through
+  W10-M18** on another array.
+
+[Advanced Sorting Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10)
+· [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/)
+· [Arabic quiz](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/)
 
 ::: {.handout-only}
 
@@ -997,7 +1043,8 @@ Do the quiz **after** the homework, as a check, not instead of it: it
 shows you which ideas did not stick, and the explanation of each answer
 sends you back to the right part of this handout.
 
-- Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-10/>
+**W10-M21** asks for the Timsort family. The note on Powersort explains
+how current CPython chooses the order of merges within that approach.
 
 :::
 
