@@ -124,6 +124,13 @@ main { display: grid; gap: 12px; padding: 12px; min-height: 0;
   transition: height .18s ease, background-color .18s; display: flex; align-items: flex-start; justify-content: center; }
 .val { font: 700 13px var(--f-code); margin-bottom: 3px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .idx { font: 11px var(--f-code); color: var(--muted); margin-top: 4px; }
+.bars.signed { position: relative; }
+.bars.signed::before { content: ''; position: absolute; inset: 50% 0 auto; border-top: 1px solid var(--muted); }
+.signed .col { position: relative; }
+.signed .val { position: absolute; top: 0; }
+.signed .bar { position: absolute; bottom: 50%; }
+.signed .bar.negative { top: 50%; bottom: auto; border-radius: 2px 2px 6px 6px; }
+.signed .bar.zero { height: 2px; border: 0; }
 .card { width: 100%; height: 76px; border-radius: 8px; border: 2px solid var(--line); background: var(--panel-2);
   display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .card .key { font: 700 22px var(--f-code); }
@@ -194,7 +201,7 @@ footer.transport { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: c
   <div class="seg" id="algoSeg" role="tablist" aria-label="Algorithm"></div>
   <div class="inputs">
     <select id="preset" aria-label="Input"></select>
-    <input type="text" id="custom" placeholder="your list: 5, 2, 9, 1" aria-label="Your own list">
+  <input type="text" id="custom" placeholder="your list: 5, 2, 9, 1" aria-label="Your own list">
     <button class="btn" id="runBtn" title="Run on your own list (Enter)">Run</button>
   </div>
   <div class="tools">
@@ -649,21 +656,32 @@ function renderPic(f) {
   const pic = $('pic');
   if (S.algo === 'counting') return renderCounting(f);
   const cards = S.items.some(x => x.name);
-  const maxK = Math.max(1, ...S.items.map(x => x.k));
-  pic.innerHTML = `<div class="bars">${f.a.map((x, i) => {
+  const signed = S.items.some(x => x.k < 0);
+  const maxK = Math.max(1, ...S.items.map(x => Math.abs(x.k)));
+  pic.innerHTML = `<div class="bars${signed ? ' signed' : ''}">${f.a.map((x, i) => {
     const cls = colClass(f, i);
     if (cards) {
       const body = x ? `<span class="key">${x.t}</span><span class="nm">${x.name}</span>` : '<span class="nm">hole</span>';
       return `<div class="col ${cls}"><div class="card">${body}</div><div class="idx">${i}</div></div>`;
     }
-    const h = x ? 8 + 72 * Math.max(0, x.k) / maxK : 30;
-    return `<div class="col ${cls}"><div class="val">${x ? x.t : ''}</div><div class="bar" style="height:${h}%"></div><div class="idx">${i}</div></div>`;
+    const label = x ? x.t : '';
+    let bar = '<div class="bar" style="height:30%"></div>';
+    if (x) {
+      if (signed && x.k === 0) {
+        bar = '<div class="bar zero"></div>';
+      } else {
+        const height = signed ? 35 * Math.abs(x.k) / maxK : 8 + 72 * x.k / maxK;
+        bar = `<div class="bar${x.k < 0 ? ' negative' : ''}" style="height:${height}%"></div>`;
+      }
+    }
+    return `<div class="col ${cls}"><div class="val" title="${label}">${label}</div>${bar}<div class="idx">${i}</div></div>`;
   }).join('')}</div>`;
   const leg = [['accent', S.algo === 'selection' ? 'a[j] being compared' : 'being compared']];
   if (S.algo === 'selection') leg.push(['wait', 'smallest so far']);
   if (S.algo === 'insertion') leg.push(['prefix', 'sorted so far'], ['hole', 'the hole']);
   leg.push(['done', 'in its final place']);
   $('legend').innerHTML = leg.map(([c, t]) => `<span><span class="sw" style="background:var(--${c}-bg);border-color:var(--${c === 'prefix' ? 'line' : c})"></span>${t}</span>`).join('');
+  if (signed) $('legend').insertAdjacentHTML('beforeend', '<span>Negative bars extend below the zero line</span>');
 }
 
 function renderCounting(f) {
@@ -779,10 +797,12 @@ function loadInput() {
 }
 function runCustom() {
   const raw = $('custom').value.trim(); if (!raw) return;
+  stop();
   const parts = raw.split(/[\s,\[\]]+/).filter(Boolean);
+  if (!parts.length || parts.some(part => !/^[+-]?\d+$/.test(part))) { $('narr').innerHTML = 'Type whole numbers in decimal, for example <b>5, -2, 0, 1</b>.'; return; }
+  if (parts.length > 16) { $('narr').innerHTML = 'At most <b>16</b> values, so that the picture stays readable.'; return; }
   const vs = parts.map(Number);
-  if (!vs.length || vs.some(v => !Number.isInteger(v))) { $('narr').innerHTML = 'Type whole numbers, for example <b>5, 2, 9, 1</b>.'; return; }
-  if (vs.length > 16) { $('narr').innerHTML = 'At most <b>16</b> values, so that the picture stays readable.'; return; }
+  if (vs.some(v => !Number.isSafeInteger(v))) { $('narr').innerHTML = 'Use whole numbers from <b>-9007199254740991</b> to <b>9007199254740991</b> so each value is represented exactly.'; return; }
   if (S.algo === 'counting' && vs.some(v => v < 0)) { $('narr').innerHTML = 'Counting sort needs <b>non-negative</b> integers: a value is used as an index. The course version raises <b>ValueError</b> here.'; return; }
   S.items = itemsFromValues(vs); S.note = ''; rebuild();
 }
