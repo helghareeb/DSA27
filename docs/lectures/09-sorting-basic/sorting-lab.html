@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sorting Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: one-screen classroom console, as in the other DSA27 labs. Code on the left;
+   the picture of the list on the right, with the variables and counters under it;
+   transport bar along the bottom. */
+:root {
+  --bg: #e9edf2;
+  --panel: #ffffff;
+  --panel-2: #f4f6f9;
+  --ink: #142033;
+  --muted: #5a6679;
+  --line: #d3d9e2;
+  --accent: #c76a00;        /* the running line, the pair being compared */
+  --accent-bg: #ffefcc;
+  --wait: #3456c7;          /* the smallest so far, the current value */
+  --wait-bg: #e6ecfc;
+  --done: #23803a;          /* in its final place */
+  --done-bg: #e2f4e6;
+  --prefix-bg: #dcf3f6;     /* sorted so far, not yet final (insertion sort) */
+  --hole: #c92a3a;
+  --hole-bg: #fde4e7;
+  --bar: #c9d3e3;
+  --kw: #8a2bb8; --str: #237a3a; --num: #b4520b; --com: #7b8798; --fn: #1d5fd0;
+  --shadow: 0 1px 2px rgba(20,32,51,.06), 0 4px 14px rgba(20,32,51,.06);
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-code: "JetBrains Mono", Consolas, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --panel: #171e28; --panel-2: #1d2532; --ink: #e4e9f1; --muted: #9aa6b8;
+    --line: #2b3545; --accent: #ffad47; --accent-bg: #3a2a12; --wait: #8ea6ff; --wait-bg: #1d2747;
+    --done: #6fd38a; --done-bg: #173322; --prefix-bg: #133338; --hole: #ff7b88; --hole-bg: #3a1a20;
+    --bar: #34405a; --kw: #d39bff; --str: #7fd492; --num: #ffb27a; --com: #7c879a; --fn: #8db6ff;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --panel: #171e28; --panel-2: #1d2532; --ink: #e4e9f1; --muted: #9aa6b8;
+  --line: #2b3545; --accent: #ffad47; --accent-bg: #3a2a12; --wait: #8ea6ff; --wait-bg: #1d2747;
+  --done: #6fd38a; --done-bg: #173322; --prefix-bg: #133338; --hole: #ff7b88; --hole-bg: #3a1a20;
+  --bar: #34405a; --kw: #d39bff; --str: #7fd492; --num: #ffb27a; --com: #7c879a; --fn: #8db6ff;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--f-body);
+  display: grid; grid-template-rows: auto 1fr auto; }
+button, select, input { font: inherit; color: inherit; }
+.mono, code, kbd, .code, .chip, .cell, .val, .idx, .vars table { font-family: var(--f-code); font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+kbd { font-size: 11px; padding: 0 4px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
+
+header.top { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
+  padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand b { font-size: 18px; margin-right: 8px; }
+.brand span { color: var(--muted); font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button.on { background: var(--ink); color: var(--panel); }
+.inputs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.inputs select, .inputs input[type=text] { padding: 6px 8px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--panel-2); }
+.inputs input[type=text] { width: 15em; font-family: var(--f-code); font-size: 13px; }
+.tools { margin-left: auto; display: flex; gap: 6px; }
+.btn { padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2);
+  cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.btn.on { background: var(--accent-bg); border-color: var(--accent); }
+.btn.bug.on { background: var(--hole-bg); border-color: var(--hole); }
+.btn:disabled { opacity: .45; cursor: default; }
+
+main { display: grid; gap: 12px; padding: 12px; min-height: 0;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: "code pic" "code vars"; }
+.pane { min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.pane-head { display: flex; justify-content: space-between; gap: 8px; padding: 8px 14px;
+  border-bottom: 1px solid var(--line); font-weight: 700; }
+.pane-head .meta { font-weight: 400; color: var(--muted); font-size: 13px; }
+.code-pane { grid-area: code; }
+.pic-pane { grid-area: pic; }
+.vars-pane { grid-area: vars; }
+
+.about { padding: 10px 14px 4px; }
+.about h1 { font-size: 17px; margin: 0 0 2px; }
+.about p { margin: 0; color: var(--muted); font-size: 14px; }
+.code { font: 13.5px/1.6 var(--f-code); padding: 8px 0; overflow: auto; flex: 0 0 auto; }
+.ln { display: grid; grid-template-columns: 3em 1fr; white-space: pre; padding-right: 12px; }
+.ln .no { color: var(--muted); text-align: right; padding-right: 1em; user-select: none; }
+.ln.run { background: var(--accent-bg); box-shadow: inset 3px 0 var(--accent); }
+.ln.mistake .tx { text-decoration: underline wavy var(--hole); text-underline-offset: 4px; }
+.k { color: var(--kw); } .n { color: var(--num); } .c { color: var(--com); font-style: italic; } .f { color: var(--fn); }
+.narr { margin: 6px 14px 14px; padding: 10px 12px; border-radius: 10px; background: var(--panel-2);
+  border: 1px solid var(--line); min-height: 4.2em; }
+.narr b { color: var(--accent); }
+.qcard { margin: 0 14px 14px; padding: 10px 12px; border: 2px solid var(--wait); border-radius: 10px; background: var(--wait-bg); }
+.qlabel { font-weight: 700; color: var(--wait); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.qtext { margin: 4px 0 8px; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.choices .btn.right { background: var(--done-bg); border-color: var(--done); }
+.choices .btn.wrong { background: var(--hole-bg); border-color: var(--hole); }
+.qwhy { margin-top: 8px; font-size: 14px; }
+
+.picbox { flex: 1; min-height: 220px; padding: 12px 16px 8px; display: flex; flex-direction: column; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; min-height: 30px; align-items: center; }
+.chip { font-family: var(--f-code); font-size: 13px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel-2); }
+.chip.cur { border-color: var(--wait); background: var(--wait-bg); color: var(--wait); font-weight: 700; }
+.verdict { font-weight: 700; padding: 3px 10px; border-radius: 8px; }
+.verdict.ok { color: var(--done); background: var(--done-bg); }
+.verdict.bad { color: var(--hole); background: var(--hole-bg); }
+.bars { height: clamp(170px, 34vh, 360px); display: flex; align-items: flex-end; gap: 6px; }
+.col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; }
+.bar { width: 100%; border-radius: 6px 6px 2px 2px; background: var(--bar); border: 2px solid transparent;
+  transition: height .18s ease, background-color .18s; display: flex; align-items: flex-start; justify-content: center; }
+.val { font: 700 13px var(--f-code); margin-bottom: 3px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.idx { font: 11px var(--f-code); color: var(--muted); margin-top: 4px; }
+.bars.signed { position: relative; }
+.bars.signed::before { content: ''; position: absolute; inset: 50% 0 auto; border-top: 1px solid var(--muted); }
+.signed .col { position: relative; }
+.signed .val { position: absolute; top: 0; }
+.signed .bar { position: absolute; bottom: 50%; }
+.signed .bar.negative { top: 50%; bottom: auto; border-radius: 2px 2px 6px 6px; }
+.signed .bar.zero { height: 2px; border: 0; }
+.card { width: 100%; height: 76px; border-radius: 8px; border: 2px solid var(--line); background: var(--panel-2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.card .key { font: 700 22px var(--f-code); }
+.card .nm { font-size: 12px; color: var(--muted); }
+.cmp .bar, .cmp .card { background: var(--accent-bg); border-color: var(--accent); }
+.min .bar, .min .card { background: var(--wait-bg); border-color: var(--wait); }
+.final .bar, .final .card { background: var(--done-bg); border-color: var(--done); }
+.prefix .bar, .prefix .card { background: var(--prefix-bg); }
+.hole .bar, .hole .card { background: var(--hole-bg); border: 2px dashed var(--hole); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 2px solid var(--line); }
+
+.rows { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
+.rows .lab { font: 13px var(--f-code); color: var(--muted); text-align: right; }
+.cells { display: flex; flex-wrap: wrap; gap: 4px; }
+.cell { min-width: 2.2em; padding: 4px 6px; text-align: center; font: 700 14px var(--f-code); border: 1px solid var(--line);
+  border-radius: 6px; background: var(--panel-2); position: relative; }
+.cell sub { position: absolute; top: -14px; left: 0; right: 0; font: 10px var(--f-code); color: var(--muted); }
+.cells.idxd { margin-top: 12px; row-gap: 18px; }
+.cell.cmp { background: var(--accent-bg); border-color: var(--accent); }
+.cell.final { background: var(--done-bg); border-color: var(--done); }
+
+.varwrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.vars, .counters { padding: 8px 14px 12px; }
+.counters { border-left: 1px solid var(--line); }
+.vars table { border-collapse: collapse; font: 13.5px var(--f-code); }
+.vars td { padding: 2px 10px 2px 0; }
+.vars td:first-child { color: var(--muted); }
+.vars tr.chg td:last-child { color: var(--accent); font-weight: 700; }
+.ctr { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; font-size: 14px; }
+.ctr b { font: 700 16px var(--f-code); }
+.ctr.inv b { color: var(--wait); }
+.cfoot { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+
+footer.transport { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 16px;
+  background: var(--panel); border-top: 1px solid var(--line); }
+.group { display: flex; gap: 6px; flex-wrap: wrap; }
+.speed, .scrub { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.scrub { flex: 1; min-width: 180px; }
+.scrub input { flex: 1; }
+.pos { font: 12px var(--f-code); min-width: 7em; text-align: right; }
+#selftest { margin: 12px; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; white-space: pre-wrap; }
+
+@media (max-width: 1050px) {
+  html, body { height: auto; }
+  body { display: block; }
+  main { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "pic" "vars" "code"; }
+  .picbox { min-height: 260px; }
+  footer.transport { position: sticky; bottom: 0; z-index: 2; }
+}
+@media (max-width: 560px) {
+  .varwrap { grid-template-columns: 1fr; }
+  .counters { border-left: 0; border-top: 1px solid var(--line); }
+  .tools { margin-left: 0; }
+  .inputs { width: 100%; }
+  .inputs select, .inputs input[type=text] { flex: 1 1 100%; width: auto; min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .bar { transition: none; } }
+/* Last, so that no `font:` shorthand above resets it: students must see >= and != as typed. */
+.code, .code *, .chip, .cell, .val, .idx, .vars table, .ctr b, kbd, input[type=text] {
+  font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>Sorting Lab</b><span>DSA27 · Lecture 09</span></div>
+  <div class="seg" id="algoSeg" role="tablist" aria-label="Algorithm"></div>
+  <div class="inputs">
+    <select id="preset" aria-label="Input"></select>
+  <input type="text" id="custom" placeholder="your list: 5, 2, 9, 1" aria-label="Your own list">
+    <button class="btn" id="runBtn" title="Run on your own list (Enter)">Run</button>
+  </div>
+  <div class="tools">
+    <button class="btn bug" id="bugBtn" title="Run the common mistake (M)">Common mistake <kbd>M</kbd></button>
+    <button class="btn" id="themeBtn" title="Switch light / dark">Theme</button>
+    <button class="btn" id="fsBtn" title="Full screen (F)">Full screen</button>
+  </div>
+</header>
+
+<main>
+  <section class="pane code-pane">
+    <div class="pane-head"><span>Code</span><span class="meta" id="lineInfo"></span></div>
+    <div class="about"><h1 id="title"></h1><p id="blurb"></p></div>
+    <div class="code" id="code"></div>
+    <div class="narr" id="narr" aria-live="polite"></div>
+    <div id="qbox"></div>
+  </section>
+
+  <section class="pane pic-pane">
+    <div class="pane-head"><span id="picTitle">The list a</span><span class="meta" id="picMeta"></span></div>
+    <div class="picbox">
+      <div class="chips" id="chips"></div>
+      <div id="pic" style="flex:1;display:flex;flex-direction:column;min-height:0"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </section>
+
+  <section class="pane vars-pane">
+    <div class="varwrap">
+      <div class="vars"><div class="pane-head" style="padding:0 0 6px;border:0">Variables</div><table id="vars"></table></div>
+      <div class="counters"><div class="pane-head" style="padding:0 0 6px;border:0">Counters</div><div id="ctrs"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="transport">
+  <div class="group">
+    <button class="btn" id="bRestart" title="Back to the start (R)">Restart <kbd>R</kbd></button>
+    <button class="btn" id="bBack" title="One step back (Left arrow)">Back <kbd>&larr;</kbd></button>
+    <button class="btn primary" id="bStep" title="One step (Right arrow or Space)">Step <kbd>&rarr;</kbd></button>
+    <button class="btn" id="bPlay" title="Play / pause (P)">Play <kbd>P</kbd></button>
+  </div>
+  <div class="speed"><label for="speed">Speed</label><input type="range" id="speed" min="1" max="10" value="5"></div>
+  <div class="scrub"><input type="range" id="scrub" min="0" max="0" value="0" aria-label="Jump to step"><span class="pos" id="pos"></span></div>
+  <button class="btn" id="bQuiz" title="Ask before each decision (Q)">What happens next? off <kbd>Q</kbd></button>
+</footer>
+
+<pre id="selftest" hidden></pre>
+
+<script>
+/* =====================================================================
+   ENGINE. Each algorithm is a JavaScript mirror of the Python shown on
+   screen, line for line. It runs once on the input, and the tracer keeps
+   a snapshot at every step, so Back and the scrubber are only an index
+   into that list. Line labels tie each snapshot to one line of the code.
+   ===================================================================== */
+
+const $ = id => document.getElementById(id);
+
+// ---- the code on screen: [label, text] per line -------------------------
+const CODE = {
+  bubble: [
+    ['def',   'def bubble_sort(a):'],
+    ['n',     '    n = len(a)'],
+    ['for',   '    for end in range(n - 1, 0, -1):      # a[end+1:] is already in place'],
+    ['reset', '        swapped = False'],
+    ['j',     '        for j in range(end):'],
+    ['if',    '            if a[j] > a[j + 1]:          # strictly greater: stable'],
+    ['swap',  '                a[j], a[j + 1] = a[j + 1], a[j]'],
+    ['set',   '                swapped = True'],
+    ['check', '        if not swapped:                  # a pass with no swap: sorted'],
+    ['break', '            break'],
+    ['ret',   '    return a'],
+  ],
+  bubbleBug: [
+    ['def',   'def bubble_sort(a):'],
+    ['n',     '    n = len(a)'],
+    ['reset', '    swapped = False                      # MISTAKE: set once, not per pass'],
+    ['for',   '    for end in range(n - 1, 0, -1):'],
+    ['j',     '        for j in range(end):'],
+    ['if',    '            if a[j] > a[j + 1]:'],
+    ['swap',  '                a[j], a[j + 1] = a[j + 1], a[j]'],
+    ['set',   '                swapped = True'],
+    ['check', '        if not swapped:'],
+    ['break', '            break'],
+    ['ret',   '    return a'],
+  ],
+  selection: [
+    ['def',   'def selection_sort(a):'],
+    ['n',     '    n = len(a)'],
+    ['for',   '    for i in range(n - 1):'],
+    ['init',  '        smallest = i'],
+    ['j',     '        for j in range(i + 1, n):'],
+    ['if',    '            if a[j] < a[smallest]:       # the best so far, not a[i]'],
+    ['new',   '                smallest = j'],
+    ['check', '        if smallest != i:'],
+    ['swap',  '            a[i], a[smallest] = a[smallest], a[i]'],
+    ['ret',   '    return a'],
+  ],
+  selectionBug: [
+    ['def',   'def selection_sort(a):'],
+    ['n',     '    n = len(a)'],
+    ['for',   '    for i in range(n - 1):'],
+    ['init',  '        smallest = i'],
+    ['j',     '        for j in range(i + 1, n):'],
+    ['if',    '            if a[j] < a[i]:              # MISTAKE: a[i], not a[smallest]'],
+    ['new',   '                smallest = j'],
+    ['check', '        if smallest != i:'],
+    ['swap',  '            a[i], a[smallest] = a[smallest], a[i]'],
+    ['ret',   '    return a'],
+  ],
+  insertion: [
+    ['def',   'def insertion_sort(a):'],
+    ['for',   '    for i in range(1, len(a)):'],
+    ['cur',   '        current = a[i]'],
+    ['init',  '        j = i - 1'],
+    ['while', '        while j >= 0 and a[j] > current:   # j >= 0 FIRST'],
+    ['shift', '            a[j + 1] = a[j]                # shift right'],
+    ['dec',   '            j -= 1'],
+    ['drop',  '        a[j + 1] = current                 # drop into the hole'],
+    ['ret',   '    return a'],
+  ],
+  insertionBug: [
+    ['def',   'def insertion_sort(a):'],
+    ['for',   '    for i in range(1, len(a)):'],
+    ['cur',   '        current = a[i]'],
+    ['init',  '        j = i - 1'],
+    ['while', '        while j >= 0 and a[j] >= current:  # MISTAKE: >= is not stable'],
+    ['shift', '            a[j + 1] = a[j]'],
+    ['dec',   '            j -= 1'],
+    ['drop',  '        a[j + 1] = current'],
+    ['ret',   '    return a'],
+  ],
+  counting: [
+    ['def',   'def counting_sort(a):'],
+    ['empty', '    if not a:                            # max([]) would fail'],
+    ['ret0',  '        return []'],
+    ['alloc', '    counts = [0] * (max(a) + 1)          # k = max + 1 counters'],
+    ['for',   '    for v in a:'],
+    ['inc',   '        counts[v] += 1                   # the value IS the index'],
+    ['res',   '    result = []'],
+    ['forv',  '    for v in range(len(counts)):'],
+    ['rep',   '        for _ in range(counts[v]):       # write v, counts[v] times'],
+    ['app',   '            result.append(v)'],
+    ['ret',   '    return result'],
+  ],
+  countingBug: [
+    ['def',   'def counting_sort(a):'],
+    ['empty', '    if not a:'],
+    ['ret0',  '        return []'],
+    ['alloc', '    counts = [0] * max(a)                # MISTAKE: k = max, not max + 1'],
+    ['for',   '    for v in a:'],
+    ['inc',   '        counts[v] += 1'],
+    ['res',   '    result = []'],
+    ['forv',  '    for v in range(len(counts)):'],
+    ['rep',   '        for _ in range(counts[v]):'],
+    ['app',   '            result.append(v)'],
+    ['ret',   '    return result'],
+  ],
+};
+
+const ALGOS = {
+  bubble: { name: 'Bubble sort', short: 'Bubble', moves: 'Swaps',
+    blurb: 'Compare neighbours; swap them when the left one is larger. A pass with no swap means sorted.',
+    bug: 'swapped is set once, before the loops. After the first swap it stays True, so the early exit never fires.' },
+  selection: { name: 'Selection sort', short: 'Selection', moves: 'Swaps',
+    blurb: 'Find the smallest value of the unsorted part; swap it into the next slot.',
+    bug: 'The scan compares with a[i] instead of a[smallest], so it finds the last value smaller than a[i] — not the smallest.' },
+  insertion: { name: 'Insertion sort', short: 'Insertion', moves: 'Shifts',
+    blurb: 'Grow a sorted prefix: take the next value, shift larger values right, drop it into the hole.',
+    bug: 'The walk uses >=, so current also passes values equal to it. It still sorts, but equal keys change order: not stable.' },
+  counting: { name: 'Counting sort', short: 'Counting', moves: 'Writes',
+    blurb: 'Count each value, then write each value out as many times as it was counted. No comparisons.',
+    bug: 'k = max(a) counters, one too few: there is no counter for the largest value.' },
+};
+
+// ---- inputs ----------------------------------------------------------------
+const CARDS = [['B', 'Omar'], ['A', 'Sara'], ['B', 'Laila'], ['A', 'Ali']];
+const CARDS2 = [['C', 'Mona'], ['B', 'Omar'], ['A', 'Sara'], ['B', 'Laila'], ['C', 'Yusuf'], ['A', 'Ali']];
+const PRESETS = [
+  { id: 'A',     label: "A — the lecture's list", values: [5, 2, 9, 1, 7, 3] },
+  { id: 'sorted', label: 'Sorted (best case)', values: [1, 2, 3, 4, 5, 6, 7, 8] },
+  { id: 'rev',   label: 'Reversed (worst case)', values: [8, 7, 6, 5, 4, 3, 2, 1] },
+  { id: 'near',  label: 'Nearly sorted', values: [1, 2, 4, 3, 5, 6, 8, 7] },
+  { id: 'dup',   label: 'With duplicates', values: [3, 1, 3, 2, 1, 3] },
+  { id: 'rand',  label: 'Random (new each time)', values: null },
+  { id: 'cards', label: 'Cards: stable or not?', cards: CARDS },
+  { id: 'cards2', label: 'Cards: six students', cards: CARDS2 },
+  { id: 'wide',  label: 'Wide range: [0, 1000000000]', values: [0, 1000000000] },
+];
+
+function itemsFromValues(vs) { return vs.map((v, i) => ({ k: v, t: String(v), id: i })); }
+function itemsFromCards(cs) { return cs.map(([g, name], i) => ({ k: g.charCodeAt(0), t: g, name, id: i })); }
+function randomValues(n) { const out = []; for (let i = 0; i < n; i++) out.push(Math.floor(Math.random() * 10)); return out; }
+
+// ---- tracer ------------------------------------------------------------------
+class Tracer {
+  constructor(algo, items, bug) {
+    this.algo = algo; this.bug = bug;
+    this.code = CODE[algo + (bug ? 'Bug' : '')];
+    this.a = items.slice();          // the list; null marks the insertion hole
+    this.vars = {}; this.changed = new Set();
+    this.cnt = { cmp: 0, mov: 0 };
+    this.hi = {}; this.frames = [];
+    this.cur = null; this.holeAt = -1;
+    this.count = null;               // counting sort: {counts, result, vi}
+  }
+  line(label) {
+    const i = this.code.findIndex(([l]) => l === label);
+    if (i < 0) throw new Error('no line ' + label);
+    return i;
+  }
+  set(obj) { for (const k in obj) { this.vars[k] = obj[k]; this.changed.add(k); } }
+  snap(label, msg, extra) {
+    const f = {
+      line: this.line(label), msg,
+      a: this.a.slice(), vars: { ...this.vars }, changed: [...this.changed],
+      cnt: { ...this.cnt }, hi: { ...this.hi }, cur: this.cur, holeAt: this.holeAt,
+      ...(extra || {}),
+    };
+    if (this.count) f.count = { counts: this.count.counts.slice(), result: this.count.result.slice(),
+      vi: this.count.vi, ci: this.count.ci, ri: this.count.ri };
+    f.inv = this.count ? null : inversions(logical(f));
+    this.frames.push(f); this.changed = new Set();
+    return f;
+  }
+}
+
+function logical(f) {
+  const a = f.a.slice();
+  if (f.holeAt >= 0 && f.cur) a[f.holeAt] = f.cur;
+  return a;
+}
+function inversions(a) {
+  let n = 0;
+  for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++)
+    if (a[i] && a[j] && a[i].k > a[j].k) n++;
+  return n;
+}
+const show = x => (x === null || x === undefined) ? '' : x.t;
+
+// ---- the four sorts, mirrored line by line -------------------------------------
+function runBubble(T) {
+  const a = T.a, n = a.length;
+  T.set({ n }); T.snap('n', `<b>n = ${n}</b>: ${n} values to sort.`);
+  let swapped = false;
+  if (T.bug) { T.set({ swapped }); T.snap('reset', '<b>swapped = False</b> — once, before the loops. Watch what happens after the first swap.'); }
+  for (let end = n - 1; end > 0; end--) {
+    T.hi = { finalFrom: end + 1 };
+    T.set({ end }); T.snap('for', `<b>Pass ${n - end}</b>: look at slots 0..${end}. Slots after ${end} are already final.`);
+    if (!T.bug) { swapped = false; T.set({ swapped }); T.snap('reset', '<b>swapped = False</b>: nothing has changed in this pass yet.'); }
+    for (let j = 0; j < end; j++) {
+      T.set({ j }); T.hi = { finalFrom: end + 1 };
+      T.snap('j', `<b>j = ${j}</b>: the next pair is a[${j}] and a[${j + 1}].`);
+      T.hi = { finalFrom: end + 1, cmp: [j, j + 1] };
+      T.cnt.cmp++;
+      const big = a[j].k > a[j + 1].k;
+      T.snap('if', `Compare <b>${show(a[j])} &gt; ${show(a[j + 1])}</b>? ${big ? 'Yes.' : 'No.'}`,
+        { q: { text: `Is a[${j}] = ${show(a[j])} greater than a[${j + 1}] = ${show(a[j + 1])}? What does the code do?`,
+               choices: ['Swap them', 'Keep them'], answer: big ? 0 : 1,
+               why: big ? `${show(a[j])} > ${show(a[j + 1])}, so the larger value moves right.`
+                        : `${show(a[j])} is not greater than ${show(a[j + 1])} — strictly greater only — so nothing moves.` } });
+      if (big) {
+        [a[j], a[j + 1]] = [a[j + 1], a[j]]; T.cnt.mov++;
+        T.snap('swap', `<b>Swap</b>: ${show(a[j + 1])} moves right. One inversion fixed.`);
+        swapped = true; T.set({ swapped }); T.snap('set', '<b>swapped = True</b>: this pass changed something.');
+      }
+    }
+    T.hi = { finalFrom: end };
+    T.snap('check', swapped ? `End of pass: <b>${show(a[end])}</b> is in its final place. swapped is True, so go on.`
+                            : 'End of pass: <b>no swap</b> in the whole pass, so every neighbour pair is in order.');
+    if (!swapped) {
+      T.hi = { finalFrom: 0 };
+      T.snap('break', `<b>break</b>: the early exit. ${end - 1} pass${end - 1 === 1 ? '' : 'es'} skipped.`);
+      break;
+    }
+  }
+  T.hi = { finalFrom: 0 };
+  T.snap('ret', T.bug ? `Done: <b>${T.cnt.cmp} comparisons</b>. With swapped reset each pass, the early exit can stop sooner.`
+                      : `Done: <b>${T.cnt.cmp} comparisons, ${T.cnt.mov} swaps</b>.`, { end: true });
+}
+
+function runSelection(T) {
+  const a = T.a, n = a.length;
+  T.set({ n }); T.snap('n', `<b>n = ${n}</b>: ${n - 1} rounds, one per slot.`);
+  for (let i = 0; i < n - 1; i++) {
+    T.hi = { finalBefore: i };
+    T.set({ i }); T.snap('for', `<b>Round ${i}</b>: find the smallest value of a[${i}..${n - 1}] for slot ${i}.`);
+    let smallest = i; T.set({ smallest }); T.hi = { finalBefore: i, min: smallest };
+    T.snap('init', `<b>smallest = ${i}</b>: the best so far is a[${i}] = ${show(a[i])}.`);
+    for (let j = i + 1; j < n; j++) {
+      T.set({ j }); T.hi = { finalBefore: i, min: smallest, cmp: [j] };
+      T.snap('j', `<b>j = ${j}</b>: look at a[${j}] = ${show(a[j])}.`);
+      const ref = T.bug ? i : smallest;
+      T.cnt.cmp++;
+      const less = a[j].k < a[ref].k;
+      T.snap('if', `Compare <b>${show(a[j])} &lt; ${show(a[ref])}</b>${T.bug ? ' (a[i], not the best so far)' : ''}? ${less ? 'Yes.' : 'No.'}`,
+        { q: { text: `Is a[${j}] = ${show(a[j])} smaller than ${T.bug ? 'a[i]' : 'the smallest so far'}, ${show(a[ref])}?`,
+               choices: [`Yes: smallest = ${j}`, 'No: keep smallest'], answer: less ? 0 : 1,
+               why: less ? `${show(a[j])} < ${show(a[ref])}, so slot ${j} is the new best.` : `${show(a[j])} is not smaller, so smallest stays ${smallest}.` } });
+      if (less) {
+        smallest = j; T.set({ smallest }); T.hi = { finalBefore: i, min: smallest };
+        T.snap('new', `<b>smallest = ${j}</b>: the best so far is now ${show(a[j])}.`);
+      }
+    }
+    T.hi = { finalBefore: i, min: smallest };
+    T.snap('check', smallest !== i ? `The minimum is at ${smallest}, not at ${i}: swap.` : `The minimum is already in slot ${i}: <b>no swap</b>.`);
+    if (smallest !== i) {
+      [a[i], a[smallest]] = [a[smallest], a[i]]; T.cnt.mov++;
+      T.hi = { finalBefore: i + 1 };
+      T.snap('swap', `<b>Swap</b> slots ${i} and ${smallest}: ${show(a[i])} is in its final place.`);
+    }
+  }
+  T.hi = { finalBefore: n };
+  T.snap('ret', `Done: <b>${T.cnt.cmp} comparisons, ${T.cnt.mov} swaps</b>.`, { end: true });
+}
+
+function runInsertion(T) {
+  const a = T.a, n = a.length;
+  const cmp = T.bug ? ((x, y) => x.k >= y.k) : ((x, y) => x.k > y.k);
+  for (let i = 1; i < n; i++) {
+    T.hi = { prefixBefore: i }; T.cur = null; T.holeAt = -1;
+    T.set({ i }); T.snap('for', `<b>Round ${i}</b>: a[0..${i - 1}] is sorted so far. Insert a[${i}].`);
+    T.cur = a[i]; a[i] = null; T.holeAt = i;
+    T.hi = { prefixBefore: i + 1 };
+    T.set({ current: show(T.cur) }); T.snap('cur', `<b>current = ${show(T.cur)}</b>. Its slot is now a hole.`);
+    let j = i - 1; T.set({ j }); T.snap('init', `<b>j = ${j}</b>: start the walk left.`);
+    for (;;) {
+      if (j < 0) {
+        T.snap('while', '<b>j = -1</b>: off the front of the list. Stop: j >= 0 is checked first, so a[-1] is never read.');
+        break;
+      }
+      T.hi = { prefixBefore: i + 1, cmp: [j] };
+      T.cnt.cmp++;
+      const move = cmp(a[j], T.cur);
+      T.snap('while', `Compare <b>${show(a[j])} ${T.bug ? '&gt;=' : '&gt;'} ${show(T.cur)}</b>? ${move ? 'Yes: shift.' : 'No: stop here.'}`,
+        { q: { text: `Is a[${j}] = ${show(a[j])} ${T.bug ? 'greater than or equal to' : 'greater than'} current = ${show(T.cur)}?`,
+               choices: [`Shift ${show(a[j])} right`, 'Stop: drop current here'], answer: move ? 0 : 1,
+               why: move ? `${show(a[j])} ${T.bug ? '>=' : '>'} ${show(T.cur)}, so it moves one slot right and the hole moves left.`
+                         : `${show(a[j])} is not ${T.bug ? '>=' : 'greater than'} ${show(T.cur)}, so the walk stops${T.bug ? '' : ' — at an equal value too, which keeps the sort stable'}.` } });
+      if (!move) break;
+      a[j + 1] = a[j]; a[j] = null; T.holeAt = j; T.cnt.mov++;
+      T.hi = { prefixBefore: i + 1 };
+      T.snap('shift', `<b>Shift</b> ${show(a[j + 1])} right. The hole moves to slot ${j}. One inversion fixed.`);
+      j--; T.set({ j }); T.snap('dec', `<b>j = ${j}</b>.`);
+    }
+    a[j + 1] = T.cur; T.holeAt = -1; const c = T.cur; T.cur = null;
+    T.hi = { prefixBefore: i + 1 };
+    T.snap('drop', `<b>Drop ${show(c)}</b> into slot ${j + 1}. a[0..${i}] is sorted so far.`);
+  }
+  T.hi = { finalBefore: n };
+  T.snap('ret', `Done: <b>${T.cnt.cmp} comparisons, ${T.cnt.mov} shifts</b>.`, { end: true });
+}
+
+function runCounting(T) {
+  const a = T.a;
+  T.count = { counts: [], result: [], vi: -1, ci: -1, ri: -1 };
+  T.snap('empty', a.length ? 'The list is not empty.' : 'The list is empty.');
+  if (!a.length) { T.snap('ret0', '<b>return []</b>: max([]) would raise an error.', { end: true }); return; }
+  const max = Math.max(...a.map(x => x.k));
+  const k = T.bug ? max : max + 1;
+  if (k > 40) {
+    T.snap('alloc', `<b>k = ${k.toLocaleString('en')}</b> counters for only ${a.length} values. Too many to draw — and in Python, about ${(k * 8 / 1e9).toFixed(1)} GB of memory just for the counters. <b>That is the catch of counting sort</b>: it is fast only when k is small.`, { end: true, error: true });
+    return;
+  }
+  T.count.counts = new Array(k).fill(0);
+  T.set({ k }); T.snap('alloc', `<b>counts = [0] * ${k}</b>: one counter for each value 0..${k - 1}${T.bug ? ' — one too few' : ''}.`);
+  for (let vi = 0; vi < a.length; vi++) {
+    const v = a[vi].k; T.count.vi = vi; T.count.ci = -1;
+    T.set({ v }); T.snap('for', `<b>v = ${v}</b>.`);
+    if (v >= k) {
+      T.count.ci = -1;
+      T.snap('inc', `<b>IndexError</b>: counts has ${k} slots (0..${k - 1}), so counts[${v}] does not exist.`, { end: true, error: true });
+      return;
+    }
+    T.count.ci = v; T.count.counts[v]++; T.cnt.mov++;
+    const others = [...new Set([v, (v + 1) % k, (v + k - 1) % k, Math.floor(k / 2)])].slice(0, 3).sort((x, y) => x - y);
+    T.frames[T.frames.length - 1].q = { text: `v = ${v}. Which counter goes up?`, choices: others.map(c => `counts[${c}]`),
+      answer: others.indexOf(v), why: `The value is the index: counts[${v}] += 1. No comparison is needed.` };
+    T.snap('inc', `<b>counts[${v}] += 1</b> → ${T.count.counts[v]}. The value is the index.`);
+  }
+  T.count.vi = -1; T.count.ci = -1;
+  T.snap('res', '<b>result = []</b>. Now walk the counters in order.');
+  for (let v = 0; v < k; v++) {
+    T.count.ci = v; T.set({ v }); T.snap('forv', `<b>v = ${v}</b>: counts[${v}] = ${T.count.counts[v]}.`);
+    for (let r = 0; r < T.count.counts[v]; r++) {
+      T.snap('rep', `Write ${v}: copy ${r + 1} of ${T.count.counts[v]}.`);
+      T.count.result.push(v); T.count.ri = T.count.result.length - 1; T.cnt.mov++;
+      T.snap('app', `<b>result.append(${v})</b>.`);
+    }
+  }
+  T.count.ci = -1; T.count.ri = -1;
+  T.snap('ret', `Done: <b>0 comparisons</b>, ${a.length} counter updates and ${T.count.result.length} writes.`, { end: true });
+}
+
+const RUN = { bubble: runBubble, selection: runSelection, insertion: runInsertion, counting: runCounting };
+
+function trace(algo, items, bug) {
+  const T = new Tracer(algo, items, bug);
+  T.snap('def', `Start. a = [${items.map(show).join(', ')}]. Press <b>Step</b> or the right arrow.`);
+  RUN[algo](T);
+  const last = T.frames[T.frames.length - 1];
+  if (algo !== 'counting') last.verdict = verdict(items, last.a);
+  return T.frames;
+}
+
+function verdict(input, out) {
+  const sorted = out.every((x, i) => i === 0 || out[i - 1].k <= x.k);
+  if (!sorted) return { ok: false, text: 'Not sorted!' };
+  const hasRecords = input.some(x => x.name);
+  if (!hasRecords) return { ok: true, text: 'Sorted' };
+  for (let i = 1; i < out.length; i++)
+    if (out[i - 1].k === out[i].k && out[i - 1].id > out[i].id)
+      return { ok: false, text: `Sorted, but NOT stable: ${out[i - 1].name} now comes before ${out[i].name}` };
+  return { ok: true, text: 'Sorted and stable: equal keys kept their order' };
+}
+
+// ---- view -------------------------------------------------------------------------
+const S = { note: '', algo: 'bubble', bug: false, preset: 'A', items: null, frames: [], at: 0, quiz: false, answered: {}, timer: null };
+
+function hl(text) {
+  const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const hash = esc.indexOf('#');
+  let code = hash >= 0 ? esc.slice(0, hash) : esc, com = hash >= 0 ? esc.slice(hash) : '';
+  code = code.replace(/\b(def|for|in|if|not|and|while|return|break|range|len|max)\b/g, m =>
+    ['range', 'len', 'max'].includes(m) ? `<span class="f">${m}</span>` : `<span class="k">${m}</span>`)
+    .replace(/\b(\d+|True|False)\b/g, '<span class="n">$1</span>');
+  return code + (com ? `<span class="c">${com}</span>` : '');
+}
+
+function renderCode() {
+  const code = CODE[S.algo + (S.bug ? 'Bug' : '')];
+  $('code').innerHTML = code.map(([, t], i) =>
+    `<div class="ln${/MISTAKE/.test(t) ? ' mistake' : ''}" data-i="${i}"><span class="no">${i + 1}</span><span class="tx">${hl(t)}</span></div>`).join('');
+  const A = ALGOS[S.algo];
+  $('title').textContent = A.name + (S.bug ? ' — with the common mistake' : '');
+  $('blurb').textContent = S.bug ? A.bug : A.blurb;
+}
+
+function colClass(f, i) {
+  const h = f.hi || {};
+  if (f.holeAt === i) return 'hole';
+  if (h.cmp && h.cmp.includes(i)) return 'cmp';
+  if (h.min === i) return 'min';
+  if (h.finalFrom !== undefined && i >= h.finalFrom) return 'final';
+  if (h.finalBefore !== undefined && i < h.finalBefore) return 'final';
+  if (h.prefixBefore !== undefined && i < h.prefixBefore) return 'prefix';
+  return '';
+}
+
+function renderPic(f) {
+  const pic = $('pic');
+  if (S.algo === 'counting') return renderCounting(f);
+  const cards = S.items.some(x => x.name);
+  const signed = S.items.some(x => x.k < 0);
+  const maxK = Math.max(1, ...S.items.map(x => Math.abs(x.k)));
+  pic.innerHTML = `<div class="bars${signed ? ' signed' : ''}">${f.a.map((x, i) => {
+    const cls = colClass(f, i);
+    if (cards) {
+      const body = x ? `<span class="key">${x.t}</span><span class="nm">${x.name}</span>` : '<span class="nm">hole</span>';
+      return `<div class="col ${cls}"><div class="card">${body}</div><div class="idx">${i}</div></div>`;
+    }
+    const label = x ? x.t : '';
+    let bar = '<div class="bar" style="height:30%"></div>';
+    if (x) {
+      if (signed && x.k === 0) {
+        bar = '<div class="bar zero"></div>';
+      } else {
+        const height = signed ? 35 * Math.abs(x.k) / maxK : 8 + 72 * x.k / maxK;
+        bar = `<div class="bar${x.k < 0 ? ' negative' : ''}" style="height:${height}%"></div>`;
+      }
+    }
+    return `<div class="col ${cls}"><div class="val" title="${label}">${label}</div>${bar}<div class="idx">${i}</div></div>`;
+  }).join('')}</div>`;
+  const leg = [['accent', S.algo === 'selection' ? 'a[j] being compared' : 'being compared']];
+  if (S.algo === 'selection') leg.push(['wait', 'smallest so far']);
+  if (S.algo === 'insertion') leg.push(['prefix', 'sorted so far'], ['hole', 'the hole']);
+  leg.push(['done', 'in its final place']);
+  $('legend').innerHTML = leg.map(([c, t]) => `<span><span class="sw" style="background:var(--${c}-bg);border-color:var(--${c === 'prefix' ? 'line' : c})"></span>${t}</span>`).join('');
+  if (signed) $('legend').insertAdjacentHTML('beforeend', '<span>Negative bars extend below the zero line</span>');
+}
+
+function renderCounting(f) {
+  const c = f.count || { counts: [], result: [], vi: -1, ci: -1, ri: -1 };
+  const cells = (arr, hiIdx, cls, idx) => `<div class="cells${idx ? ' idxd' : ''}">${arr.map((v, i) =>
+    `<span class="cell${i === hiIdx ? ' ' + cls : ''}">${idx ? `<sub>${i}</sub>` : ''}${v}</span>`).join('') || '<span class="cell" style="opacity:.4">empty</span>'}</div>`;
+  $('pic').innerHTML = `<div class="rows">
+    <span class="lab">a</span>${cells(f.a.map(show), c.vi, 'cmp')}
+    <span class="lab">counts</span>${c.counts.length ? cells(c.counts, c.ci, 'cmp', true) : '<span class="cell" style="opacity:.4">not made yet</span>'}
+    <span class="lab">result</span>${cells(c.result, c.ri, 'final')}
+  </div>`;
+  $('legend').innerHTML = '<span><span class="sw" style="background:var(--accent-bg);border-color:var(--accent)"></span>the value and its counter</span><span>small grey numbers: the counter’s index = the value it counts</span>';
+}
+
+function renderVars(f) {
+  const changed = new Set(f.changed);
+  const py = v => v === true ? 'True' : v === false ? 'False' : v;
+  const rows = Object.entries(f.vars).map(([k, v]) => `<tr class="${changed.has(k) ? 'chg' : ''}"><td>${k}</td><td>${py(v)}</td></tr>`);
+  $('vars').innerHTML = rows.join('') || '<tr><td colspan="2" style="color:var(--muted)">none yet</td></tr>';
+  const A = ALGOS[S.algo];
+  let html = '';
+  if (S.algo === 'counting') {
+    html += `<div class="ctr"><span>Comparisons</span><b>0</b></div>`;
+    html += `<div class="ctr"><span>Counter updates + writes</span><b>${f.cnt.mov}</b></div>`;
+    html += `<div class="cfoot">Counting sort never compares two keys: the value is used as an address.</div>`;
+  } else {
+    html += `<div class="ctr"><span>Comparisons</span><b>${f.cnt.cmp}</b></div>`;
+    html += `<div class="ctr"><span>${A.moves}</span><b>${f.cnt.mov}</b></div>`;
+    html += `<div class="ctr inv"><span>Inversions left</span><b>${f.inv}</b></div>`;
+    html += `<div class="cfoot">${S.algo === 'selection' ? 'One swap can fix many inversions at once.' : 'Each ' + A.moves.toLowerCase().slice(0, -1) + ' fixes exactly one inversion.'}</div>`;
+  }
+  $('ctrs').innerHTML = html;
+}
+
+function renderChips(f) {
+  const out = [];
+  if (f.cur) out.push(`<span class="chip cur">current = ${f.cur.t}${f.cur.name ? ' · ' + f.cur.name : ''}</span>`);
+  if (f.verdict) out.push(`<span class="verdict ${f.verdict.ok ? 'ok' : 'bad'}">${f.verdict.ok ? '✓' : '✗'} ${f.verdict.text}</span>`);
+  if (f.error) out.push('<span class="verdict bad">✗ stopped</span>');
+  $('chips').innerHTML = out.join('');
+}
+
+function renderQuestion(f) {
+  const box = $('qbox');
+  const st = S.answered[S.at];
+  if (!S.quiz || !f.q || !st) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="qcard" role="group" aria-label="Question"><div class="qlabel">What happens next?</div>
+    <div class="qtext">${f.q.text}</div><div class="choices">${f.q.choices.map((c, i) => {
+      const cls = st.picked === undefined ? '' : (i === f.q.answer ? ' right' : (i === st.picked ? ' wrong' : ''));
+      return `<button class="btn${cls}" data-c="${i}" ${st.picked !== undefined ? 'disabled' : ''}>${c}</button>`; }).join('')}</div>
+    ${st.picked !== undefined ? `<div class="qwhy">${st.picked === f.q.answer ? '<b>Right.</b> ' : '<b>Not quite.</b> '}${f.q.why} Press <b>Step</b> to see it.</div>` : ''}</div>`;
+  box.querySelectorAll('button[data-c]').forEach(b => b.onclick = () => { st.picked = +b.dataset.c; render(); });
+}
+
+function render() {
+  const f = S.frames[S.at];
+  document.querySelectorAll('.ln').forEach(el => el.classList.toggle('run', +el.dataset.i === f.line));
+  const run = document.querySelector('.ln.run'); if (run) run.scrollIntoView({ block: 'nearest' });
+  $('lineInfo').textContent = `line ${f.line + 1}`;
+  // With questions on, ask as soon as a decision step is reached, and hide the answer until it is given.
+  if (S.quiz && f.q && !S.timer && !S.answered[S.at]) S.answered[S.at] = {};
+  const waiting = S.quiz && f.q && S.answered[S.at] && S.answered[S.at].picked === undefined;
+  $('narr').innerHTML = waiting ? f.msg.replace(/\?[^?]*$/, '?') + ' <b>Answer below first.</b>' : f.msg;
+  renderPic(f); renderVars(f); renderChips(f); renderQuestion(f);
+  $('picTitle').textContent = S.algo === 'counting' ? 'a, the counters, and the result' : 'The list a';
+  $('picMeta').textContent = `n = ${S.items.length}`;
+  $('scrub').max = S.frames.length - 1; $('scrub').value = S.at;
+  $('pos').textContent = `step ${S.at} / ${S.frames.length - 1}`;
+  $('bBack').disabled = S.at === 0; $('bStep').disabled = S.at === S.frames.length - 1;
+}
+
+// ---- control -------------------------------------------------------------------------
+function rebuild(keepAt) {
+  stop();
+  S.frames = trace(S.algo, S.items, S.bug);
+  if (S.note) S.frames[0].msg = S.note + S.frames[0].msg;
+  S.at = keepAt ? Math.min(S.at, S.frames.length - 1) : 0; S.answered = {};
+  renderCode(); render();
+}
+function step() {
+  if (S.at >= S.frames.length - 1) return;
+  const f = S.frames[S.at];
+  if (S.quiz && f.q && !S.timer) {
+    const st = S.answered[S.at];
+    if (!st || st.picked === undefined) return;                // answer the question first
+  }
+  S.at++; render();
+}
+function back() { if (S.at > 0) { S.at--; render(); } }
+function stop() { if (S.timer) { clearInterval(S.timer); S.timer = null; } $('bPlay').innerHTML = 'Play <kbd>P</kbd>'; }
+function play() {
+  if (S.timer) return stop();
+  if (S.at >= S.frames.length - 1) S.at = 0;
+  const ms = 1100 - 100 * +$('speed').value;
+  S.timer = setInterval(() => { if (S.at >= S.frames.length - 1) return stop(); S.at++; render(); }, ms);
+  $('bPlay').innerHTML = 'Pause <kbd>P</kbd>';
+}
+
+function setAlgo(a) {
+  S.algo = a; save('algo', a);
+  document.querySelectorAll('#algoSeg button').forEach(b => b.classList.toggle('on', b.dataset.a === a));
+  loadInput(); rebuild();
+}
+function loadInput() {
+  const p = PRESETS.find(x => x.id === S.preset) || PRESETS[0];
+  if (p.cards) S.items = itemsFromCards(p.cards);
+  else S.items = itemsFromValues(p.values || randomValues(8));
+  S.note = '';
+  if (S.algo === 'counting' && S.items.some(x => x.name)) {
+    S.items = itemsFromValues([5, 2, 9, 1, 7, 3]);
+    S.note = 'Counting sort rebuilds integers from counts, so it cannot carry the cards: this run uses A. (The stable version that moves records is W9-C5.) ';
+  }
+}
+function runCustom() {
+  const raw = $('custom').value.trim(); if (!raw) return;
+  stop();
+  const parts = raw.split(/[\s,\[\]]+/).filter(Boolean);
+  if (!parts.length || parts.some(part => !/^[+-]?\d+$/.test(part))) { $('narr').innerHTML = 'Type whole numbers in decimal, for example <b>5, -2, 0, 1</b>.'; return; }
+  if (parts.length > 16) { $('narr').innerHTML = 'At most <b>16</b> values, so that the picture stays readable.'; return; }
+  const vs = parts.map(Number);
+  if (vs.some(v => !Number.isSafeInteger(v))) { $('narr').innerHTML = 'Use whole numbers from <b>-9007199254740991</b> to <b>9007199254740991</b> so each value is represented exactly.'; return; }
+  if (S.algo === 'counting' && vs.some(v => v < 0)) { $('narr').innerHTML = 'Counting sort needs <b>non-negative</b> integers: a value is used as an index. The course version raises <b>ValueError</b> here.'; return; }
+  S.items = itemsFromValues(vs); S.note = ''; rebuild();
+}
+
+function save(k, v) { try { localStorage.setItem('sorting-lab-' + k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem('sorting-lab-' + k); } catch (e) { return null; } }
+function setTheme(t) { if (t) document.documentElement.setAttribute('data-theme', t); else document.documentElement.removeAttribute('data-theme'); save('theme', t || ''); }
+
+function init() {
+  $('algoSeg').innerHTML = Object.entries(ALGOS).map(([id, a]) => `<button data-a="${id}" role="tab">${a.short}</button>`).join('');
+  $('algoSeg').querySelectorAll('button').forEach(b => b.onclick = () => setAlgo(b.dataset.a));
+  $('preset').innerHTML = PRESETS.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+  $('preset').onchange = () => { S.preset = $('preset').value; loadInput(); rebuild(); };
+  $('runBtn').onclick = runCustom;
+  $('custom').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runCustom(); } });
+  $('bugBtn').onclick = () => { S.bug = !S.bug; $('bugBtn').classList.toggle('on', S.bug); rebuild(); };
+  $('bStep').onclick = step; $('bBack').onclick = back; $('bPlay').onclick = play;
+  $('bRestart').onclick = () => { stop(); S.at = 0; S.answered = {}; render(); };
+  $('scrub').oninput = () => { stop(); S.at = +$('scrub').value; render(); };
+  $('bQuiz').onclick = toggleQuiz;
+  $('themeBtn').onclick = () => {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+      (!document.documentElement.getAttribute('data-theme') && matchMedia('(prefers-color-scheme: dark)').matches);
+    setTheme(dark ? 'light' : 'dark');
+  };
+  $('fsBtn').onclick = toggleFs;
+  document.addEventListener('keydown', e => {
+    if (e.target.matches('input[type=text], select') || e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    if (k === 'ArrowRight' || k === ' ') { e.preventDefault(); step(); }
+    else if (k === 'ArrowLeft') { e.preventDefault(); back(); }
+    else if (k === 'r' || k === 'R') $('bRestart').click();
+    else if (k === 'p' || k === 'P') play();
+    else if (k === 'q' || k === 'Q') toggleQuiz();
+    else if (k === 'm' || k === 'M') $('bugBtn').click();
+    else if (k === 'f' || k === 'F') toggleFs();
+  });
+  const t = load('theme'); if (t) setTheme(t);
+  // A link can open one exact step: #algo=insertion&input=A&mistake=1&at=40&quiz=1&theme=light
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (['light', 'dark'].includes(h.get('theme'))) setTheme(h.get('theme'));
+  if (PRESETS.some(p => p.id === h.get('input'))) { S.preset = h.get('input'); $('preset').value = S.preset; }
+  if (h.get('mistake') === '1') { S.bug = true; $('bugBtn').classList.add('on'); }
+  const a = ALGOS[h.get('algo')] ? h.get('algo') : load('algo');
+  setAlgo(ALGOS[a] ? a : 'bubble');
+  const at = parseInt(h.get('at'), 10);
+  if (at > 0) { S.at = Math.min(at, S.frames.length - 1); render(); }
+  if (h.get('quiz') === '1') { toggleQuiz(); if (S.frames[S.at].q) { S.answered[S.at] = {}; render(); } }
+}
+function toggleQuiz() {
+  S.quiz = !S.quiz; S.answered = {};
+  $('bQuiz').classList.toggle('on', S.quiz);
+  $('bQuiz').innerHTML = `What happens next? ${S.quiz ? 'on' : 'off'} <kbd>Q</kbd>`;
+  render();
+}
+function toggleFs() {
+  try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); } catch (e) {}
+}
+
+/* Self-check: open the page as sorting-lab.html#selftest. It checks the
+   numbers the lecture states about A, compares every sort with the
+   built-in sort on random lists, and checks stability on the cards. */
+function selftest() {
+  const lines = [], ok = (c, m) => lines.push((c ? 'PASS ' : 'FAIL ') + m);
+  const A = itemsFromValues([5, 2, 9, 1, 7, 3]);
+  const last = (algo, items, bug) => trace(algo, items, bug).slice(-1)[0];
+  const keys = f => f.a.map(x => x.k).join(',');
+  let f = last('bubble', A); ok(f.cnt.cmp === 14 && f.cnt.mov === 8, `bubble on A: ${f.cnt.cmp} comparisons, ${f.cnt.mov} swaps (14, 8)`);
+  f = last('selection', A); ok(f.cnt.cmp === 15 && f.cnt.mov === 2, `selection on A: ${f.cnt.cmp}, ${f.cnt.mov} swaps (15, 2)`);
+  f = last('insertion', A); ok(f.cnt.cmp === 11 && f.cnt.mov === 8, `insertion on A: ${f.cnt.cmp}, ${f.cnt.mov} shifts (11, 8)`);
+  ok(trace('bubble', A)[0].inv === 8, 'A has 8 inversions');
+  f = last('counting', A); ok(f.count.result.join(',') === '1,2,3,5,7,9', 'counting on A sorts');
+  f = last('bubble', A, true); ok(f.cnt.cmp === 15, `bubble mistake on A: ${f.cnt.cmp} comparisons (15)`);
+  f = last('selection', A, true); ok(keys(f) === '3,1,5,2,7,9', `selection mistake on A: [${keys(f)}] (not sorted)`);
+  f = last('insertion', itemsFromCards(CARDS), true); ok(!f.verdict.ok, 'insertion mistake on cards: not stable');
+  f = last('counting', A, true); ok(f.error, 'counting mistake on A: IndexError');
+  ok(last('insertion', itemsFromCards(CARDS)).verdict.ok, 'insertion on cards: stable');
+  ok(last('bubble', itemsFromCards(CARDS)).verdict.ok, 'bubble on cards: stable');
+  ok(!last('selection', itemsFromCards(CARDS)).verdict.ok, 'selection on cards: not stable');
+  ok(last('bubble', itemsFromValues([1, 2, 3, 4, 5, 6])).cnt.cmp === 5, 'bubble on sorted input: n - 1 comparisons');
+  let bad = 0;
+  for (let t = 0; t < 300; t++) {
+    const vs = randomValues(Math.floor(Math.random() * 12)), want = vs.slice().sort((x, y) => x - y).join(',');
+    for (const algo of ['bubble', 'selection', 'insertion']) {
+      const g = last(algo, itemsFromValues(vs));
+      if (keys(g) !== want || !g.verdict.ok) bad++;
+      // each frame keeps the list a permutation of the input (the hole holds current)
+      if (algo === 'insertion' && trace(algo, itemsFromValues(vs)).some(fr => logical(fr).filter(Boolean).length !== vs.length)) bad++;
+    }
+    const c = last('counting', itemsFromValues(vs));
+    if ((c.count ? c.count.result.join(',') : '') !== want && vs.length) bad++;
+  }
+  ok(bad === 0, `300 random lists x 4 sorts agree with the built-in sort (${bad} failures)`);
+  const pre = $('selftest'); pre.hidden = false; pre.textContent = lines.join('\n');
+  document.title = (lines.every(l => l.startsWith('PASS')) ? 'PASS' : 'FAIL') + ' — Sorting Lab';
+}
+
+init();
+if (location.hash === '#selftest') selftest();
+</script>
+</body>
+</html>
