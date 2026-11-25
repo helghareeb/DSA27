@@ -28,7 +28,9 @@ end
 -- inside \textarabic it printed as an empty box; outside, it is set in the text
 -- font, and in an English sentence "(" + Arabic + ")" reads correctly.
 local function arabic (text)
-  local pre, core, post = text:match("^([%p%s]*)(.-)([%p%s]*)$")
+  -- Lua's locale-dependent punctuation class can match a UTF-8 continuation byte.
+  local edge = "[\9-\13\32-\47\58-\64\91-\96\123-\126]"
+  local pre, core, post = text:match("^(" .. edge .. "*)(.-)(" .. edge .. "*)$")
   if core == "" then return pandoc.Str(text) end
   local out = pandoc.Inlines{}
   if pre ~= "" then out:insert(pandoc.Str(pre)) end
