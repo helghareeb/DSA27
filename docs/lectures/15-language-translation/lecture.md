@@ -67,6 +67,16 @@ nesting and error messages all have to be got right.
 6. Two routes to one answer: the Week 6 stack against the tree
 7. Measured; where this grows up; the course, looking back
 
+## Two expressions with the same numbers
+
+`2 + 3 * 4` and `(2 + 3) * 4` use the same values and operations.
+
+**Predict:** Which operator will be the root of each syntax tree? What
+would have to change in the tree to make the answers different?
+
+Keep both expressions through lexing, parsing and evaluation. Then
+compare the answer to the stack calculator from Lecture 06.
+
 # What a Translator Does
 
 ## Compiler or interpreter?
@@ -103,37 +113,27 @@ can do anything with it. That shared front end is this week's subject.
 
 ## Three stages
 
-![](figures/pipeline.png){width=100%}
+Use the first expression, `2 + 3 * 4`.
 
-Lexer, parser, evaluator: each stage has one job, and each can say no.
+| Stage | Receives | Produces |
+|---|---|---|
+| Lexer | source characters | `["2", "+", "3", "*", "4"]` |
+| Parser | those tokens | `+(2, *(3, 4))` |
+| Evaluator | the syntax tree | `14` |
+
+In the tree notation, the operator is written first and its two operands
+are in parentheses.
 
 ::: {.handout-only}
 
-| Stage | Input $\to$ output | This week | Structure it uses |
-|---|---|---|---|
-| **Lexer** | text $\to$ tokens | `tokenize` | a scan (Week 2) |
-| **Parser** | tokens $\to$ tree | `Parser` | recursion (Week 3), the `Array` |
-| **Evaluator** | tree $\to$ value | `evaluate` | a tree walk (Week 11) |
+The lexer recognizes token boundaries. The parser checks their arrangement
+and builds an **abstract syntax tree** (AST) according to the grammar.
+The evaluator walks that tree. A compiler can use a similar walk to
+generate instructions. Identify the input and output of each stage before
+you try **W15-M01, W15-M04 and W15-E1**.
 
-- The **lexer**, the *lexical analyser*, reads characters and
-  groups them into **tokens**: numbers, operators, parentheses.
-  It knows nothing about structure; `3 + + 4` tokenizes happily.
-- The **parser**, the *syntax analyser*, reads the tokens and
-  decides how they fit together, according to a **grammar**. It
-  produces a **tree** — the *abstract syntax tree*, or **AST**
-  — and rejects anything the grammar does not allow.
-- The **evaluator** walks the tree and computes the value. In a
-  compiler, this stage is replaced by *code generation*: the same walk, but
-  it writes instructions instead of computing numbers.
-
-Each stage checks one kind of mistake. `3 $ 4` is a **lexical** error: `$` is
-not a token of our language. `3 + * 4` is a **syntax** error: every token is
-fine, but they are in an order the grammar forbids. `1 / 0` is a **runtime**
-error: a perfectly formed expression whose value does not exist. Python
-reports the same three kinds, and now you will know which stage raised each.
-
-*Parser* in Arabic: المحلل النحوي. *Abstract syntax tree*: شجرة الإعراب المجردة.
-*Evaluator*: المُقيِّم.
+*Parser*: المحلّل النحوي. *Abstract syntax tree*: شجرة الإعراب المجرّدة.
+*Evaluator*: المقيِّم.
 
 :::
 
@@ -183,6 +183,24 @@ lexical error, not the number 1.
 
 :::
 
+## Trace what the lexer keeps
+
+| Source | Tokens in order |
+|---|---|
+| `2 + 3 * 4` | `["2", "+", "3", "*", "4"]` |
+| `(2 + 3) * 4` | `["(", "2", "+", "3", ")", "*", "4"]` |
+
+**Predict:** In `12+3`, does 12 make one token or two?
+
+::: {.handout-only}
+
+The lexer reads adjacent digits as one number token. It skips spaces.
+Parentheses become tokens, so the parser will see what was grouped.
+Check **W15-M02**, then explain why tokenizing an expression does not
+decide its precedence.
+
+:::
+
 # Grammars
 
 ## Rules that say what is allowed
@@ -227,34 +245,20 @@ recursive too.
 
 ## Precedence is the shape of the grammar
 
-![](figures/precedence.png){width=88%}
+In `2 + 3 * 4`, `expr` reads the first term, 2. After `+`, the
+next `term` consumes **all of `3 * 4`**.
 
-`expr` is built from `term`s, so every `*` is grouped **before** any `+` sees
-it. No table of numbers — the **layering** of the rules does it.
+| Source | Tree | Root |
+|---|---|---|
+| `2 + 3 * 4` | `+(2, *(3, 4))` | `+` |
+| `(2 + 3) * 4` | `*(+(2, 3), 4)` | `*` |
 
 ::: {.handout-only}
 
-In Week 6 the shunting-yard algorithm needed a precedence table:
-`{"+": 1, "-": 1, "*": 2, "/": 2}`. The grammar has no table anywhere, yet it
-gets `3 + 4 * 2` right. How?
-
-An `expr` is a sum of `term`s, and a `term` is a product of `factor`s. So to
-read `3 + 4 * 2` as an `expr`, the parser must split it into terms at the `+`
-signs: the terms are `3` and `4 * 2`. The `*` is swallowed **inside** the second
-term before the `+` is ever applied. In the tree, that means `*` sits **deeper**
-than `+`, and deeper nodes are evaluated first.
-
-Precedence is therefore not a property of the operators; it
-is a property of **which rule each operator lives in**. The lower the rule —
-the closer to `factor` — the tighter the operator binds. To add a new level,
-such as `^` for powers, you add a new rule between `term` and `factor`; that is
-problem W15-C5.
-
-Parentheses work because `factor := '(' expr ')'`: a parenthesised expression,
-however loose its operators, is a **factor** — the tightest thing there is. In
-the right-hand tree, `3 + 4` is pushed below the `*`.
-
-*Precedence* in Arabic: أولوية العمليات.
+In the second expression, `factor` sees the opening parenthesis and
+calls `expr` inside it. That call consumes `2 + 3`. After the closing
+parenthesis, the whole addition is one factor in the outer term.
+Replay both cases and then try **W15-M05, W15-M07, W15-M08 and W15-E2**.
 
 :::
 
@@ -326,37 +330,20 @@ that one token is always enough.
 
 :::
 
-## `expr`, in full
+## One operator at a time
 
-```python
-def expr(self):
-    node = self.term()
-    while self.peek() in ("+", "-"):
-        op = self.advance()
-        node = BinOp(op, node, self.term())  # the old tree goes LEFT
-    return node
-```
+On `1 - 2 - 3`, the loop first builds `-(1, 2)`. At the second
+minus it uses that whole tree on the left, giving `-(-(1, 2), 3)`.
 
-`term` is the same shape, one level down: `factor` for `term`, `*` and `/` for
-`+` and `-`.
+**Predict:** What would go wrong if you made the entire rest of the
+expression the right operand of the first minus?
 
 ::: {.handout-only}
 
-This is the reference solution's `expr`, without its docstring (and shown
-without the class's indentation), and it is the template for `term`. Read it against the rule
-`expr := term (('+' | '-') term)*`: first a `term`; then a loop that runs for
-as long as the next token is `+` or `-`; inside, consume the operator and parse
-one more `term`.
-
-The line that matters is the last one in the loop. The tree built so far,
-`node`, becomes the **left** child of a new `BinOp`, and the new term becomes
-the right. Do this three times and the tree leans left — exactly the
-associativity we need, built by a loop with no special effort.
-
-`self.peek() in ("+", "-")` is safe at the end of the input: `peek()` returns
-`None`, and `None in ("+", "-")` is simply `False`. The loop ends; `expr`
-returns what it has; whoever called it decides whether stopping there is
-allowed.
+The wrong tree computes `1 - (2 - 3) = 2`. The grammar's loop builds
+`(1 - 2) - 3 = -4`. Ask whether operators differ in precedence before
+you ask how equal-precedence operators associate. Use **W15-M09,
+W15-M10 and W15-E3** to practise explaining the distinction.
 
 :::
 
@@ -376,47 +363,6 @@ what `1 - 2 - 3 + 4` means.
 `factor`, so a `term` inside an `expr` is a finished subtree before `expr`
 places it. That is how the two loops combine into one tree with precedence and
 associativity both right.
-
-:::
-
-## `factor`: where the recursion closes
-
-Look at the next token:
-
-- **a number** $\to$ consume it; return `Num(float(token))`.
-- **`(`** $\to$ consume it; `node = self.expr()`; the next token **must** be `)`
-  — consume it; return `node`.
-- **`-`** $\to$ consume it; return `BinOp("-", Num(0.0), self.factor())`.
-- **anything else**, or the end $\to$ `ValueError`.
-
-`factor` calls `expr`: the grammar's recursion, and the parser's.
-
-::: {.handout-only}
-
-This is the method with the most cases and the fewest lines per case. Three
-points need care.
-
-**The parentheses.** After `self.expr()` returns, the parser has consumed
-everything up to — but not including — the token that stopped the inner
-expression. If that token is `)`, good: consume it, or the outer parser will
-meet it and complain about an unexpected `)`. If it is anything else, the
-parentheses are unbalanced: `"(3 + 4"` must raise `ValueError`, not quietly
-return 7.
-
-**Unary minus.** `-5` has no left operand, so we invent one: it becomes the
-tree for `0 - 5`. The operand is a `factor`, not an `expr`, so the minus binds
-tightly: `-5 + 2` is `(0 - 5) + 2 = -3`. With `self.expr()` there instead, the
-minus would swallow the whole rest of the line, and `-5 + 2` would become
-`-(5 + 2) = -7` (W15-B3). Because `factor` calls itself, `- - 3` is 3, and
-`2 - -3` is 5.
-
-**Running out.** `"3 +"` reaches `factor` after the `+` with nothing left:
-`peek()` is `None`. Check for `None` first; an index into `None` raises
-`TypeError`, the wrong exception with an unhelpful message.
-
-Then `parse`, the entry point: refuse an empty token list, call `expr`, and
-afterwards insist that **every** token has been used. `"3 + 4 )"` parses `3 + 4`
-and stops at the `)`; without that last check, it would be accepted as 7.
 
 :::
 
@@ -451,87 +397,16 @@ an `expr`".
 
 :::
 
-## Two grammars that look right and are not
+## Find the first stage that fails
 
-**Right recursion** — `expr := term ('+' expr)?`
-
-```python
-node = self.term()
-if self.peek() in ("+", "-"):
-    return BinOp(self.advance(), node, self.expr())
-```
-
-`1 - 2 - 3` $\to$ **2**. Wrong, silently.
-
-**Left recursion** — `expr := expr '+' term | term`
-
-```python
-left = self.expr()     # before reading any token
-```
-
-`RecursionError`, on every input.
-
-::: {.handout-only}
-
-Both come from writing the recursive BNF form directly as code.
-
-The **right-recursive** version is the most common recursive-descent bug in
-student code. It parses every correct expression without an error, and gets
-precedence right, because `term` still does its job. Only associativity is
-wrong: the recursive call parses the whole **rest** of the line and puts it on
-the right. On the Week 15 tests it fails exactly 3 of 55: the tree test for
-`1 - 2 - 3`, `calculate("1 - 2 - 3")` (2 instead of -4), and the test that
-compares the two routes. `8 / 4 / 2` survives only because `term` was written
-with a loop — the same bug in `term` would fail it too.
-
-The **left-recursive** version is the grammar that textbooks write for
-left-associative operators, and it is correct *as a grammar*. As a
-recursive-descent program it never terminates: `expr` calls `expr` with
-`position` unchanged, which calls `expr` with `position` unchanged, until
-Python stops it at 1,000 frames. A recursion must make progress towards its
-base case (Lecture 03) — this one consumes nothing before recursing. That is why
-our grammar is written with `( … )*`: the repetition becomes a loop, and the
-loop builds the left-leaning tree that the left recursion described.
-
-:::
-
-## Errors: say no, and say where
-
-| Input | Stage | Raised |
+| Input | Question to ask | First failing stage |
 |---|---|---|
-| `3 $ 4` | lexer | `ValueError` |
-| *(empty text)*, `3 +`, `* 3`, `()` | parser | `ValueError` |
-| `(3 + 4`, `3 + 4 )`, `3 4` | parser | `ValueError` |
-| `1 / 0` | evaluator | `ZeroDivisionError` |
+| `2 @ 3` | Is every character part of a token? | Lexer |
+| `3 + * 4` | Can a factor start with `*` here? | Parser |
+| `8 / (3 - 3)` | Can the division be evaluated? | Evaluator |
 
-::: {.handout-only}
-
-The reference solution's messages:
-
-- `3 $ 4` — `unexpected character '$' at position 2` (the lexer);
-- empty text — `empty expression` (`parse`);
-- `3 +` — `unexpected end of input` (`factor`, finding nothing after the `+`);
-- `* 3` and `()` — `unexpected '*'` and `unexpected ')'` (`factor`, finding a
-  token that cannot start a factor);
-- `(3 + 4` — `missing ')'` (`factor`, after the inner `expr`);
-- `3 + 4 )` — `unexpected ')' after the expression` (`parse`, with a token left
-  over); `3 4` gives `unexpected '4' after the expression` for the same reason:
-  `expr` parses the 3, finds no `+` or `-`, and returns;
-- `1 / 0` — `ZeroDivisionError: division by zero`, raised by Python's own `/`
-  inside `evaluate`.
-
-The tests check only the exception **type**, so yours may word them
-differently.
-
-A parser's job is as much to **reject** as to accept. A calculator that
-answered 7 to `3 + 4 )` would be hiding a mistake from its user, and a compiler
-that did the same would turn a typo into a bug. Good translators also say
-**where** the problem is — a position, a line and column — because a message
-without a location sends the programmer hunting. Real parsers go further and
-**recover**: they skip to a likely restart point and keep parsing, so that one
-run reports every error, not just the first. That is beyond this course.
-
-:::
+**Predict:** Which error has a valid syntax tree? Replay the failures
+in the lab before answering **W15-M03**.
 
 # Stage 3: Walking the Tree
 
@@ -568,6 +443,16 @@ Every tree in this lecture is the tree the reference parser actually built;
 `tools/figures_l15.py` parses each expression and draws the result.
 
 :::
+
+## Evaluate the same two trees
+
+| Tree | First operation | Root operation |
+|---|---|---|
+| `+(2, *(3, 4))` | `3 * 4 = 12` | `2 + 12 = 14` |
+| `*(+(2, 3), 4)` | `2 + 3 = 5` | `5 * 4 = 20` |
+
+An operator needs its two operands before it can produce a value.
+That is **post-order** from Lecture 11. Now try **W15-M15 and W15-M16**.
 
 ## `evaluate` is a post-order walk
 
@@ -622,6 +507,17 @@ tested too.
 :::
 
 # Two Routes, One Answer
+
+## Read postfix from the tree
+
+| Infix | Post-order tokens | Value |
+|---|---|---:|
+| `2 + 3 * 4` | `2 3 4 * +` | 14 |
+| `(2 + 3) * 4` | `2 3 + 4 *` | 20 |
+
+The stack calculator evaluates those postfix tokens. The tree
+calculator visits the same operands before each operator. Trace both
+routes for **W15-E4**.
 
 ## The stack route and the tree route
 
@@ -811,8 +707,11 @@ the engineer's work is to choose — with a measurement, not a guess.
 
 ## Watch it run: the Language Translation Lab
 
-- Step from characters to tokens, a syntax tree, and the final value.
-- Predict how parentheses change the tree and the evaluation order.
+- Follow the same expressions from source to tokens, syntax tree and value.
+- Predict how parentheses change the root, and how a subtraction chain
+  groups to the left.
+- Decide whether the lexer, parser or evaluator first rejects each
+  broken expression.
 
 [Open the Language Translation Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-15)
 
@@ -912,6 +811,161 @@ shows you which ideas did not stick, and the explanation of each answer
 sends you back to the right part of this handout.
 
 - Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-15/>
+
+:::
+
+# Implementation Notes and Deeper Analysis
+
+## Reference for the lab
+
+Use the later handout sections for implementation details and derivations after tracing the worked examples.
+
+::: {.handout-only}
+
+## `expr`, in full
+
+```python
+def expr(self):
+    node = self.term()
+    while self.peek() in ("+", "-"):
+        op = self.advance()
+        node = BinOp(op, node, self.term())  # the old tree goes LEFT
+    return node
+```
+
+`term` is the same shape, one level down: `factor` for `term`, `*` and `/` for
+`+` and `-`.
+
+
+This is the reference solution's `expr`, without its docstring (and shown
+without the class's indentation), and it is the template for `term`. Read it against the rule
+`expr := term (('+' | '-') term)*`: first a `term`; then a loop that runs for
+as long as the next token is `+` or `-`; inside, consume the operator and parse
+one more `term`.
+
+The line that matters is the last one in the loop. The tree built so far,
+`node`, becomes the **left** child of a new `BinOp`, and the new term becomes
+the right. Do this three times and the tree leans left — exactly the
+associativity we need, built by a loop with no special effort.
+
+`self.peek() in ("+", "-")` is safe at the end of the input: `peek()` returns
+`None`, and `None in ("+", "-")` is simply `False`. The loop ends; `expr`
+returns what it has; whoever called it decides whether stopping there is
+allowed.
+
+## `factor`: where the recursion closes
+
+Look at the next token:
+
+- **a number** $\to$ consume it; return `Num(float(token))`.
+- **`(`** $\to$ consume it; `node = self.expr()`; the next token **must** be `)`
+  — consume it; return `node`.
+- **`-`** $\to$ consume it; return `BinOp("-", Num(0.0), self.factor())`.
+- **anything else**, or the end $\to$ `ValueError`.
+
+`factor` calls `expr`: the grammar's recursion, and the parser's.
+
+
+This is the method with the most cases and the fewest lines per case. Three
+points need care.
+
+**The parentheses.** After `self.expr()` returns, the parser has consumed
+everything up to — but not including — the token that stopped the inner
+expression. If that token is `)`, good: consume it, or the outer parser will
+meet it and complain about an unexpected `)`. If it is anything else, the
+parentheses are unbalanced: `"(3 + 4"` must raise `ValueError`, not quietly
+return 7.
+
+**Unary minus.** `-5` has no left operand, so we invent one: it becomes the
+tree for `0 - 5`. The operand is a `factor`, not an `expr`, so the minus binds
+tightly: `-5 + 2` is `(0 - 5) + 2 = -3`. With `self.expr()` there instead, the
+minus would swallow the whole rest of the line, and `-5 + 2` would become
+`-(5 + 2) = -7` (W15-B3). Because `factor` calls itself, `- - 3` is 3, and
+`2 - -3` is 5.
+
+**Running out.** `"3 +"` reaches `factor` after the `+` with nothing left:
+`peek()` is `None`. Check for `None` first; an index into `None` raises
+`TypeError`, the wrong exception with an unhelpful message.
+
+Then `parse`, the entry point: refuse an empty token list, call `expr`, and
+afterwards insist that **every** token has been used. `"3 + 4 )"` parses `3 + 4`
+and stops at the `)`; without that last check, it would be accepted as 7.
+
+## Two grammars that look right and are not
+
+**Right recursion** — `expr := term ('+' expr)?`
+
+```python
+node = self.term()
+if self.peek() in ("+", "-"):
+    return BinOp(self.advance(), node, self.expr())
+```
+
+`1 - 2 - 3` $\to$ **2**. Wrong, silently.
+
+**Left recursion** — `expr := expr '+' term | term`
+
+```python
+left = self.expr()     # before reading any token
+```
+
+`RecursionError`, on every input.
+
+
+Both come from writing the recursive BNF form directly as code.
+
+The **right-recursive** version is the most common recursive-descent bug in
+student code. It parses every correct expression without an error, and gets
+precedence right, because `term` still does its job. Only associativity is
+wrong: the recursive call parses the whole **rest** of the line and puts it on
+the right. On the Week 15 tests it fails exactly 3 of 55: the tree test for
+`1 - 2 - 3`, `calculate("1 - 2 - 3")` (2 instead of -4), and the test that
+compares the two routes. `8 / 4 / 2` survives only because `term` was written
+with a loop — the same bug in `term` would fail it too.
+
+The **left-recursive** version is the grammar that textbooks write for
+left-associative operators, and it is correct *as a grammar*. As a
+recursive-descent program it never terminates: `expr` calls `expr` with
+`position` unchanged, which calls `expr` with `position` unchanged, until
+Python stops it at 1,000 frames. A recursion must make progress towards its
+base case (Lecture 03) — this one consumes nothing before recursing. That is why
+our grammar is written with `( … )*`: the repetition becomes a loop, and the
+loop builds the left-leaning tree that the left recursion described.
+
+## Errors: say no, and say where
+
+| Input | Stage | Raised |
+|---|---|---|
+| `3 $ 4` | lexer | `ValueError` |
+| *(empty text)*, `3 +`, `* 3`, `()` | parser | `ValueError` |
+| `(3 + 4`, `3 + 4 )`, `3 4` | parser | `ValueError` |
+| `1 / 0` | evaluator | `ZeroDivisionError` |
+
+
+The reference solution's messages:
+
+- `3 $ 4` — `unexpected character '$' at position 2` (the lexer);
+- empty text — `empty expression` (`parse`);
+- `3 +` — `unexpected end of input` (`factor`, finding nothing after the `+`);
+- `* 3` and `()` — `unexpected '*'` and `unexpected ')'` (`factor`, finding a
+  token that cannot start a factor);
+- `(3 + 4` — `missing ')'` (`factor`, after the inner `expr`);
+- `3 + 4 )` — `unexpected ')' after the expression` (`parse`, with a token left
+  over); `3 4` gives `unexpected '4' after the expression` for the same reason:
+  `expr` parses the 3, finds no `+` or `-`, and returns;
+- `1 / 0` — `ZeroDivisionError: division by zero`, raised by Python's own `/`
+  inside `evaluate`.
+
+The tests check only the exception **type**, so yours may word them
+differently.
+
+A parser's job is as much to **reject** as to accept. A calculator that
+answered 7 to `3 + 4 )` would be hiding a mistake from its user, and a compiler
+that did the same would turn a typo into a bug. Good translators also say
+**where** the problem is — a position, a line and column — because a message
+without a location sends the programmer hunting. Real parsers go further and
+**recover**: they skip to a likely restart point and keep parsing, so that one
+run reports every error, not just the first. That is beyond this course.
 
 :::
 

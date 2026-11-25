@@ -64,6 +64,28 @@ and every operation is $O(n)$ again. You will measure exactly that.
 6. The four traversals — and what each one is **for**
 7. When the tree is a linked list: measured
 
+## One tree to keep on the board
+
+Insert **`4, 2, 6, 1, 3, 5, 7`** in that order. Keep this tree for the
+search, deletion and traversal examples.
+
+| Depth | Nodes from left to right |
+|---:|---|
+| 0 | root `4` |
+| 1 | `2` and `6` |
+| 2 | children of `2`: `1, 3`; children of `6`: `5, 7` |
+
+**Predict:** To find 5, which child of 4 should you follow first?
+
+::: {.handout-only}
+
+Follow the right child, 6. The whole left subtree of 4 is smaller than 4.
+Then 5 is smaller than 6, so the second move is left. Build the tree by hand
+before the first search. At each insertion, stop at the first empty child
+link on the search path.
+
+:::
+
 # The Vocabulary
 
 ## A tree, and its words
@@ -274,94 +296,49 @@ be exact.
 
 :::
 
-## `is_valid`: carry the range down
+## Test the whole subtree
 
-The wrong check, at each node: `left.value < node.value < right.value`.
+In our tree, replace 3 with 8 **only for this check**. It is still bigger
+than its parent, 2. Is the resulting tree a BST?
 
-The right check: pass an allowed range **(low, high)** down the recursion.
-
-- going **left** from x: the new high is x
-- going **right** from x: the new low is x
-- the empty tree is valid
+**Check:** The branch `4 → 2 → 8` must stay below 4. Search for 8 would go
+right at 4, so a local parent–child check missed the misplaced value.
 
 ::: {.handout-only}
 
-`is_valid` is the exercise that proves you understand the invariant. The
-recursive helper takes a node and the range its ancestors allow, starting with
-no limits at all at the root (`None` for "no bound" works well). At each node:
-if the value is outside the range, return `False`; otherwise both subtrees must
-be valid, the left one with the range narrowed from above by the node's value,
-the right one narrowed from below. Each node is checked once: $O(n)$.
-
-An alternative is to use the in-order traversal of later in this lecture: a tree
-is a BST exactly when its in-order walk is strictly increasing. That is also
-$O(n)$, and a good check of your understanding — but the range version is the
-one that shows **why**.
+The right child of 2 must lie between 2 and 4. Carry those bounds down as you
+check each child. Restore 3 before continuing.
 
 :::
 
 ## Search: one path down
 
-![](figures/search.png){width=68%}
+| Search | Comparisons in order | Stop at |
+|---|---|---|
+| `contains(5)` | `4 → 6 → 5` | the matching node |
+| `contains(0)` | `4 → 2 → 1` | the missing left child of 1 |
 
-```python
-node = self.root
-while node is not None:
-    if value == node.value:
-        return True
-    node = node.left if value < node.value else node.right
-return False
-```
+At each node, equality ends the search. A smaller target keeps the left
+subtree. A larger target keeps the right subtree. The BST rule lets you
+discard the other side.
 
-::: {.handout-only}
-
-That is the body of `contains` from the reference solution. It is the linked
-list's traversal loop from Lecture 05 with one change: at each node there are
-two ways on, and the comparison chooses. Every comparison rules out a whole
-subtree — the one not taken — the way each comparison of binary search rules out
-half the array. The invariant makes it safe: if 7 is anywhere, and 7 < 8, it can
-only be in 8's left subtree.
-
-The loop ends in one of two ways: it finds the value, or it steps onto `None`,
-the empty subtree where the value **would** have been. In the right-hand panel,
-the search for 5 goes 8, 3, 6, 4, and then to the right of 4, which is empty.
-That place matters: it is exactly where `insert(5)` will put the new node.
-
-**Cost.** One comparison per level, at most h + 1 levels: $O(h)$. No recursion
-is needed, so no call stack either — $O(1)$ extra space. You can write it
-recursively too; it is a nice two-line exercise, but on a tall tree it can hit
-Python's recursion limit (see the end of this lecture), so the loop is the form
-in `dsa/tree.py`.
-
-:::
+**Predict:** How would the unsuccessful search for 0 help you insert it?
 
 ## Insert: a search that fails
 
-![](figures/insert.png){width=72%}
+The search for 0 stops at the empty left link of 1. Put the new node there.
+Its path `4 → 2 → 1 → 0` puts it below all three ancestors.
 
-1. Empty tree $\rightarrow$ the new node **is** the root.
-2. Otherwise walk down as in search. Equal $\rightarrow$ already there: do nothing.
-3. When the way on is `None`, hang the new node **there**.
-
-A new value always becomes a **leaf**. Nothing moves: $O(h)$.
+**Common mistake:** Assigning a new node to a local variable after the loop.
+Set the **parent's child link**, or set `root` when the tree is empty.
 
 ::: {.handout-only}
 
-Compare with Lecture 02's sorted array: finding the place was $O(\log n)$, but
-making room shifted everything after it, $O(n)$. Here the place is found with the
-same halving idea, and making room costs nothing at all — one reference,
-`parent.left` or `parent.right`, changes from `None` to the new node.
-
-The one trap: you must stop **at the parent**, while you can still set its
-`left` or `right`. If you walk until `node is None`, you have lost the parent,
-and assigning `node = TreeNode(value)` only rebinds a local variable — the tree
-never sees it. Either look one step ahead (is the child I am about to take
-`None`?) or keep a `parent` variable as you walk. Both are fine.
-
-`test_structure_is_actually_a_bst` checks the **shape** after inserting 8, 3,
-10: `root.value == 8`, `root.left.value == 3`, `root.right.value == 10`. An
-implementation that kept a sorted Python list and pretended to be a tree would
-pass `in_order` and fail this.
+Search and insert follow one path, taking $O(h+1)$ work for height $h$ in a
+nonempty tree. An equal key already in the tree leaves this implementation
+unchanged. Try the two search paths in the Tree Lab, then apply the same
+rule to the larger tree in **W11-M07**. Use the original seven-node tree
+again for deletion and traversals.
 
 :::
 
@@ -418,98 +395,43 @@ case is the one most often forgotten, which is why the tests delete the root
 
 ## The easy cases
 
-![](figures/delete-easy.png){width=76%}
+Work on a copy of the seven-node tree.
+
+| Delete | What the node has at that moment | Change one link |
+|---|---|---|
+| `1` | no children | `2.left = None` |
+| `2` | one child, `3` | `4.left` now points to `3` |
+
+**Predict:** If you deleted 2 first, which row of the three-case rule would
+you use?
 
 ::: {.handout-only}
 
-**A leaf** (delete 1): 1 is the left child of 3, so `3.left = None`. Nothing
-else changes.
-
-**One child** (delete 14): 14's only child is 13. Point 14's parent, 10, straight
-at 13: `10.right = 13`. The whole subtree below 14 moves up one level, still in
-order — everything in it was larger than 10 before (it was in 10's right
-subtree), and it still is.
-
-Notice that the leaf case is the one-child case with a child of `None`: "point
-the parent at the child" works for both. The reference solution uses that to
-handle the two with one assignment.
+Before deleting 1, node 2 has two children. The number of children
+**at the time of deletion** decides the case.
 
 :::
 
 ## Two children: the in-order successor
 
-![](figures/delete-successor.png){width=100%}
+Reset to the original tree and delete **4**.
+
+1. Step right to 6. Step left to 5 and stop.
+2. Copy 5 into the root.
+3. Remove the old 5 from the left link of 6.
+
+**Check:** In-order now gives `[1, 2, 3, 5, 6, 7]`.
 
 ::: {.handout-only}
 
-A node with two children cannot be removed, so we remove a **different** node
-instead, and move its value up. Which value can take x's place and keep the BST
-property? One that is larger than everything left of x and smaller than
-everything right of x. There are exactly two candidates:
+Why 5? It is larger than every value in the deleted root's left subtree and
+smaller than the remaining values on its right. The successor has no left
+child, because it is the leftmost node of that subtree. If it has a **right**
+child, link its parent to that child when removing the old successor.
+Simply clearing that link would drop a whole subtree.
 
-- the **in-order successor**: the **smallest** value in x's right subtree —
-  go right once, then left until there is no left child;
-- or the **in-order predecessor**: the largest value in x's left subtree.
-
-`dsa/tree.py` uses the successor, the convention of Hibbard's 1962 paper and of
-most textbooks. The three steps, top row of the figure, deleting 3:
-
-1. **Find the successor.** Right once, to 6; then left for as long as possible,
-   to 4. 4 is the smallest value larger than 3.
-2. **Copy** 4 into the node that held 3. For a moment the tree holds two 4s.
-3. **Delete the old 4**, the node where the successor was.
-
-Why is the result a BST? The new value 4 is larger than everything in the left
-subtree (those were smaller than 3, and 3 < 4), and smaller than everything left
-in the right subtree (4 was the smallest of them). Check the figure: 1 < 4 < 6
-and 7.
-
-**Why step 3 is always easy.** The successor was reached by going left until
-there was no left child — so it **has no left child**. It is either a leaf (the
-top row: 4) or has one child, on the right. Step 3 is always one of the two easy
-cases, and never recurses into a third.
-
-The bottom row is the other shape, and the one students trip on. Deleting the
-root 8: go right once, to 10; 10 has no left child, so **10 itself** is the
-successor — the "go left" loop runs zero times. Copy 10 into the root. The old
-10 has a right child, 14, so step 3 is the one-child case: 14 moves up into the
-old 10's place. The parent whose link changes in step 3 is then the node being
-deleted itself (its `right`), not a node further down (whose `left` changed in
-the top row). A delete that always writes `successor_parent.left = ...` passes
-the top row and corrupts the bottom one — `test_delete_the_root` is exactly this
-case.
-
-Everything costs one walk down: to find x, then on down to the successor.
-$O(h)$ in total.
-
-:::
-
-## The three cases collapse into two
-
-1. Find the node and its parent. Not found $\rightarrow$ return.
-2. **Two children?** Walk to the successor (keeping *its* parent), copy its
-   value up — and from now on, delete **the successor node** instead.
-3. Now the node has **at most one** child, `child` (possibly `None`):
-   - no parent $\rightarrow$ `self.root = child`
-   - node was its parent's left $\rightarrow$ `parent.left = child`
-   - otherwise $\rightarrow$ `parent.right = child`
-
-::: {.handout-only}
-
-That is the shape of `delete` in the reference solution: the two-children case
-does its copy and then **hands over** to the easy case, by moving the "node to
-remove" and "its parent" variables down to the successor. Step 3 is written
-once and serves all three cases.
-
-To decide which link of the parent to change, compare **identities**:
-`parent.left is node`. Comparing values would work too, but `is` says what you
-mean — the question is "which reference points at this node?", not "which
-value is smaller".
-
-Writing it recursively is the other classic form: a helper `_delete(node,
-value)` that returns the new root of the subtree, so that the caller writes
-`node.left = self._delete(node.left, value)`. It is elegant and it is correct —
-and it recurses h deep, which the loop does not. Either is accepted in the lab.
+[Replay the deletion in the Tree Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-11)
+and then try **W11-M17 through W11-M19** on the quiz's larger tree.
 
 :::
 
@@ -547,60 +469,25 @@ The fourth, **level-order**, is a different kind of walk and needs a queue.
 
 :::
 
-## In-order: the code
-
-```python
-def in_order(self):
-    out = []
-    self._in_order(self.root, out)
-    return out
-
-def _in_order(self, node, out):
-    if node is not None:
-        self._in_order(node.left, out)
-        out.append(node.value)
-        self._in_order(node.right, out)
-```
-
-Move `out.append` **up** one line $\rightarrow$ pre-order. **Down** one line $\rightarrow$ post-order.
-
-::: {.handout-only}
-
-This is the reference `in_order` exactly. The public method makes the output
-list and starts the recursion at the root; the private helper does the walk.
-The list `out` is passed down so that every call appends to the **same** list —
-one list for the whole walk, $O(n)$ appends in total.
-
-Two design points. First, the traversals **return a new list**: the list is
-output, created for the caller; the tree never keeps it
-(`test_traversals_return_a_fresh_list` clears the list it was given and checks
-that the next walk still works). Second, the helper builds one list rather than
-each call returning its own list and the caller concatenating them:
-`left_list + [node.value] + right_list` copies at every level, and on a tall
-tree that is $O(n^2)$ — the slicing trap of Lectures 03 and 08 in a new form.
-
-The helper's name starts with `_`, the Python convention for "private: not part
-of the interface" (Lab 03).
-
-:::
-
 ## Four walks of one tree
 
-![](figures/traversals.png){width=88%}
+Start again with the original seven nodes. **Predict:** Where does the root
+appear in each list?
+
+| Walk | When to record a node | Result |
+|---|---|---|
+| Pre-order | Before both subtrees | `[4, 2, 1, 3, 6, 5, 7]` |
+| In-order | Between the two subtrees | `[1, 2, 3, 4, 5, 6, 7]` |
+| Post-order | After both subtrees | `[1, 3, 2, 5, 7, 6, 4]` |
+| Level-order | In queue order | `[4, 2, 6, 1, 3, 5, 7]` |
 
 ::: {.handout-only}
 
-Check each walk against its rule by hand before you trust the picture. Pre-order
-starts at the root, then does the **whole** left subtree (3, 1, 6, 4, 7) before
-touching the right. Post-order finishes both subtrees of a node before the node:
-the root comes **last**. In-order comes out **sorted**: 1, 3, 4, 6, 7, 8, 10, 13,
-14. Level-order reads the drawing row by row. These four lists are the four
-traversal tests in `tests/test_tree.py`.
-
-Every traversal visits each node once and does $O(1)$ work there: **$O(n)$
-time**. The recursive three use the call stack, one frame per level of the
-current path: **$O(h)$ space** — about $\log_2 n$ frames on a short tree, n on a
-chain.
+The three depth-first walks descend the same branches in the same order.
+The change is when you **record** each key. In-order gives ascending values
+because the tree is a BST. A traversal takes $O(n)$ work. The recursive
+walks use space proportional to height and level-order uses a queue whose
+size depends on width.
 
 :::
 
@@ -706,29 +593,24 @@ puts the two side by side on graphs, as BFS and DFS.
 
 :::
 
-## Height and size: post-order in one line
+## Trace the queue on the same tree
 
-```python
-def _height(self, node):
-    if node is None:
-        return -1
-    return 1 + max(self._height(node.left), self._height(node.right))
-```
+| Just served | Queue, front first |
+|---|---|
+| Start | `[4]` |
+| 4 | `[2, 6]` |
+| 2 | `[6, 1, 3]` |
+| 6 | `[1, 3, 5, 7]` |
+| 1, 3, 5, 7 | none remain |
 
-`size` is the same shape: 0 for `None`, else $1 +$ left size $+$ right size.
+**Predict:** After serving 2, which node goes next? Why does 1 wait?
 
 ::: {.handout-only}
 
-This is the reference `_height`, called by `height()` on the root. Both calls
-must finish before the `max` can be taken — the node is handled **after** its
-children, which makes it a post-order walk, $O(n)$. The base case returns $-1$, as
-the slide on depth and height promised, so a leaf comes out as 0 without a
-special case.
-
-`size` is not stored in `dsa/tree.py`; it is counted, $O(n)$. You could keep a
-`_size` counter up to date in `insert` and `delete`, as `LinkedList` did, and
-make it $O(1)$ — but then `delete` must be careful to decrement only when it
-really removed something. The skeleton keeps it simple.
+6 was already in the queue when 2's children arrived. Check this in the
+Tree Lab and use the same rule on the larger tree in **W11-M15 and W11-M16**.
+For **W11-E4**, explain why changing the recording point changes the recursive
+walks while changing the waiting structure gives level-order.
 
 :::
 
@@ -851,8 +733,10 @@ or answer "all values between 20 and 40".
 
 ## Watch it run: the Tree Lab
 
-- Trace the deletion of a node with two children and compare in-order with level-order traversal.
-- Predict the successor before following the right subtree.
+- Search for 5, turn the miss for 0 into an insertion, and predict the
+  replacement for a root with two children.
+- Compare all four traversals on the original tree. Follow the queue
+  before choosing the next key in level-order.
 
 [Open the Tree Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-11)
 
@@ -864,7 +748,7 @@ or answer "all values between 20 and 40".
 |---|---|---|
 | `insert` | $O(h)$ | stop **at the parent**; ignore duplicates |
 | `contains`, `min`, `max` | $O(h)$ | a loop; `ValueError` on empty |
-| `delete` | $O(h)$ | keep the parent; the **root**; successor = right child |
+| `delete` | $O(h)$ | keep the parent; handle the **root**; successor = leftmost in the right subtree |
 | `height`, `size` | $O(n)$ | empty tree is $-1$ and 0 |
 | `is_valid` | $O(n)$ | carry **(low, high)** down, not just the parent |
 | the four traversals | $O(n)$ | return a **new list**; level-order uses **your** queue |
@@ -925,6 +809,122 @@ shows you which ideas did not stick, and the explanation of each answer
 sends you back to the right part of this handout.
 
 - Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-11/>
+
+:::
+
+# Implementation Notes and Deeper Analysis
+
+## Reference for the lab
+
+Use the later handout sections for implementation details and derivations after tracing the worked examples.
+
+::: {.handout-only}
+
+## `is_valid`: carry the range down
+
+The wrong check, at each node: `left.value < node.value < right.value`.
+
+The right check: pass an allowed range **(low, high)** down the recursion.
+
+- going **left** from x: the new high is x
+- going **right** from x: the new low is x
+- the empty tree is valid
+
+
+`is_valid` is the exercise that proves you understand the invariant. The
+recursive helper takes a node and the range its ancestors allow, starting with
+no limits at all at the root (`None` for "no bound" works well). At each node:
+if the value is outside the range, return `False`; otherwise both subtrees must
+be valid, the left one with the range narrowed from above by the node's value,
+the right one narrowed from below. Each node is checked once: $O(n)$.
+
+An alternative is to use the in-order traversal of later in this lecture: a tree
+is a BST exactly when its in-order walk is strictly increasing. That is also
+$O(n)$, and a good check of your understanding — but the range version is the
+one that shows **why**.
+
+## The three cases collapse into two
+
+1. Find the node and its parent. Not found $\rightarrow$ return.
+2. **Two children?** Walk to the successor (keeping *its* parent), copy its
+   value up — and from now on, delete **the successor node** instead.
+3. Now the node has **at most one** child, `child` (possibly `None`):
+   - no parent $\rightarrow$ `self.root = child`
+   - node was its parent's left $\rightarrow$ `parent.left = child`
+   - otherwise $\rightarrow$ `parent.right = child`
+
+
+That is the shape of `delete` in the reference solution: the two-children case
+does its copy and then **hands over** to the easy case, by moving the "node to
+remove" and "its parent" variables down to the successor. Step 3 is written
+once and serves all three cases.
+
+To decide which link of the parent to change, compare **identities**:
+`parent.left is node`. Comparing values would work too, but `is` says what you
+mean — the question is "which reference points at this node?", not "which
+value is smaller".
+
+Writing it recursively is the other classic form: a helper `_delete(node,
+value)` that returns the new root of the subtree, so that the caller writes
+`node.left = self._delete(node.left, value)`. It is elegant and it is correct —
+and it recurses h deep, which the loop does not. Either is accepted in the lab.
+
+## In-order: the code
+
+```python
+def in_order(self):
+    out = []
+    self._in_order(self.root, out)
+    return out
+
+def _in_order(self, node, out):
+    if node is not None:
+        self._in_order(node.left, out)
+        out.append(node.value)
+        self._in_order(node.right, out)
+```
+
+Move `out.append` **up** one line $\rightarrow$ pre-order. **Down** one line $\rightarrow$ post-order.
+
+
+This is the reference `in_order` exactly. The public method makes the output
+list and starts the recursion at the root; the private helper does the walk.
+The list `out` is passed down so that every call appends to the **same** list —
+one list for the whole walk, $O(n)$ appends in total.
+
+Two design points. First, the traversals **return a new list**: the list is
+output, created for the caller; the tree never keeps it
+(`test_traversals_return_a_fresh_list` clears the list it was given and checks
+that the next walk still works). Second, the helper builds one list rather than
+each call returning its own list and the caller concatenating them:
+`left_list + [node.value] + right_list` copies at every level, and on a tall
+tree that is $O(n^2)$ — the slicing trap of Lectures 03 and 08 in a new form.
+
+The helper's name starts with `_`, the Python convention for "private: not part
+of the interface" (Lab 03).
+
+## Height and size: post-order in one line
+
+```python
+def _height(self, node):
+    if node is None:
+        return -1
+    return 1 + max(self._height(node.left), self._height(node.right))
+```
+
+`size` is the same shape: 0 for `None`, else $1 +$ left size $+$ right size.
+
+
+This is the reference `_height`, called by `height()` on the root. Both calls
+must finish before the `max` can be taken — the node is handled **after** its
+children, which makes it a post-order walk, $O(n)$. The base case returns $-1$, as
+the slide on depth and height promised, so a leaf comes out as 0 without a
+special case.
+
+`size` is not stored in `dsa/tree.py`; it is counted, $O(n)$. You could keep a
+`_size` counter up to date in `insert` and `delete`, as `LinkedList` did, and
+make it $O(1)$ — but then `delete` must be careful to decrement only when it
+really removed something. The skeleton keeps it simple.
 
 :::
 

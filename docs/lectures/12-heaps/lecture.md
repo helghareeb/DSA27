@@ -119,6 +119,28 @@ build. The heap needs none of that.
 
 :::
 
+## One heap for push, pop and build
+
+Keep **`[2, 5, 4, 9, 8, 7]`** on the board. The array records the complete
+binary tree in level order.
+
+| Index | 0 | 1 | 2 | 3 | 4 | 5 |
+|---|---:|---:|---:|---:|---:|---:|
+| Value | 2 | 5 | 4 | 9 | 8 | 7 |
+| Parent index | — | 0 | 0 | 1 | 1 | 2 |
+
+**Predict:** Is sorting the six values necessary to ensure that 2 is at the
+root?
+
+::: {.handout-only}
+
+Each parent is no greater than its children. Follow the path from the root
+to any node and the values never decrease. That proves the root is a
+minimum, even though 5 comes before 4 in the array. Unlike a BST, a heap
+gives no left-versus-right rule for finding an arbitrary key.
+
+:::
+
 # The Heap
 
 ## Shape: a complete binary tree
@@ -260,67 +282,32 @@ In the notebook `notebooks/12-heaps.ipynb` it renders inline. In a script,
 
 ## Append, then sift up
 
-![](figures/sift-up.png){width=100%}
+**Append** in the next free position to keep the tree complete. Then follow
+the parent links upward. Swap only while the new key is smaller than its
+parent.
 
-1. **Append** the new value at the end — the shape stays complete.
-2. While it beats its **parent**, swap it with the parent.
-
-::: {.handout-only}
-
-Adding a value must keep both rules. The **shape** has only one legal new
-position: the next free slot, index n, which in the tree is the next place on
-the last level. So `push` begins with `self._items.append(value)`.
-
-Now the **order** may be broken, but only in one place: between the new value
-and its parent. Everything else was a heap before and is untouched. If the new
-value beats its parent, swap them. The value is now one level higher, and the
-only possible violation is again between it and its (new) parent. Repeat until
-it does not beat its parent, or it reaches the root. This is **sift up** (also
-called *bubble up*, *swim* or *percolate up*).
-
-Why does a swap never break anything below? When the new value x replaces its
-parent p, p moves down into x's old place. p was at most every value in its old
-subtree (the heap property held there), so p is still at most x's old children,
-which were p's grandchildren. And x, now above p's other child, beats p, which
-beat that child. Nothing below is disturbed.
-
-:::
+This repair works because only the new key's link to its parent can
+violate the order. After a swap, check the new parent.
 
 ## Trace: `push(1)`
 
-| Step | `1` at | parent index | parent value | Decision |
-|---|---|---|---|---|
-| append | 9 | (9 – 1) // 2 = 4 | 7 | 1 < 7 $\rightarrow$ swap |
-| | 4 | (4 – 1) // 2 = 1 | 4 | 1 < 4 $\rightarrow$ swap |
-| | 1 | (1 – 1) // 2 = 0 | 2 | 1 < 2 $\rightarrow$ swap |
-| | 0 | — | — | root: stop |
+Use the starting heap `[2, 5, 4, 9, 8, 7]`.
 
-Result: `[1, 2, 3, 9, 4, 8, 5, 12, 10, 7]`. Three swaps: one per level.
+| Step | Index of 1 | State |
+|---|---:|---|
+| Append 1 | 6 | `[2, 5, 4, 9, 8, 7, 1]` |
+| Swap with 4 at index 2 | 2 | `[2, 5, 1, 9, 8, 7, 4]` |
+| Swap with 2 at index 0 | 0 | `[1, 5, 2, 9, 8, 7, 4]` |
+
+**Predict:** Which parent is tested first? Use `(6 - 1) // 2`.
 
 ::: {.handout-only}
 
-The figure and this table were produced by running the reference `push` on the
-heap `[2, 4, 3, 9, 7, 8, 5, 12, 10]` — every state is checked against the code by
-`tools/figures_l12.py`. The new value climbs from index 9 to the root through
-the indices 9, 4, 1, 0. That path is the chain of parents, and it has at most
-height + 1 nodes, so **sift-up is $O(\log n)$** in the worst case — the worst case
-being a new value smaller than everything, which climbs all the way.
-
-The complete `push` also appends to a dynamic array. A single capacity expansion
-can copy $\Theta(n)$ elements; therefore `push` is $O(\log n)$ amortised,
-with an occasional $\Theta(n)$ operation. If capacity is already available,
-its worst-case cost is $O(\log n)$.
-
-Most pushes stop much earlier. Half the nodes of a heap are leaves, so a random
-new value is quite likely to belong near the bottom. On random input a push
-makes, on average, **about two comparisons**, whatever n is. The measured figure
-later in this lecture shows both cases: $\log_2 n$ comparisons per push on
-descending input, and a flat line on random input.
-
-In words, the method you write is: start at the last index; while the index is
-not 0, compute the parent; if the item does not beat the parent, stop; otherwise
-swap the two and continue from the parent. Every comparison goes through
-`self._beats(child, parent)`, with the child first.
+The parent is at index 2. The two swaps follow the path 6, 2, 0.
+Sifting takes $O(\log n)$ in the worst case. A dynamic-array growth can
+make an individual `push` take $\Theta(n)$, while the append's amortised
+cost stays $O(1)$. Try **W12-M06** with the quiz's heap to see when a sift
+stops before the root.
 
 :::
 
@@ -328,65 +315,40 @@ swap the two and continue from the parent. Every comparison goes through
 
 ## Remove the root, fill the hole from the end
 
-![](figures/sift-down.png){width=100%}
+Run `pop()` on the result of `push(1)`.
 
-1. Keep the root — it is the answer.
-2. Move the **last** item into the root; shrink the array by one.
-3. While it is beaten by its **better child**, swap with that child.
+| Step | State |
+|---|---|
+| Save the root value 1 | `[1, 5, 2, 9, 8, 7, 4]` |
+| Put the last value 4 at the root | `[4, 5, 2, 9, 8, 7]` |
+| Swap 4 with its smaller child, 2 | `[2, 5, 4, 9, 8, 7]` |
+
+The returned value is **1**. The new root is **2**.
 
 ::: {.handout-only}
 
-The best item is at index 0, so reading it is easy. Removing it leaves a hole at
-the root, and the shape must stay complete. The only slot that can disappear
-without making a gap is the **last** one. So take the last item, remove it from
-the end of the array ($O(1)$ — `self._items.pop()` with no argument), and put it
-in the root.
-
-That item was a leaf, so it is probably large, and the root is the wrong place
-for it. It **sifts down**: compare it with its children; if one of them beats
-it, swap with the better of the two, and continue from there. Stop when neither
-child beats it, or when it has no children. In the figure, 10 moves from the
-root to index 2 and then to index 6, a leaf; the heap is valid again, and `pop`
-returns 2.
-
-Two special cases, both in the tests:
-
-- **Empty heap:** `pop` raises `IndexError` (`test_empty_heap`).
-- **One item:** after removing the last item, the heap is empty, and there is
-  no root to write into. Return that item directly
-  (`test_single_element`). A `pop` that always writes `self._items[0] = last`
-  fails here with an `IndexError` from your own `DynamicArray`.
+Moving the final leaf keeps the shape complete. After the swap, 4 sits at
+index 2. It has just one child, 7, so the sift stops. The empty heap raises
+`IndexError`; on a one-item heap remove the root and return it directly.
+Replay this in the lab, then do **W12-M07** and **W12-E2** on paper.
 
 :::
 
 ## The trap: swap with the **better** child
 
-![](figures/wrong-child.png){width=92%}
+After moving 4 to the root, its children are **5** and **2**.
 
-The child that moves up becomes the **parent of its sibling** — so it must beat
-the sibling too.
+**Predict:** What happens if you check only the left child?
+
+The comparison with 5 would tell you to stop. But 2 still beats 4.
+Look at **both existing children** before deciding whether to swap.
 
 ::: {.handout-only}
 
-This is the bug of the week, and the skeleton's docstring warns about it:
-"swapping with the wrong one silently breaks the invariant". A sift-down that
-always swaps with the **left** child, or with the first child it finds smaller
-than the moving item, works on many inputs and fails on others. In the middle
-panel, 4 moves up above 3 — and 4 > 3 at the root of a min-heap. Nothing
-crashes; `pop` returns a wrong value some time later.
-
-The fix is to compare three items, not two: the item, its left child (if it
-exists), and its right child (if it exists), and to find the **best of the
-three**. If the best is the item itself, stop. Otherwise swap with the best
-child and continue. The two "if it exists" checks are where the other bugs
-live: a node near the end of the array may have a left child but no right
-child, so each child index must be compared with `len(self._items)` before it is
-read.
-
-`test_invariant_holds_after_every_pop` pops a 40-element heap to the end and
-calls `is_valid()` after every pop, so a wrong-child bug cannot hide there —
-provided `is_valid` really inspects the whole array
-(`test_is_valid_rejects_a_broken_array` plants a violation to make sure it does).
+Any child moved up becomes the parent of its sibling as well. It must
+beat that sibling. Compare the current item with the better of the two
+children, then swap only if that child wins. Guard the child indices before
+reading them. This is the point of **W12-M08**.
 
 :::
 
@@ -450,70 +412,20 @@ Williams, as the data structure behind heap sort.
 
 :::
 
-## Trace: `heapify([9, 4, 7, 1, 8, 2, 6, 3, 5])`
+## Build the same heap from a scrambled array
 
-![](figures/heapify.png){width=100%}
+Treat the leaves as one-node heaps first. Repair their parents from right
+to left, starting at index `6 // 2 - 1 = 2`.
 
-n = 9, last parent = 9 // 2 – 1 = **3**. Sift down 3, 2, 1, 0.
+| Sift down at | Array after it finishes |
+|---:|---|
+| Input | `[9, 8, 7, 5, 2, 4]` |
+| 2 | `[9, 8, 4, 5, 2, 7]` |
+| 1 | `[9, 2, 4, 5, 8, 7]` |
+| 0 | `[2, 5, 4, 9, 8, 7]` |
 
-::: {.handout-only}
-
-These are the values of `test_heapify_from_arbitrary_order`. Green nodes are
-subtrees that are already heaps; the amber node is the one being sifted down.
-
-| `sift_down(i)` | Before | Moves | After |
-|---|---|---|---|
-| 3 (value 1) | children 3, 5 | none — 1 beats both | `[9, 4, 7, 1, 8, 2, 6, 3, 5]` |
-| 2 (value 7) | children 2, 6 | swap with 2 | `[9, 4, 2, 1, 8, 7, 6, 3, 5]` |
-| 1 (value 4) | children 1, 8 | swap with 1, then with 3 | `[9, 1, 2, 3, 8, 7, 6, 4, 5]` |
-| 0 (value 9) | children 1, 2 | swap with 1, then 3, then 4 | `[1, 3, 2, 4, 8, 7, 6, 9, 5]` |
-
-Six swaps and 14 comparisons (counted by running the code). Notice who moved
-furthest: the item at the **root**, which is the only node that can travel three
-levels. The five leaves moved on their own account not at all.
-
-:::
-
-## Why heapify is $O(n)$: count the work level by level
-
-![](figures/build-sum.png){width=72%}
-
-About $n / 2^{h+1}$ nodes sit at **height h**; each sifts down at most h levels:
-
-$$\sum_{h \ge 0} \frac{n}{2^{h+1}} \cdot h \;=\; \frac{n}{2} \sum_{h \ge 0} \frac{h}{2^h} \;=\; \frac{n}{2} \cdot 2 \;=\; n$$
-
-::: {.handout-only}
-
-A first, lazy estimate says: n/2 sift-downs, each $O(\log n)$, so
-$O(n \log n)$. That bound is true but not tight, because it charges every node
-the full height of the tree, and almost no node has it.
-
-Count properly. In a complete tree, **half** the nodes are leaves (height 0) and
-do no work. A quarter are just above the leaves (height 1) and move at most one
-level. An eighth move at most two, and so on; only the root can move
-$\lfloor \log_2 n \rfloor$ levels. The total number of swaps is at most
-
-$$0 \cdot \frac{n}{2} + 1 \cdot \frac{n}{4} + 2 \cdot \frac{n}{8} + 3 \cdot \frac{n}{16} + \dots
-= \frac{n}{2}\left(\frac{1}{2} + \frac{2}{4} + \frac{3}{8} + \dots\right).$$
-
-The series $\sum h / 2^h = 1/2 + 2/4 + 3/8 + 4/16 + \dots$ converges to **2**
-(a standard result; one way to see it is to write each term $h/2^h$ as h copies
-of $1/2^h$ and sum the geometric series column by column). So the total is at
-most n swaps, and at most 2n comparisons: **$O(n)$**.
-
-The figure makes it concrete for a perfect heap of $n = 32{,}767$ (15 levels).
-Left: heapify. The widest bar, the 16,384 leaves, is zero; the tallest cost per
-node, 14, belongs to one node. The worst-case total is 32,752 swaps —
-$n - \log_2(n+1)$, just under n. Right: n pushes, where the cost is the
-**depth**, not the height, and so the many nodes at the bottom pay the most.
-Worst case 425,986 swaps, 13 n. The same nodes, the same tree, and the opposite
-end of it doing the work.
-
-That asymmetry is the whole trick: sift **down** costs what is **below** a node,
-and most nodes have little below them; sift **up** costs what is **above**, and
-most nodes have a lot above them.
-
-:::
+**Predict:** Why can we leave the last three positions alone as starting
+points? Try **W12-M09 through W12-M11** after the trace.
 
 ## Measured: heapify against n pushes
 
@@ -622,6 +534,22 @@ down: `(1, 3, …) < (2, 0, …)` because 1 < 2, and the counters are not looked
 
 :::
 
+## Why the earlier arrival wins a tie
+
+When C and L both have priority 1, the queue compares `(1, 1, C)` with
+`(1, 3, L)`. C wins because counter 1 is smaller than counter 3.
+
+**Predict:** If K had entered with priority 0, would its later arrival
+keep it behind C?
+
+::: {.handout-only}
+
+K would go first. The arrival counter is read only when the priorities
+are equal. It also means Python never compares the payloads. Use the
+same reasoning on **W12-M16, W12-M17 and W12-E5**.
+
+:::
+
 ## Where priority queues are used
 
 - **Scheduling:** an operating system runs the highest-priority ready process;
@@ -656,36 +584,6 @@ edges all weigh the same.
 with exactly the index arithmetic of this lecture. There is no max-heap in
 `heapq`; the usual trick is to push `-x`. Write your own first; then use the
 library.
-
-:::
-
-## Top-k: keep a small heap, not a big one
-
-The k **largest** of n values:
-
-1. Keep a **min**-heap of at most k values.
-2. For each value: if the heap has fewer than k, push it. Otherwise, if the
-   value beats the heap's **smallest** (its root), pop the root and push the
-   value.
-3. The heap now holds the k largest.
-
-$O(n \log k)$ time, $O(k)$ space. Sorting everything: $O(n \log n)$ and $O(n)$.
-
-::: {.handout-only}
-
-It feels backwards — a **min**-heap to find the **largest** values — until you
-see what the root is for. The heap holds the best k seen so far, and its root is
-the **weakest** of them: the one to throw out when something better arrives. A
-new value that does not beat the root cannot be among the top k, and costs one
-`peek`, $O(1)$.
-
-For the 10 largest of a million values, the heap never holds more than 10
-items: each step is $O(\log 10)$, a handful of comparisons, and the memory is 10
-slots — so it works on a stream that does not fit in memory, such as a log file
-of a billion lines. Sorting the million needs all of them in memory and about
-20 million comparisons. This is W12-C2 in the question bank.
-
-The dual problem — the k **smallest** — uses a **max**-heap of size k.
 
 :::
 
@@ -755,8 +653,11 @@ sorting does not.
 
 ## Watch it run: the Heap and Priority Queue Lab
 
-- Step through sift-up after a push and sift-down after a pop in a min-heap.
-- Predict which child becomes the next parent before you advance.
+- Push 1 into the six-value heap, then pop 1 and compare the two repair paths.
+- Build that same heap from the scrambled array and see why the first
+  starting index is 2.
+- Follow the priority queue through the equal-priority arrivals and
+  predict which item is returned first.
 
 [Open the Heap and Priority Queue Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-12)
 
@@ -827,6 +728,102 @@ shows you which ideas did not stick, and the explanation of each answer
 sends you back to the right part of this handout.
 
 - Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-12/>
+
+:::
+
+# Implementation Notes and Deeper Analysis
+
+## Reference for the lab
+
+Use the later handout sections for implementation details and derivations after tracing the worked examples.
+
+::: {.handout-only}
+
+## Trace: `heapify([9, 4, 7, 1, 8, 2, 6, 3, 5])`
+
+![](figures/heapify.png){width=100%}
+
+n = 9, last parent = 9 // 2 – 1 = **3**. Sift down 3, 2, 1, 0.
+
+
+These are the values of `test_heapify_from_arbitrary_order`. Green nodes are
+subtrees that are already heaps; the amber node is the one being sifted down.
+
+| `sift_down(i)` | Before | Moves | After |
+|---|---|---|---|
+| 3 (value 1) | children 3, 5 | none — 1 beats both | `[9, 4, 7, 1, 8, 2, 6, 3, 5]` |
+| 2 (value 7) | children 2, 6 | swap with 2 | `[9, 4, 2, 1, 8, 7, 6, 3, 5]` |
+| 1 (value 4) | children 1, 8 | swap with 1, then with 3 | `[9, 1, 2, 3, 8, 7, 6, 4, 5]` |
+| 0 (value 9) | children 1, 2 | swap with 1, then 3, then 4 | `[1, 3, 2, 4, 8, 7, 6, 9, 5]` |
+
+Six swaps and 14 comparisons (counted by running the code). Notice who moved
+furthest: the item at the **root**, which is the only node that can travel three
+levels. The five leaves moved on their own account not at all.
+
+## Why heapify is $O(n)$: count the work level by level
+
+![](figures/build-sum.png){width=72%}
+
+About $n / 2^{h+1}$ nodes sit at **height h**; each sifts down at most h levels:
+
+$$\sum_{h \ge 0} \frac{n}{2^{h+1}} \cdot h \;=\; \frac{n}{2} \sum_{h \ge 0} \frac{h}{2^h} \;=\; \frac{n}{2} \cdot 2 \;=\; n$$
+
+
+A first, lazy estimate says: n/2 sift-downs, each $O(\log n)$, so
+$O(n \log n)$. That bound is true but not tight, because it charges every node
+the full height of the tree, and almost no node has it.
+
+Count properly. In a complete tree, **half** the nodes are leaves (height 0) and
+do no work. A quarter are just above the leaves (height 1) and move at most one
+level. An eighth move at most two, and so on; only the root can move
+$\lfloor \log_2 n \rfloor$ levels. The total number of swaps is at most
+
+$$0 \cdot \frac{n}{2} + 1 \cdot \frac{n}{4} + 2 \cdot \frac{n}{8} + 3 \cdot \frac{n}{16} + \dots
+= \frac{n}{2}\left(\frac{1}{2} + \frac{2}{4} + \frac{3}{8} + \dots\right).$$
+
+The series $\sum h / 2^h = 1/2 + 2/4 + 3/8 + 4/16 + \dots$ converges to **2**
+(a standard result; one way to see it is to write each term $h/2^h$ as h copies
+of $1/2^h$ and sum the geometric series column by column). So the total is at
+most n swaps, and at most 2n comparisons: **$O(n)$**.
+
+The figure makes it concrete for a perfect heap of $n = 32{,}767$ (15 levels).
+Left: heapify. The widest bar, the 16,384 leaves, is zero; the tallest cost per
+node, 14, belongs to one node. The worst-case total is 32,752 swaps —
+$n - \log_2(n+1)$, just under n. Right: n pushes, where the cost is the
+**depth**, not the height, and so the many nodes at the bottom pay the most.
+Worst case 425,986 swaps, 13 n. The same nodes, the same tree, and the opposite
+end of it doing the work.
+
+That asymmetry is the whole trick: sift **down** costs what is **below** a node,
+and most nodes have little below them; sift **up** costs what is **above**, and
+most nodes have a lot above them.
+
+## Top-k: keep a small heap, not a big one
+
+The k **largest** of n values:
+
+1. Keep a **min**-heap of at most k values.
+2. For each value: if the heap has fewer than k, push it. Otherwise, if the
+   value beats the heap's **smallest** (its root), pop the root and push the
+   value.
+3. The heap now holds the k largest.
+
+$O(n \log k)$ time, $O(k)$ space. Sorting everything: $O(n \log n)$ and $O(n)$.
+
+
+It feels backwards — a **min**-heap to find the **largest** values — until you
+see what the root is for. The heap holds the best k seen so far, and its root is
+the **weakest** of them: the one to throw out when something better arrives. A
+new value that does not beat the root cannot be among the top k, and costs one
+`peek`, $O(1)$.
+
+For the 10 largest of a million values, the heap never holds more than 10
+items: each step is $O(\log 10)$, a handful of comparisons, and the memory is 10
+slots — so it works on a stream that does not fit in memory, such as a log file
+of a billion lines. Sorting the million needs all of them in memory and about
+20 million comparisons. This is W12-C2 in the question bank.
+
+The dual problem — the k **smallest** — uses a **max**-heap of size k.
 
 :::
 

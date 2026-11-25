@@ -61,6 +61,27 @@ $O(n \log n)$: it does not compare keys, it **computes** with them.
 7. Measured: probes against load factor; and the keys that break it
 8. Python's `dict` and `set`: the real thing, which you now understand
 
+## Keep three keys on the board
+
+We will insert **5, 13, and 21**, in that order, into a table of capacity 8.
+For these positive integers, the home index is the remainder modulo 8.
+
+| Key | 5 | 13 | 21 |
+|---|---:|---:|---:|
+| Home index | 5 | 5 | 5 |
+
+**Predict:** How can the table keep all three entries distinct when their
+home index is the same?
+
+::: {.handout-only}
+
+A hash finds a starting place. An equality check finds the key. Follow
+the same keys through chaining and linear probing before comparing the
+costs. In the lab, the picture for chaining shows the reference
+implementation's newest-first order.
+
+:::
+
 # The Dream
 
 ## Direct addressing: the key is the index
@@ -378,32 +399,22 @@ Those are the exercises; turning them into Python is your job. Three details.
 
 :::
 
-## Trace: chaining, capacity 8, `max_load` 0.75
+## Chaining on our three keys
 
-| Operation | Index | Buckets (non-empty) | size | load |
-|---|---|---|---|---|
-| put 10, 22, 31, 4 | 2, 6, 7, 4 | 2:10 · 4:4 · 6:22 · 7:31 | 4 | 0.5 |
-| put 15 | 7 | … 7: **15 $\to$ 31** | 5 | 0.625 |
-| put 28 | 4 | 4: **28 $\to$ 4** … | 6 | 0.75 |
-| put 7 | 7 | 7 > 0.75·8: **resize to 16** | 7 | 0.4375 |
-| | | 4:4 · 6:22 · 7:7 · 10:10 · 12:28 · 15: 31 $\to$ 15 | | |
-| delete 31 | 15 | 15: 15 | 6 | 0.375 |
+| After inserting | Bucket 5, head first |
+|---|---|
+| 5 | `5` |
+| 13 | `13 → 5` |
+| 21 | `21 → 13 → 5` |
+
+**Predict:** How many equality checks will `get(29)` make?
 
 ::: {.handout-only}
 
-Produced by running the reference solution and printing its buckets. Three
-things to see.
-
-- **0.75 is allowed; above it is not.** After `put 28` the load is exactly
-  0.75, and the test is `>`: no resize. `put 7` makes it 7/8 = 0.875, and the
-  table doubles.
-- **After the resize, every key has a new index**, because the index is
-  `key % 16` now: 10 moves from bucket 2 to bucket 10, 28 from 4 to 12, 31 from
-  7 to 15. 15 and 31 still collide — they differ by 16. The chain order came out
-  reversed (31 $\to$ 15), because `_resize` pushes each moved entry on the front of
-  its new chain; order within a chain means nothing.
-- **Delete unlinks the head.** 31 was first in bucket 15, so the bucket slot
-  itself now points at 15.
+29 has the same remainder, but is absent. Its lookup compares with all
+three entries and reaches the end of the chain. On `put(13, value)`,
+finding 13 changes that entry's value and leaves the size at 3. Try
+**W13-M09 and W13-M10** after tracing those two operations.
 
 :::
 
@@ -471,44 +482,23 @@ free. Note what that means for **`get(15)`**: it must follow the **same** probe
 sequence, and it cannot stop at slot 7 just because slot 7 holds something
 else.
 
-**When does a search stop?** At the key (found), or at a **never-used** slot,
-`None` — because `put` would have put the key there. `get(23)` on this table:
-23 % 8 = 7 holds 31, slot 0 holds 15, slot 1 is `None` — 23 is not in the
-table, after 3 probes.
+**When does a search stop?** At the key (found), or at a **never-used**
+slot, where an insertion could have stopped. For `get(23)`, slot 7
+holds 31, slot 0 holds 15, and slot 1 is unused. The search ends at 1
+with a miss after three probes.
 
 :::
 
-## Trace: open addressing, capacity 8, `max_load` 0.66
+## Linear probing on the same keys
 
-| Operation | Home | Probes | Slots 0–7 | size |
-|--------------|------|----------------------|--------------------------|------|
-| put 10, 22, 31, 4 | 2, 6, 7, 4 | 1 each | `_ _ 10 _ 4 _ 22 31` | 4 |
-| put 15 | 7 | 7, **0** | `15 _ 10 _ 4 _ 22 31` | 5 |
-| delete 31 | 7 | 7 | `15 _ 10 _ 4 _ 22 †` | 4 |
-| get 15 | 7 | 7 (†, go on), **0** | unchanged | 4 |
-| put 23 | 7 | *load check: rebuild first* | `23 _ 10 _ 4 _ 22 15` | 5 |
+| Key | Slots inspected | Slot used |
+|---:|---|---:|
+| 5 | `5` | 5 |
+| 13 | `5 → 6` | 6 |
+| 21 | `5 → 6 → 7` | 7 |
 
-† is the tombstone.
-
-::: {.handout-only}
-
-Produced by the reference solution. The first two rows are the figure. The
-interesting rows are the last three.
-
-- **delete 31** does not empty slot 7. It leaves a **tombstone** there — the
-  module's `TOMBSTONE` object — and the reason is the next row.
-- **get 15** starts at 7, as it must. Slot 7 holds a tombstone: "something was
-  here once; keys may have probed past it". So the search goes on, to slot 0,
-  and finds 15. Had delete emptied slot 7, `get(15)` would have stopped there
-  and said "not in the table" — wrong.
-- **put 23** runs the load check first, and **counts the tombstone as used**:
-  (4 live + 1 tombstone + 1 new) / 8 = 0.75 > 0.66. But the live keys alone,
-  (4 + 1) / 8 = 0.625, are within the limit, so the table does not grow: it
-  **rebuilds at the same capacity**, dropping the tombstone. 15 moves back to
-  its home slot 7, and 23 probes 7, then 0. Why count tombstones at all? See the
-  next slide but one.
-
-:::
+**Predict:** What slot follows 7? A probe moves forward and wraps from
+the last slot to 0. Try **W13-M13 and W13-M14** with a different home slot.
 
 ## Primary clustering
 
@@ -546,120 +536,71 @@ less than one jump elsewhere.
 
 ## Delete: why not just empty the slot?
 
-![](figures/tombstone.png){width=82%}
+Delete **13** from our table.
+
+| Slot | 5 | 6 | 7 | 0 |
+|---|---:|---:|---:|---:|
+| Before | 5 | 13 | 21 | unused |
+| After | 5 | deleted | 21 | unused |
+
+**Predict:** To find 21, can you stop at slot 6?
 
 ::: {.handout-only}
 
-This is the one subtle idea of the week, and the one the tests check on its own
-(`test_open_addressing_delete_preserves_probe_chain`). Keys 3, 11 and 19 all
-hash to 3, so they fill slots 3, 4, 5. A probe for 19 **passes through** slots 3
-and 4. Empty slot 4 when 11 is deleted, and 19 becomes unreachable: `get(19)`
-stops at the `None` in slot 4, because `None` means "no key ever probed past
-here". The table has not lost 19 — it is still in slot 5 — it has lost the
-**path** to it.
+No. A tombstone says a previous insertion could have probed past this slot.
+`get(21)` checks 5, skips the tombstone at 6, then matches at 7.
+`get(29)` also starts at 5, but keeps going through 7 and wraps to the
+first unused slot, 0. Marking 6 as unused would hide 21.
 
-A tombstone — "deleted, but something lay here" — keeps the path open:
-
-| Operation | Meets `None` | Meets `TOMBSTONE` |
+| Slot state | During a lookup | During an insertion |
 |---|---|---|
-| `get`, `delete` | stop: not found | **skip it**, keep probing |
-| `put` | stop: insert here — or at the first tombstone passed | remember the first one; **keep probing** in case the key is further on |
-| `_resize` | — | **drop it**: only live keys are re-inserted |
+| Live key | Compare for equality | Overwrite if it is the same key |
+| `TOMBSTONE` | Continue | Remember the slot, then keep looking for the key |
+| `_EMPTY` | Stop with a miss | Insert here or reuse the first tombstone passed |
 
-The `put` row hides a bug worth naming. A put may **reuse** a tombstone's slot —
-that is the point of reusing space — but it must not stop at the first
-tombstone, because the key may already be further along the probe sequence.
-Insert at the first tombstone without looking further, and the table holds the
-same key **twice** (W13-B3).
+The diagrams write `_` for an unused slot. The starter code and some
+quiz explanations use `None` for this state. The reference instead
+uses a private `_EMPTY` marker, so a real `None` key can occupy a slot.
 
-**Why count tombstones in the load check.** Tombstones are not keys, so
-`len()` and `load_factor` ignore them. But they are not `None` either, and only
-`None` stops a probe. A table that sees many puts and deletes fills up with
-tombstones; if the load check counts only live keys, the table never rebuilds,
-and eventually there is **no** `None` left: every unsuccessful search walks the
-whole table, $O(n)$, and a probe loop that only stops at `None` never stops at
-all. So `put` checks (size + tombstones + 1) / capacity. When the live keys
-alone are within `max_load`, it rebuilds at the **same** capacity — a sweep that
-throws the tombstones away; otherwise it doubles.
+Remember the first tombstone on a put, but search past it before inserting.
+Otherwise an existing copy of the same key farther along would be
+duplicated. Try **W13-M15, W13-M16 and W13-E4** after the lab.
 
-*Tombstone* in Arabic: شاهد القبر — literally, a gravestone.
-
-**The alternative, without tombstones.** For linear probing only, a delete can
-instead **shift back** the keys after the hole that would otherwise be cut off
-("backward-shift deletion"; Knuth's Algorithm R, §6.4). It leaves no
-tombstones, at the price of a trickier loop. It is an honest option; the course
-uses tombstones because they work for every probe sequence.
+*Tombstone*: علامة خانة محذوفة.
 
 :::
 
 # Load Factor and Resizing
 
-## Resize: every key moves
+## Resize: recompute every home index
 
-$$\alpha = \frac{\text{size}}{\text{capacity}} \qquad
-\text{chaining: } \alpha \le 0.75 \qquad \text{open addressing: } \alpha \le 0.66$$
+When the table grows from 8 to 16, calculate the home index again.
 
-When a `put` would pass the limit: allocate **twice** the buckets and
-**re-insert every key**.
+| Key | Home at capacity 8 | Home at capacity 16 |
+|---:|---:|---:|
+| 5 | 5 | 5 |
+| 13 | 5 | 13 |
+| 21 | 5 | 5 |
 
-You **cannot copy the buckets across**: the index is `hash % capacity`, and the
-capacity just changed.
-
-::: {.handout-only}
-
-This is `_resize(capacity)`, the last method of each class. Its docstring says
-it in one line: "Every key must be rehashed". A key in bucket 2 of 8 — say 10 —
-belongs in bucket 10 of 16. Copy `old[i]` to `new[i]` and the table *looks*
-fine: all 7 keys are there, `len` is right. But `get(10)` now looks in bucket 10,
-finds nothing, and raises `KeyError`. The lab makes you watch it happen.
-
-Resizing a chaining table **re-links the existing `Entry` nodes** into the new
-buckets instead of creating new ones: walk each old chain, and for each entry
-compute its new index and push it on the front of that chain. Save
-`entry.next` **before** you relink the entry — relinking overwrites it, and the
-rest of the old chain is lost (W13-B2 in the question bank).
-
-For open addressing, `_resize` makes two new `Array`s, resets `size` and the
-tombstone count to 0, and re-inserts every **live** key — skipping `None` and
-`TOMBSTONE`. In the new table there are no tombstones and no duplicates, so each
-key can simply go into the first `None` of its probe sequence.
-
-**Why different limits?** A chain can be longer than 1, so a chaining table
-still works at $\alpha = 1$ or 2 — only slower. An open-addressing table cannot
-exceed $\alpha = 1$ at all, and by the formulas above its misses cost 5
-probes at 0.7 and 50 at 0.9. Java's `HashMap` resizes at 0.75; CPython's `dict`
-at about two-thirds.
-
-:::
-
-## Amortised $O(1)$ — Week 4 again
-
-![](figures/resize.png){width=96%}
+**Predict:** Which entries still collide? Which entry could a straight
+slot-for-slot copy make unreachable?
 
 ::: {.handout-only}
 
-**Left:** the load factor of each table after every one of 3,000 puts, measured.
-It climbs to the limit, halves at the resize, and climbs again — a saw-tooth
-that never leaves the band between about 0.33 and 0.75.
+5 and 21 still collide. The new lookup for 13 starts at 13, so a copy that
+leaves it near the old home at 5 can lose it to lookup. Reinsert every live
+key under the new capacity, even when its home stays the same. These three
+keys alone do not trigger growth at capacity 8.
 
-**Right:** the total number of keys rehashed so far, divided by the number of
-keys inserted. One resize is expensive — the chaining table's last one moved 1,537 keys at
-once — but it never rises above 2 per key. The argument is Lecture 04's
-exactly: resizes happen at sizes s, s/2, s/4, …, so the total moved is at most
-$s + s/2 + s/4 + \dots < 2s$. Over n puts, the rehashing costs $O(n)$ in total:
-**amortised $O(1)$ per put**. Over the 3,000 puts, the chaining table rehashed
-3,075 keys in all and the open-addressing table 5,396.
+In a chaining table, grow when the live load goes beyond the limit.
+In the open-addressing reference, count live keys and tombstones when
+checking used slots before an insert. If the live keys fit, rebuild at the
+same capacity to clear the tombstones. Otherwise grow. The two decisions
+explain **W13-M12 and W13-M17**.
 
-The `DynamicArray` copied **values**; a hash table must **rehash** them — call
-`hash()` again and recompute every index. CPython's `dict` avoids the repeated
-`hash()` by storing each key's hash beside it; `Entry` here does not, which
-keeps it simple and is fine for `int` keys, whose hash is free. Python's `str`
-caches its own hash inside the string object for the same reason.
-
-Should a table also **shrink** when keys are deleted? Ours never does. Shrinking
-at a quarter full keeps the memory proportional to the size with the same
-amortised bound — the same answer as for a `DynamicArray` that shrinks (Lecture 04). CPython's
-`dict` does not shrink on delete either.
+For implementation, save a chain node's `next` link before re-linking
+it in the new buckets. Open addressing creates fresh arrays, reinserts
+only live keys, and resets the tombstone count.
 
 :::
 
@@ -823,8 +764,9 @@ dates", "the next appointment after 10:00", "the smallest": sorted array or tree
 
 ## Watch it run: the Hash Table Lab
 
-- Trace one collision using chaining and another using linear probing.
-- Predict what lookup does at a deleted slot and at a never-used slot.
+- Insert the same keys into a chain and into successive slots.
+- Delete 13, then look up 21 and 29 to compare a hit with a miss.
+- Change capacity to 16 and recompute each home index.
 
 [Open the Hash Table Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-13)
 
@@ -839,7 +781,7 @@ dates", "the next appointment after 10:00", "the smallest": sorted array or tree
 | Chaining | `delete` | the head of a chain; `size -= 1` |
 | Chaining | `_resize` | **rehash** every key; save `next` first |
 | Open addr. | `_probe` | `% capacity`; every slot once |
-| Open addr. | `put`, `get` | stop at `None`, **not** at a tombstone |
+| Open addr. | `put`, `get` | stop at the unused marker; continue past a tombstone |
 | Open addr. | `delete` | leave `TOMBSTONE` |
 | Open addr. | `_resize` | drop tombstones; reset both counts |
 
@@ -873,7 +815,7 @@ one. A hash map that loses a key after a resize breaks graph search too.
    delete 9: the chains after each step, and when it resizes.
 3. **Trace** an `OpenAddressingHashMap(capacity=8)` through put 3, 11, 19,
    delete 11, get 19, put 27. Show every probe.
-4. **Break it.** Replace `TOMBSTONE` with `None` in your `delete`. Which test
+4. **Break it.** Mark a deleted slot as unused instead of leaving `TOMBSTONE`. Which test
    fails, and exactly why?
 5. **Measure** probes against load factor in `notebooks/13-hash-tables.ipynb`.
 
@@ -903,6 +845,99 @@ shows you which ideas did not stick, and the explanation of each answer
 sends you back to the right part of this handout.
 
 - Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-13/>
+
+:::
+
+# Implementation Notes and Deeper Analysis
+
+## Reference for the lab
+
+Use the later handout sections for implementation details and derivations after tracing the worked examples.
+
+::: {.handout-only}
+
+## Trace: chaining, capacity 8, `max_load` 0.75
+
+| Operation | Index | Buckets (non-empty) | size | load |
+|---|---|---|---|---|
+| put 10, 22, 31, 4 | 2, 6, 7, 4 | 2:10 · 4:4 · 6:22 · 7:31 | 4 | 0.5 |
+| put 15 | 7 | … 7: **15 $\to$ 31** | 5 | 0.625 |
+| put 28 | 4 | 4: **28 $\to$ 4** … | 6 | 0.75 |
+| put 7 | 7 | 7 > 0.75·8: **resize to 16** | 7 | 0.4375 |
+| | | 4:4 · 6:22 · 7:7 · 10:10 · 12:28 · 15: 31 $\to$ 15 | | |
+| delete 31 | 15 | 15: 15 | 6 | 0.375 |
+
+
+Produced by running the reference solution and printing its buckets. Three
+things to see.
+
+- **0.75 is allowed; above it is not.** After `put 28` the load is exactly
+  0.75, and the test is `>`: no resize. `put 7` makes it 7/8 = 0.875, and the
+  table doubles.
+- **After the resize, recompute the index of every key**, because the index is
+  `key % 16` now: 10 moves from bucket 2 to bucket 10, 28 from 4 to 12, 31 from
+  7 to 15. 15 and 31 still collide — they differ by 16. The chain order came out
+  reversed (31 $\to$ 15), because `_resize` pushes each moved entry on the front of
+  its new chain; order within a chain means nothing.
+- **Delete unlinks the head.** 31 was first in bucket 15, so the bucket slot
+  itself now points at 15.
+
+## Trace: open addressing, capacity 8, `max_load` 0.66
+
+| Operation | Home | Probes | Slots 0–7 | size |
+|--------------|------|----------------------|--------------------------|------|
+| put 10, 22, 31, 4 | 2, 6, 7, 4 | 1 each | `_ _ 10 _ 4 _ 22 31` | 4 |
+| put 15 | 7 | 7, **0** | `15 _ 10 _ 4 _ 22 31` | 5 |
+| delete 31 | 7 | 7 | `15 _ 10 _ 4 _ 22 †` | 4 |
+| get 15 | 7 | 7 (†, go on), **0** | unchanged | 4 |
+| put 23 | 7 | *load check: rebuild first* | `23 _ 10 _ 4 _ 22 15` | 5 |
+
+† is the tombstone.
+
+
+Produced by the reference solution. The first two rows are the figure. The
+interesting rows are the last three.
+
+- **delete 31** does not empty slot 7. It leaves a **tombstone** there — the
+  module's `TOMBSTONE` object — and the reason is the next row.
+- **get 15** starts at 7, as it must. Slot 7 holds a tombstone: "something was
+  here once; keys may have probed past it". So the search goes on, to slot 0,
+  and finds 15. Had delete emptied slot 7, `get(15)` would have stopped there
+  and said "not in the table" — wrong.
+- **put 23** runs the load check first, and **counts the tombstone as used**:
+  (4 live + 1 tombstone + 1 new) / 8 = 0.75 > 0.66. But the live keys alone,
+  (4 + 1) / 8 = 0.625, are within the limit, so the table does not grow: it
+  **rebuilds at the same capacity**, dropping the tombstone. 15 moves back to
+  its home slot 7, and 23 probes 7, then 0. Why count tombstones at all? See the
+  next slide but one.
+
+## Amortised $O(1)$ — Week 4 again
+
+![](figures/resize.png){width=96%}
+
+
+**Left:** the load factor of each table after every one of 3,000 puts, measured.
+It climbs to the limit, halves at the resize, and climbs again — a saw-tooth
+that never leaves the band between about 0.33 and 0.75.
+
+**Right:** the total number of keys rehashed so far, divided by the number of
+keys inserted. One resize is expensive — the chaining table's last one moved 1,537 keys at
+once — but it never rises above 2 per key. The argument is Lecture 04's
+exactly: resizes happen at sizes s, s/2, s/4, …, so the total moved is at most
+$s + s/2 + s/4 + \dots < 2s$. Over n puts, the rehashing costs $O(n)$ in total:
+**amortised $O(1)$ per put**. Over the 3,000 puts, the chaining table rehashed
+3,075 keys in all and the open-addressing table 5,396.
+
+The `DynamicArray` copied **values**; a hash table must **rehash** them — call
+`hash()` again and recompute every index. CPython's `dict` avoids the repeated
+`hash()` by storing each key's hash beside it; `Entry` here does not, which
+keeps it simple and is fine for `int` keys, whose hash is free. Python's `str`
+caches its own hash inside the string object for the same reason.
+
+Should a table also **shrink** when keys are deleted? Ours never does. Shrinking
+at a quarter full keeps the memory proportional to the size with the same
+amortised bound — the same answer as for a `DynamicArray` that shrinks (Lecture 04). CPython's
+`dict` does not shrink on delete either.
 
 :::
 

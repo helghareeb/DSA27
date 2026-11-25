@@ -65,6 +65,30 @@ finds it.
 5. Components, cycles, topological sort
 6. A maze, and your own degree's prerequisites
 
+## One network for four questions
+
+Keep this directed graph on the board. Each row lists outgoing neighbours
+in the order we will consider them.
+
+| Vertex | Outgoing neighbours |
+|---|---|
+| A | B, C |
+| B | D |
+| C | E |
+| D | E |
+| E | none |
+
+**Predict:** Starting at A, will following B first find the shortest
+route to E?
+
+::: {.handout-only}
+
+Following the first branch gives `A → B → D → E`, three edges.
+The other branch, `A → C → E`, needs two. We will use the same graph
+to compare breadth first, depth first, cycle checks and prerequisites.
+
+:::
+
 # The Vocabulary
 
 ## Vertices and edges
@@ -236,6 +260,20 @@ both ends, every new edge would wipe the old edges of its endpoints.
 
 :::
 
+## Store the same edges in two ways
+
+| Row | A | B | C | D | E |
+|---|---:|---:|---:|---:|---:|
+| A | 0 | 1 | 1 | 0 | 0 |
+| B | 0 | 0 | 0 | 1 | 0 |
+| C | 0 | 0 | 0 | 0 | 1 |
+| D | 0 | 0 | 0 | 0 | 1 |
+| E | 0 | 0 | 0 | 0 | 0 |
+
+`has_edge(A, C)` reads one matrix cell. To list A's neighbours, the
+matrix scans the row while the adjacency list already has `[B, C]`.
+Compare both costs in **W14-M08 through W14-M10**.
+
 ## The trade-off
 
 | | Adjacency list | Adjacency matrix |
@@ -306,29 +344,21 @@ Your own numbers will differ; the slopes will not. Draw your own with the
 
 # Breadth-First Search
 
-## Rings round the start
+## Trace breadth-first search from A
 
-![](figures/bfs-snapshots.png){width=100%}
+Use a FIFO queue. Mark a vertex when you enqueue it.
 
-Visit the start, then **everything 1 edge away**, then everything 2 away, …
+| Take | Newly queued | Queue afterwards |
+|---|---|---|
+| Start | A | `[A]` |
+| A | B, C | `[B, C]` |
+| B | D | `[C, D]` |
+| C | E | `[D, E]` |
+| D | none | `[E]` |
+| E | none | `[]` |
 
-A **queue** keeps the frontier in order: first discovered, first expanded.
-
-::: {.handout-only}
-
-Breadth-first search, BFS — البحث بالعرض أولاً — explores a graph like a ripple on
-water: the start first, then all its neighbours, then all *their* unvisited
-neighbours, and so on outwards. Lecture 07 promised that a queue would do this,
-and here it is. A vertex waits in the queue from the moment it is **discovered**
-until it is **taken** off the front; because the queue is FIFO, everything
-discovered from layer 1 is taken before anything discovered from layer 2.
-
-In the figure, the running example — seven vertices, eight edges — is searched
-from A. After A is taken, B and C wait. B is taken and adds D; C is taken and
-adds E (its neighbour D is already waiting); D adds F; E adds nothing (F is
-already waiting); F adds G. The visit order is A B C D E F G.
-
-:::
+**Predict:** Why did D leave E alone? Trace **W14-M05** on the quiz's
+graph after replaying this one in the lab.
 
 ## The algorithm
 
@@ -380,226 +410,43 @@ just `["Z"]`.
 
 :::
 
-## Trace: `bfs(G, "A")`
-
-| Take | Discover (enqueue) | Queue afterwards | Order so far |
-|---|---|---|---|
-| A | B, C | B C | A |
-| B | D (A is visited) | C D | A B |
-| C | E (A, D are visited) | D E | A B C |
-| D | F | E F | A B C D |
-| E | — (C, F are visited) | F | A B C D E |
-| F | G | G | A B C D E F |
-| G | — | empty | A B C D E F G |
-
-::: {.handout-only}
-
-The neighbour lists, in the order the edges were added, are
-A: B C · B: A D · C: A D E · D: B C F · E: C F · F: D E G · G: F.
-The neighbour order decides the tie-breaks: A lists B before C, so B is taken
-first. Change the order of the edges and you get a different — equally correct
-— BFS order, but the **layers** never change: {A}, {B, C}, {D, E}, {F}, {G}.
-`test_bfs_visits_by_distance` checks only what does not depend on the
-tie-breaks: D, two edges from A, comes after B.
-
-This table was produced by running the reference solution on `G_EDGES` in
-`tools/figures_l14.py`.
-
-:::
-
 ## Shortest paths, by edge count
 
-![](figures/bfs-tree.png){width=96%}
+The first discovery of E is from **C**. Save that parent when you enqueue E.
 
-The first time BFS reaches a vertex, it has come by a **shortest** path.
-
-Remember **who discovered whom** (a parent map), then walk back from the goal.
+```text
+Parents:  B <- A    C <- A    D <- B    E <- C
+Walk back: E <- C <- A
+Return:    [A, C, E]    (2 edges)
+```
 
 ::: {.handout-only}
 
-**Why the first arrival is by a shortest path.** The queue holds vertices in
-non-decreasing order of distance: first the start (distance 0), then everything
-at distance 1, then everything at distance 2, and so on, because each vertex at
-distance d discovers only vertices at distance d + 1. So a vertex at distance d
-is discovered while BFS is taking the vertices of layer d $-$ 1, before any longer
-route can reach it. "Shortest" here means **fewest edges** — every edge counts
-as 1. (This argument was first written down for mazes by E. F. Moore in 1959.)
+When D inspects E, E already has a parent. Changing that parent to D
+would replace the two-edge route with a three-edge one. The queue finishes
+each distance layer before the next, so the first recorded parent gives a
+fewest-edge path. The reference walks back until it reaches **start**,
+because `None` may itself be a vertex. It returns `[start]` for a zero-edge
+path and `None` if the goal is unreachable.
 
-**`shortest_path_unweighted(graph, start, goal)`** is BFS with one change: the
-visited map stores, for each vertex, the vertex it was discovered **from** —
-its *parent* — with `None` for the start. When the goal is taken off the queue,
-follow the parents back: G $\leftarrow$ F $\leftarrow$ D $\leftarrow$ B $\leftarrow$ A. That list runs goal-first, so
-reverse it: `["A", "B", "D", "F", "G"]`, four edges. When the queue empties
-without reaching the goal, it is unreachable: return `None`. When start and goal
-are the same, the answer is `[start]` — a path of length 0.
-
-The parent pointers form a tree — the **BFS tree** — whose paths from A are all
-shortest paths. There are two shortest paths from A to F here (A–B–D–F and
-A–C–E–F); BFS records one of them, the one through whichever parent discovered F
-first. `test_shortest_path_is_shortest_not_merely_a_path` builds a graph with a
-long way round (A–X–Y–Z) and a short one (A–B–Z): DFS might find the long one;
-BFS cannot.
-
-The parent map is a `ChainingHashMap` again, and it doubles as the visited set:
-a vertex is visited exactly when it has a parent entry. That needs a hash map
-whose `in` works when the stored value is `None` — the start's parent. Week 13's
-`__contains__` catches the `KeyError` from `get` rather than comparing the value
-with `None`, so it does.
+**W14-M04, W14-M07 and W14-E2** ask you to apply this rule. For a weighted
+graph, fewest edges and smallest total weight can give different paths.
 
 :::
 
 # Depth-First Search
 
-## One path to its end, then back up
+## Trace depth-first search from A
 
-![](figures/dfs-vs-bfs.png){width=100%}
+| Step | Calls still active | Recorded so far |
+|---|---|---|
+| Follow the first branch | `[A, B, D, E]` | `[A, B, D, E]` |
+| Back up to A and enter C | `[A, C]` | `[A, B, D, E, C]` |
+| Finish C and A | `[]` | `[A, B, D, E, C]` |
 
-DFS goes **deep** first: follow a neighbour, then its neighbour, … until stuck;
-then **back up** to the last vertex with an unvisited neighbour.
-
-::: {.handout-only}
-
-Depth-first search, DFS — البحث بالعمق أولاً — is how you would explore a maze with
-a ball of string: keep walking into unexplored corridors, and when you reach a
-dead end, wind the string back to the last junction with a corridor you have not
-tried. From A it goes to B (A's first neighbour), then to D (B's first unvisited
-neighbour), then to C (D's first unvisited neighbour), then to E, F and G. The
-order is A B D C E F G, against BFS's A B C D E F G.
-
-`test_dfs_goes_deep_and_bfs_goes_wide` tells them apart on the smallest graph
-that can: A–B, B–C, A–D. DFS goes A, B, C before it touches D; BFS takes D
-before C.
-
-DFS does **not** find shortest paths: it reached C through B and D, three edges,
-when C is a neighbour of A. What it gives instead is structure — the order in
-which vertices are finished, which detects cycles and gives topological orders.
-
-:::
-
-## Recursive DFS: the call stack does the work
-
-```text
-dfs(graph, start)
-    order = empty list;  visited = empty hash map
-    visit(start)
-    return order
-
-visit(node)
-    visited[node] = True
-    append node to order
-    for each neighbour of node, in graph.neighbours(node) order:
-        if neighbour is not in visited:
-            visit(neighbour)
-```
-
-**$O(V + E)$** on a list — and **$O(V)$ stack** in the worst case.
-
-::: {.handout-only}
-
-This is `dfs` and its helper `_dfs_visit` in the reference solution. Each call
-is one vertex; the loop inside it is that vertex's neighbours; returning from a
-call is "backing up". Everything DFS has to remember — which vertex it is in,
-and how far through that vertex's neighbours it has got — lives in the call
-stack of Lecture 03, one frame per vertex on the current path.
-
-That is also its weakness. The deepest path can be as long as V $-$ 1 edges: on a
-graph that is one long chain, recursive DFS makes V nested calls. Python stops
-at 1,000 frames by default: the reference `dfs` on a chain of 1,000 edges
-raises `RecursionError`, while on a chain of 900 it works. Raising the limit
-with `sys.setrecursionlimit` only moves the wall. The real answer is the next
-slide.
-
-:::
-
-## DFS with your own stack
-
-```text
-dfs_iterative(graph, start)
-    order = empty list;  visited = empty hash map
-    stack = empty Stack;  push start
-    while the stack is not empty:
-        node = pop
-        if node is in visited:  continue    # a second copy
-        visited[node] = True                # mark when taken
-        append node to order
-        for each neighbour, in REVERSE order:
-            if it is not in visited:  push it
-    return order
-```
-
-Same order as `dfs`, and no recursion limit.
-
-::: {.handout-only}
-
-Replace BFS's queue by a stack and the search becomes depth-first: the most
-recently discovered vertex is expanded next. Two details make the order match
-the recursive `dfs` exactly, which `test_dfs_and_dfs_iterative_agree` demands.
-
-**Push the neighbours in reverse.** A stack gives back the last thing pushed. To
-explore B before C (A's list is B, C), push C first and B last.
-
-**Mark when you pop, not when you push.** The recursive version marks a vertex
-when it *enters* it, and it can reach a vertex by a later, deeper route before
-the earlier call gets round to it. The stack must allow the same: a vertex may
-be pushed more than once, and the first time it is popped wins; later copies
-are skipped. So the stack can hold up to $O(E)$ entries, not $O(V)$.
-
-**Trace on G**, stack written bottom $\rightarrow$ top:
-
-| Pop | Action | Push | Stack afterwards | Order |
-|---|---|---|---|---|
-| A | visit | C, B | C B | A |
-| B | visit | D | C D | A B |
-| D | visit | F, C | C F C | A B D |
-| C | visit | E | C F E | A B D C |
-| E | visit | F | C F F | A B D C E |
-| F | visit | G | C F G | A B D C E F |
-| G | visit | — | C F | A B D C E F G |
-| F | already visited: skip | | C | |
-| C | already visited: skip | | empty | |
-
-C was pushed twice — by A and by D — and D's copy, the deeper route, was taken
-first, exactly as recursion would. This trace was produced by running the
-reference solution.
-
-:::
-
-## Why the two orders can differ
-
-"Mark when pushed", BFS-style, with a stack:
-
-| Variant | Order from A |
-|---|---|
-| recursive `dfs` | A B D C E F G |
-| stack, mark on pop, push reversed | A B D C E F G |
-| stack, mark on **push**, push reversed | A B D **F E G C** |
-| stack, mark on push, push in order | A C E F G D B |
-
-::: {.handout-only}
-
-The last two rows are the tempting shortcut: copy BFS, swap the queue for a
-stack. They are real depth-first searches — each follows a path as far as it
-can before backing up — and they visit every reachable vertex once in
-$O(V + E)$. For reachability, or for counting components, they are fine.
-
-But they are **not** the same order as recursive DFS. Marking C when A pushes
-it means that when D later looks at C, C is "already visited" and is not pushed
-again; so C waits at the bottom of the stack under A's copy and is visited last,
-instead of being entered from D. The recursive DFS would have gone A $\rightarrow$ B $\rightarrow$ D $\rightarrow$ C.
-All four rows were produced by running code on the same graph.
-
-The order matters when an algorithm depends on it — cycle detection and
-topological sort use exactly the recursive order, in which a vertex is
-"on the path" from the moment it is entered until every vertex below it is
-finished. So: mark on pop, and push neighbours in reverse, when you want the
-recursive order. `test_dfs_and_dfs_iterative_agree` fails for the shortcut.
-
-Why not always write the iterative version? The recursive one is shorter and
-reads like its definition; the iterative one survives a graph deeper than
-Python's recursion limit. In languages with larger stacks, recursive DFS is the
-common choice; in Python, on big graphs, write your own stack.
-
-:::
+**Predict:** What happens when C sees E? E is already visited. DFS first
+reached E along a three-edge path. Try **W14-M06** with the quiz's order
+of neighbours and **W14-E3** for the stack explanation.
 
 ## BFS and DFS side by side
 
@@ -658,68 +505,19 @@ in place of `bfs` — `dfs` gives the same groups, listed in a different order.
 
 :::
 
-## Cycles: undirected and directed are different
+## Reaching the same vertex twice
 
-![](figures/cycles.png){width=100%}
+In our directed graph, DFS finishes E before it reaches C. The edge
+`C → E` leads to already finished work.
 
-- **Undirected:** a visited neighbour that is **not your parent** closes a
-  cycle.
-- **Directed:** a neighbour that is **grey** — still on the current path.
+**Predict:** What changes if we add `E → B`?
 
 ::: {.handout-only}
 
-**Undirected: the parent check.** Run DFS, remembering for each vertex the
-vertex it was entered from. When a vertex has a neighbour that is already
-visited, you have found a second route to it — a cycle — **unless** that
-neighbour is simply the vertex you came from. In an undirected graph every edge
-is stored in both directions, so when DFS enters B from A, B's neighbour list
-contains A, and A is visited. That is not a cycle; it is the same edge seen
-from the other end. Forget the parent check and **every** undirected graph with
-an edge looks cyclic: `test_undirected_tree_has_no_cycle` is that trap.
-
-```text
-cycle_from(node, parent)                # undirected
-    visited[node] = True
-    for each neighbour of node:
-        if neighbour is not visited:
-            if cycle_from(neighbour, node):  return True
-        else if neighbour != parent:  return True
-    return False
-```
-
-**Directed: three colours.** In a directed graph "already visited" is not
-enough. In the diamond A $\rightarrow$ B $\rightarrow$ D and A $\rightarrow$ C $\rightarrow$ D, DFS reaches D from B, finishes
-it, backs up to A, goes to C, and meets D again. D is visited — but there is no
-cycle: no path leads from D back to C. What matters is whether the vertex is
-**on the current path**, the chain of calls still running. So each vertex has
-one of three colours:
-
-- **white** — not yet seen (in the code: not in the map);
-- **grey** — entered, and its call is still running: on the current path;
-- **black** — finished: every vertex below it is done.
-
-An edge to a **grey** vertex points back into the current path: a cycle. An
-edge to a **black** vertex is only a second route to finished work, like
-C $\rightarrow$ D in the diamond (`test_directed_diamond_is_not_a_cycle`). In A $\rightarrow$ B $\rightarrow$ C $\rightarrow$ A,
-when DFS at C looks at A, A is grey — its call is still waiting for B's, which
-is waiting for C's — so C $\rightarrow$ A closes a cycle.
-
-```text
-cycle_from(node)                        # directed
-    colour[node] = GREY
-    for each neighbour of node:
-        if colour[neighbour] is GREY:  return True
-        if colour[neighbour] is WHITE and cycle_from(neighbour):  return True
-    colour[node] = BLACK
-    return False
-```
-
-In both cases `has_cycle` runs the helper from every vertex not yet visited
-(white), because a cycle can sit in any component. That is $O(V + E)$ in total.
-The undirected parent check is wrong for directed graphs (A $\rightarrow$ B, B $\rightarrow$ A **is** a
-cycle, and the parent check would skip it), and the three colours would be
-wrong for undirected ones (every edge would be seen back into a grey parent).
-The docstring's warning — "the two cases genuinely differ" — is the point.
+On the first branch, B is still on the active call path when E sees it.
+`B → D → E → B` is a cycle. In an undirected graph the edge back to a
+parent is simply the edge we just followed. Contrast the two checks in
+**W14-M17, W14-M18 and W14-E4**.
 
 :::
 
@@ -803,6 +601,22 @@ order is a topological order — and meeting a grey vertex means there is none.
 It is the same cost, and W14-C3 in the question bank asks you to write it.
 
 :::
+
+## Use the same graph as prerequisites
+
+Read each arrow as “must come before”. The starting in-degrees of
+A, B, C, D and E are **0, 1, 1, 1, 2**.
+
+| Output next | Ready queue afterwards |
+|---|---|
+| A | `[B, C]` |
+| B | `[C, D]` |
+| C | `[D]` |
+| D | `[E]` |
+| E | `[]` |
+
+**Predict:** Why do we wait for D before adding E? Then try
+**W14-M16 and W14-M20** with different dependency graphs.
 
 # Two Real Graphs
 
@@ -892,8 +706,10 @@ Not examinable.
 
 ## Watch it run: the Graph Search Lab
 
-- Run BFS and DFS on the same graph and compare their discovery paths.
-- Track the BFS queue and the DFS call path, then predict which search finds a shortest path.
+- Use the same five vertices to trace both searches.
+- Predict which branch finds E first and when seeing an old vertex
+  actually closes a cycle.
+- Treat the edges as prerequisites and trace the ready queue.
 
 [Open the Graph Search Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-14)
 
@@ -961,6 +777,262 @@ shows you which ideas did not stick, and the explanation of each answer
 sends you back to the right part of this handout.
 
 - Quiz and written practice: <https://helghareeb.github.io/en/quizzes/dsa27/week-14/>
+
+:::
+
+# Implementation Notes and Deeper Analysis
+
+## Reference for the lab
+
+Use the later handout sections for implementation details and derivations after tracing the worked examples.
+
+::: {.handout-only}
+
+## Rings round the start
+
+![](figures/bfs-snapshots.png){width=100%}
+
+Visit the start, then **everything 1 edge away**, then everything 2 away, …
+
+A **queue** keeps the frontier in order: first discovered, first expanded.
+
+
+Breadth-first search, BFS — البحث بالعرض أولاً — explores a graph like a ripple on
+water: the start first, then all its neighbours, then all *their* unvisited
+neighbours, and so on outwards. Lecture 07 promised that a queue would do this,
+and here it is. A vertex waits in the queue from the moment it is **discovered**
+until it is **taken** off the front; because the queue is FIFO, everything
+discovered from layer 1 is taken before anything discovered from layer 2.
+
+In the figure, the running example — seven vertices, eight edges — is searched
+from A. After A is taken, B and C wait. B is taken and adds D; C is taken and
+adds E (its neighbour D is already waiting); D adds F; E adds nothing (F is
+already waiting); F adds G. The visit order is A B C D E F G.
+
+## Trace: `bfs(G, "A")`
+
+| Take | Discover (enqueue) | Queue afterwards | Order so far |
+|---|---|---|---|
+| A | B, C | B C | A |
+| B | D (A is visited) | C D | A B |
+| C | E (A, D are visited) | D E | A B C |
+| D | F | E F | A B C D |
+| E | — (C, F are visited) | F | A B C D E |
+| F | G | G | A B C D E F |
+| G | — | empty | A B C D E F G |
+
+
+The neighbour lists, in the order the edges were added, are
+A: B C · B: A D · C: A D E · D: B C F · E: C F · F: D E G · G: F.
+The neighbour order decides the tie-breaks: A lists B before C, so B is taken
+first. Change the order of the edges and you get a different — equally correct
+— BFS order, but the **layers** never change: {A}, {B, C}, {D, E}, {F}, {G}.
+`test_bfs_visits_by_distance` checks only what does not depend on the
+tie-breaks: D, two edges from A, comes after B.
+
+This table was produced by running the reference solution on `G_EDGES` in
+`tools/figures_l14.py`.
+
+## One path to its end, then back up
+
+![](figures/dfs-vs-bfs.png){width=100%}
+
+DFS goes **deep** first: follow a neighbour, then its neighbour, … until stuck;
+then **back up** to the last vertex with an unvisited neighbour.
+
+
+Depth-first search, DFS — البحث بالعمق أولاً — is how you would explore a maze with
+a ball of string: keep walking into unexplored corridors, and when you reach a
+dead end, wind the string back to the last junction with a corridor you have not
+tried. From A it goes to B (A's first neighbour), then to D (B's first unvisited
+neighbour), then to C (D's first unvisited neighbour), then to E, F and G. The
+order is A B D C E F G, against BFS's A B C D E F G.
+
+`test_dfs_goes_deep_and_bfs_goes_wide` tells them apart on the smallest graph
+that can: A–B, B–C, A–D. DFS goes A, B, C before it touches D; BFS takes D
+before C.
+
+DFS does **not** find shortest paths: it reached C through B and D, three edges,
+when C is a neighbour of A. What it gives instead is structure — the order in
+which vertices are finished, which detects cycles and gives topological orders.
+
+## Recursive DFS: the call stack does the work
+
+```text
+dfs(graph, start)
+    order = empty list;  visited = empty hash map
+    visit(start)
+    return order
+
+visit(node)
+    visited[node] = True
+    append node to order
+    for each neighbour of node, in graph.neighbours(node) order:
+        if neighbour is not in visited:
+            visit(neighbour)
+```
+
+**$O(V + E)$** on a list — and **$O(V)$ stack** in the worst case.
+
+
+This is `dfs` and its helper `_dfs_visit` in the reference solution. Each call
+is one vertex; the loop inside it is that vertex's neighbours; returning from a
+call is "backing up". Everything DFS has to remember — which vertex it is in,
+and how far through that vertex's neighbours it has got — lives in the call
+stack of Lecture 03, one frame per vertex on the current path.
+
+That is also its weakness. The deepest path can be as long as V $-$ 1 edges: on a
+graph that is one long chain, recursive DFS makes V nested calls. Python stops
+at 1,000 frames by default: the reference `dfs` on a chain of 1,000 edges
+raises `RecursionError`, while on a chain of 900 it works. Raising the limit
+with `sys.setrecursionlimit` only moves the wall. The real answer is the next
+slide.
+
+## DFS with your own stack
+
+```text
+dfs_iterative(graph, start)
+    order = empty list;  visited = empty hash map
+    stack = empty Stack;  push start
+    while the stack is not empty:
+        node = pop
+        if node is in visited:  continue    # a second copy
+        visited[node] = True                # mark when taken
+        append node to order
+        for each neighbour, in REVERSE order:
+            if it is not in visited:  push it
+    return order
+```
+
+Same order as `dfs`, and no recursion limit.
+
+
+Replace BFS's queue by a stack and the search becomes depth-first: the most
+recently discovered vertex is expanded next. Two details make the order match
+the recursive `dfs` exactly, which `test_dfs_and_dfs_iterative_agree` demands.
+
+**Push the neighbours in reverse.** A stack gives back the last thing pushed. To
+explore B before C (A's list is B, C), push C first and B last.
+
+**Mark when you pop, not when you push.** The recursive version marks a vertex
+when it *enters* it, and it can reach a vertex by a later, deeper route before
+the earlier call gets round to it. The stack must allow the same: a vertex may
+be pushed more than once, and the first time it is popped wins; later copies
+are skipped. So the stack can hold up to $O(E)$ entries, not $O(V)$.
+
+**Trace on G**, stack written bottom $\rightarrow$ top:
+
+| Pop | Action | Push | Stack afterwards | Order |
+|---|---|---|---|---|
+| A | visit | C, B | C B | A |
+| B | visit | D | C D | A B |
+| D | visit | F, C | C F C | A B D |
+| C | visit | E | C F E | A B D C |
+| E | visit | F | C F F | A B D C E |
+| F | visit | G | C F G | A B D C E F |
+| G | visit | — | C F | A B D C E F G |
+| F | already visited: skip | | C | |
+| C | already visited: skip | | empty | |
+
+C was pushed twice — by A and by D — and D's copy, the deeper route, was taken
+first, exactly as recursion would. This trace was produced by running the
+reference solution.
+
+## Why the two orders can differ
+
+"Mark when pushed", BFS-style, with a stack:
+
+| Variant | Order from A |
+|---|---|
+| recursive `dfs` | A B D C E F G |
+| stack, mark on pop, push reversed | A B D C E F G |
+| stack, mark on **push**, push reversed | A B D **F E G C** |
+| stack, mark on push, push in order | A C E F G D B |
+
+
+The last two rows are the tempting shortcut: copy BFS, swap the queue for a
+stack. They are real depth-first searches — each follows a path as far as it
+can before backing up — and they visit every reachable vertex once in
+$O(V + E)$. For reachability, or for counting components, they are fine.
+
+But they are **not** the same order as recursive DFS. Marking C when A pushes
+it means that when D later looks at C, C is "already visited" and is not pushed
+again; so C waits at the bottom of the stack under A's copy and is visited last,
+instead of being entered from D. The recursive DFS would have gone A $\rightarrow$ B $\rightarrow$ D $\rightarrow$ C.
+All four rows were produced by running code on the same graph.
+
+The order matters when an algorithm depends on it — cycle detection and
+topological sort use exactly the recursive order, in which a vertex is
+"on the path" from the moment it is entered until every vertex below it is
+finished. So: mark on pop, and push neighbours in reverse, when you want the
+recursive order. `test_dfs_and_dfs_iterative_agree` fails for the shortcut.
+
+Why not always write the iterative version? The recursive one is shorter and
+reads like its definition; the iterative one survives a graph deeper than
+Python's recursion limit. In languages with larger stacks, recursive DFS is the
+common choice; in Python, on big graphs, write your own stack.
+
+## Cycles: undirected and directed are different
+
+![](figures/cycles.png){width=100%}
+
+- **Undirected:** a visited neighbour that is **not your parent** closes a
+  cycle.
+- **Directed:** a neighbour that is **grey** — still on the current path.
+
+
+**Undirected: the parent check.** Run DFS, remembering for each vertex the
+vertex it was entered from. When a vertex has a neighbour that is already
+visited, you have found a second route to it — a cycle — **unless** that
+neighbour is simply the vertex you came from. In an undirected graph every edge
+is stored in both directions, so when DFS enters B from A, B's neighbour list
+contains A, and A is visited. That is not a cycle; it is the same edge seen
+from the other end. Forget the parent check and **every** undirected graph with
+an edge looks cyclic: `test_undirected_tree_has_no_cycle` is that trap.
+
+```text
+cycle_from(node, parent)                # undirected
+    visited[node] = True
+    for each neighbour of node:
+        if neighbour is not visited:
+            if cycle_from(neighbour, node):  return True
+        else if neighbour != parent:  return True
+    return False
+```
+
+**Directed: three colours.** In a directed graph "already visited" is not
+enough. In the diamond A $\rightarrow$ B $\rightarrow$ D and A $\rightarrow$ C $\rightarrow$ D, DFS reaches D from B, finishes
+it, backs up to A, goes to C, and meets D again. D is visited — but there is no
+cycle: no path leads from D back to C. What matters is whether the vertex is
+**on the current path**, the chain of calls still running. So each vertex has
+one of three colours:
+
+- **white** — not yet seen (in the code: not in the map);
+- **grey** — entered, and its call is still running: on the current path;
+- **black** — finished: every vertex below it is done.
+
+An edge to a **grey** vertex points back into the current path: a cycle. An
+edge to a **black** vertex is only a second route to finished work, like
+C $\rightarrow$ D in the diamond (`test_directed_diamond_is_not_a_cycle`). In A $\rightarrow$ B $\rightarrow$ C $\rightarrow$ A,
+when DFS at C looks at A, A is grey — its call is still waiting for B's, which
+is waiting for C's — so C $\rightarrow$ A closes a cycle.
+
+```text
+cycle_from(node)                        # directed
+    colour[node] = GREY
+    for each neighbour of node:
+        if colour[neighbour] is GREY:  return True
+        if colour[neighbour] is WHITE and cycle_from(neighbour):  return True
+    colour[node] = BLACK
+    return False
+```
+
+In both cases `has_cycle` runs the helper from every vertex not yet visited
+(white), because a cycle can sit in any component. That is $O(V + E)$ in total.
+The undirected parent check is wrong for directed graphs (A $\rightarrow$ B, B $\rightarrow$ A **is** a
+cycle, and the parent check would skip it), and the three colours would be
+wrong for undirected ones (every edge would be seen back into a grey parent).
+The docstring's warning — "the two cases genuinely differ" — is the point.
 
 :::
 
