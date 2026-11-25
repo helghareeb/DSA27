@@ -890,6 +890,13 @@ Not examinable.
 
 :::
 
+## Watch it run: the Graph Search Lab
+
+- Run BFS and DFS on the same graph and compare their discovery paths.
+- Track the BFS queue and the DFS call path, then predict which search finds a shortest path.
+
+[Open the Graph Search Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-14)
+
 # This Week
 
 ## Exercises: `dsa/graph.py`

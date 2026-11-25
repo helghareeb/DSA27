@@ -471,6 +471,13 @@ but no order — no bounds, no ranges).
 | `exponential_search` | sorted | $O(\log(i+2))$ | unknown length; near the front |
 | `interpolation_search` | sorted, even | $O(\log \log n)$ avg, $O(n)$ worst | guesses |
 
+## Watch it run: the Searching Lab
+
+- Trace a binary-search miss and see how lower and upper bounds count duplicates.
+- At each step, predict which index or interval endpoint changes.
+
+[Open the Searching Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-08)
+
 # This Week
 
 ## Exercises: `dsa/searching.py`

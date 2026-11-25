@@ -753,6 +753,13 @@ sorting does not.
 
 :::
 
+## Watch it run: the Heap and Priority Queue Lab
+
+- Step through sift-up after a push and sift-down after a pop in a min-heap.
+- Predict which child becomes the next parent before you advance.
+
+[Open the Heap and Priority Queue Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-12)
+
 # This Week
 
 ## Exercises: `dsa/heap.py`

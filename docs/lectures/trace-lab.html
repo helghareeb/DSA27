@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DSA27 Interactive Labs</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --page: #edf1f5; --panel: #fff; --ink: #182432; --muted: #536475;
+    --line: #cdd6e1; --soft: #e8edf3; --active: #163a63; --focus: #d1882b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #121a23; --panel: #1b2632; --ink: #eef4fc; --muted: #adbdcf;
+      --line: #42546a; --soft: #26364a; --active: #294e7c; --focus: #ffbf66;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--ink); background: var(--page); font: 1rem/1.5 system-ui, sans-serif; }
+  main { max-width: 75rem; margin: auto; padding: clamp(1rem, 3vw, 2rem); }
+  h1, h2 { line-height: 1.15; margin: .3rem 0 .8rem; }
+  h1 { font-size: clamp(1.85rem, 4vw, 2.6rem); }
+  h2 { font-size: 1.2rem; }
+  a { color: inherit; text-underline-offset: .18em; }
+  :lang(ar) { font-family: Amiri, serif; }
+  nav { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1rem; margin: 1rem 0; }
+  label { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; max-width: 100%; font-weight: 600; }
+  button, select {
+    font: inherit; color: var(--ink); background: var(--panel);
+    border: 1px solid var(--line); border-radius: .5rem; padding: .43rem .72rem;
+  }
+  button { cursor: pointer; }
+  select { min-width: 0; max-width: 100%; }
+  button:disabled { cursor: default; opacity: .45; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+  .primary { color: #fff; background: var(--active); border-color: var(--active); }
+  .panels { display: grid; gap: 1rem; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: .75rem; padding: 1.1rem; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .9rem 0; }
+  #progress { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
+  details { background: var(--soft); border-radius: .5rem; padding: .65rem .8rem; }
+  summary { cursor: pointer; font-weight: 600; }
+  #answer { margin-bottom: 0; }
+  ol { padding-left: 1.6rem; margin-bottom: 0; }
+  li { padding: .37rem .45rem; }
+  li[aria-current="step"] { background: var(--soft); border-inline-start: 3px solid var(--focus); }
+  dt { color: var(--muted); font-weight: 650; margin-top: .65rem; }
+  dd { margin: .2rem 0; }
+  .state {
+    white-space: pre-wrap; overflow-wrap: anywhere; padding: .48rem .64rem;
+    background: var(--soft); border-radius: .4rem; font-family: ui-monospace, Consolas, monospace;
+  }
+  .muted { color: var(--muted); }
+  @media (max-width: 700px) {
+    .panels { grid-template-columns: 1fr; }
+    .diagram { order: -1; }
+    #progress { margin-left: 0; }
+  }
+</style>
+<main>
+  <a href="../">DSA27 course materials</a>
+  <h1 id="title">DSA27 Interactive Labs</h1>
+  <nav aria-label="Lab and practice">
+    <label>Lecture <select id="lecture"></select></label>
+    <label>Scenario <select id="scenario"></select></label>
+    <a id="quiz">Quiz and written practice</a>
+    <a id="arabic-quiz" lang="ar" dir="rtl">الاختبار بالعربية</a>
+  </nav>
+  <p id="intro" class="muted"></p>
+  <div class="panels">
+    <section class="panel" aria-labelledby="rules-title">
+      <h2 id="rules-title">Trace rules</h2>
+      <ol id="rules"></ol>
+    </section>
+    <section class="panel diagram" aria-labelledby="state-title">
+      <h2 id="state-title">Current state</h2>
+      <p id="explanation" aria-live="polite"></p>
+      <dl id="state"></dl>
+      <div class="controls" aria-label="Trace controls">
+        <button id="restart" title="Restart (R)">Restart</button>
+        <button id="back" title="Back (left arrow)">Back</button>
+        <button id="next" class="primary" title="Next (right arrow)">Next</button>
+        <button id="play" title="Play or pause (P)">Play</button>
+        <span id="progress"></span>
+      </div>
+      <details id="prediction">
+        <summary id="question"></summary>
+        <p id="answer"></p>
+      </details>
+    </section>
+  </div>
+</main>
+<script src="trace-lab-scenarios.js"></script>
+<script src="trace-lab.js"></script>
+</html>

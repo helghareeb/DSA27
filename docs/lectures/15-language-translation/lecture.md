@@ -809,6 +809,13 @@ the engineer's work is to choose — with a measurement, not a guess.
 
 :::
 
+## Watch it run: the Language Translation Lab
+
+- Step from characters to tokens, a syntax tree, and the final value.
+- Predict how parentheses change the tree and the evaluation order.
+
+[Open the Language Translation Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-15)
+
 # This Week
 
 ## Exercises: `dsa/translation.py`

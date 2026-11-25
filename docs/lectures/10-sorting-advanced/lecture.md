@@ -9,143 +9,321 @@ lang: en
 
 ::: {.handout-only}
 
-> **How to read this document.** This is the handout for Lecture 10. It holds
-> everything on the slides, plus what I said out loud. Last week's three sorts
-> all cost $O(n^2)$. This week, three sorts that cost $O(n \log n)$ — merge
-> sort, quicksort and heap sort — and one idea behind the first two: **divide
-> and conquer**. Every trace in this handout was produced by running the
-> reference code, and every number in the measured section was counted, not
-> estimated.
+> **How to use this lecture.** First trace the three sorts on the same list.
+> Then compare their costs and see how Python uses runs. The later
+> implementation notes are the reference for Lab 10.
 >
-> Slides: `DSA27-L10-slides.pdf` · Code: `dsa/sorting.py` (the second half) ·
-> Tests: `tests/test_sorting.py -k "merge or quick or heap"` ·
-> Practise online: [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/) (in [Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/))
+> Slides: `DSA27-L10-slides.pdf` · Code: `dsa/sorting.py` ·
+> [Advanced Sorting Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10) ·
+> [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/)
+> ([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/))
 
 :::
 
-# Where We Are
+# Three Ways to Sort One List
 
-## From $n^2$ to $n \log n$
+## One input, three decisions
 
-Week 9: bubble, selection, insertion — **$O(n^2)$** comparisons.
+We will sort **`[5, 2, 9, 1, 7, 3]`**, the list from Lecture 09.
 
-| n | $n^2 / 2$ | $n \log_2 n$ |
-|---|---|---|
-| 1,000 | 500,000 | 10,000 |
-| 1,000,000 | 500,000,000,000 | 20,000,000 |
+| Sort | The important decision |
+|---|---|
+| Merge sort | Split by position, then choose the next item from two sorted runs. |
+| Quicksort | Choose a pivot, then partition by value. |
+| Heap sort | Keep the largest remaining value at the root of a max-heap. |
 
-Today: three sorts on the right-hand column — and the price each one pays.
+**Predict:** Which sort knows where one value belongs after its first pass?
 
 ::: {.handout-only}
 
-At a million values, an $O(n^2)$ sort does about 25,000 times more work than
-an $O(n \log n)$ one. Nothing you can do to the constant closes a gap like
-that; only a different algorithm does. Week 9's sorts all move an element by
-**one** place per comparison, or compare every pair; this week's sorts each
-find a way to let one comparison settle the order of many elements at once.
+After the first partition, quicksort knows the pivot is in its final position.
+After the first **extraction** from the heap, heap sort knows the maximum is at
+the end. Splitting for merge sort makes no claim about any value's final
+position.
 
-*Sorting* in Arabic: الترتيب. *Merge sort*: الترتيب بالدمج. *Quicksort*:
-الترتيب السريع. *Heap sort*: الترتيب بالكومة.
-
-:::
-
-## Today
-
-1. Divide and conquer
-2. Merge sort: $T(n) = 2T(n/2) + n$, stable, $O(n)$ extra space
-3. Quicksort: partition, pivots, and a worst case you will **measure**
-4. Heap sort: the array is the tree — Week 12 arriving early
-5. Measured: all six sorts, one picture
-6. What Python's `sorted()` actually does
-7. Stability, and the table to remember
-
-# Divide and Conquer
-
-## Three steps
-
-1. **Divide** the problem into smaller problems of the same kind.
-2. **Conquer** each one — recursively, until it is trivial.
-3. **Combine** their answers into the answer.
-
-Merge sort: divide is free, **combine** does the work.
-Quicksort: **divide** does the work, combine is free.
-
-::: {.handout-only}
-
-*Divide and conquer* in Arabic: فرق تسد. You have met the pattern twice.
-Lecture 03's recursions split a problem and trusted the recursive call to
-solve the smaller part; Lecture 08's binary search is divide and conquer with
-only **one** of the two halves kept, which is why it costs $\log n$ and not
-$n$. This week both halves are kept, and each has to be sorted.
-
-The two sorts in this lecture are mirror images, and that is worth saying out
-loud before any code. Merge sort splits the array in the middle without
-looking at it, and does all its thinking when it **merges** two sorted halves.
-Quicksort thinks first — it **partitions** the array into "small" and "large"
-around a pivot — and then there is nothing left to combine: small, pivot,
-large is already in order.
+*Merge sort*: الترتيب بالدمج. *Quicksort*: الترتيب السريع.
+*Heap sort*: الترتيب بالكومة.
 
 :::
+
+## Divide and conquer
+
+1. **Divide** the problem into smaller problems.
+2. **Conquer** by solving the smaller problems, stopping at size 0 or 1.
+3. **Combine** the answers.
+
+Merge sort does the ordering work on the way **back up**. Quicksort does
+its partitioning **before** the recursive calls.
 
 # Merge Sort
 
-## Split until trivial, merge on the way up
+::: {.handout-only}
 
-![](figures/divide.png){width=66%}
+```{=latex}
+\par\noindent\begin{minipage}{\linewidth}
+```
+
+:::
+
+## Split by position
+
+```text
+                  [5, 2, 9, 1, 7, 3]
+                 /                  \
+          [5, 2, 9]                  [1, 7, 3]
+         /         \                /         \
+       [5]        [2, 9]          [1]        [7, 3]
+                  /    \                     /    \
+                [2]    [9]                 [7]    [3]
+```
+
+A one-item list is already sorted. Work back up, merging the two sorted
+children of each split.
 
 ::: {.handout-only}
 
-The figure is `merge_sort([38, 27, 43, 3, 9, 82, 10, 19])`. Going down, each
-range is cut at `mid = (lo + hi) // 2` — no comparisons, no moves. At the
-bottom, every range holds one element, and **a one-element list is sorted**:
-that is the base case. Going up, each pair of neighbouring sorted runs is
-merged into one sorted run, until the whole array is one run. The merged rows
-are the real states yielded by `merge_sort_steps`, taken from the reference
-code; the order of the seven merges is
-
-```text
-a[0:2]  a[2:4]  a[0:4]  a[4:6]  a[6:8]  a[4:8]  a[0:8]
+```{=latex}
+\end{minipage}\par
 ```
-
-— left half first, completely, then the right half, then the two together:
-the order of a recursive call tree (Lecture 03).
 
 :::
 
 ## Merging two sorted runs
 
-![](figures/merge-step.png){width=92%}
+| Left front | Right front | Append |
+|---:|---:|---:|
+| 2 | 1 | 1 |
+| 2 | 3 | 2 |
+| 5 | 3 | 3 |
+| 5 | 7 | 5 |
+| 9 | 7 | 7 |
+| 9 | empty | 9 |
 
-Compare the two **fronts**; copy the smaller to `scratch`; advance that side.
-When one run is empty, copy the rest of the other.
+This is the final merge of `[2, 5, 9]` and `[1, 3, 7]`. Each choice consumes
+one front item. When a run empties, copy the other run's remainder.
+
+**Predict:** If the two front keys are equal, which item keeps its input order?
 
 ::: {.handout-only}
 
-You have written this twice already. In Week 2, `merge_sorted(a, b)` in
-`dsa/array_ops.py` merged two `Array`s into a new one with a loop; in Week 3,
-`merge_sorted(left, right)` in `dsa/recursion.py` did it recursively, and its
-docstring promised: *"This is the merge step of merge sort."* (Lecture 03,
-"Merging: recursion on two inputs"). Lecture 03 also warned that the recursive
-version is `n + m` frames deep, too deep for Python on long lists — and "a good
-reason why merge sort's real merge step, in Week 10, is a loop". Here it is.
-
-Two runs of lengths $n_1$ and $n_2$ merge in at most $n_1 + n_2 - 1$
-comparisons, because each comparison sends exactly one element to `scratch`,
-and the last element needs no comparison at all. In the figure, the left run
-is 3 27 38 43 and the right run is 9 10 19 82. Four elements have gone
-(3, 9, 10, 19); now 27 is compared with 82, and 27 goes.
+Take the left run's item. The left run contains earlier input positions, so
+taking it first preserves the order of equal keys. The same rule at every
+merge makes the whole sort stable.
 
 :::
 
-## `_merge`: the code
+## Merge sort, the whole run
 
-::: {.slides-only}
-
-```{=latex}
-\scriptsize
+```text
+[2] + [9]       -> [2, 9]
+[5] + [2, 9]    -> [2, 5, 9]
+[7] + [3]       -> [3, 7]
+[1] + [3, 7]    -> [1, 3, 7]
+[2, 5, 9] + [1, 3, 7] -> [1, 2, 3, 5, 7, 9]
 ```
 
+Each level merges at most $n$ items, and there are $O(\log n)$ levels.
+**Time:** $O(n \log n)$ in the worst case. **Extra space:** $O(n)$ for
+merging the array. **Stable:** take the left item on ties.
+
+# Quicksort
+
+## Partition around one pivot
+
+Use the last value, **3**, as the first pivot. Scan the other five items.
+Bring each value smaller than 3 to the next free place on the left.
+
+| Item examined | Action | Array |
+|---:|---|---|
+| 5 | Keep it on the right of the boundary | `[5, 2, 9, 1, 7, 3]` |
+| 2 | Swap it to the left | `[2, 5, 9, 1, 7, 3]` |
+| 9 | Advance the scan | `[2, 5, 9, 1, 7, 3]` |
+| 1 | Swap it to the left | `[2, 1, 9, 5, 7, 3]` |
+| 7 | Advance the scan | `[2, 1, 9, 5, 7, 3]` |
+| pivot 3 | Swap to the boundary | `[2, 1, 3, 5, 7, 9]` |
+
+## Quicksort, the whole run
+
+```text
+[5, 2, 9, 1, 7, 3] -> [2, 1] | 3 | [5, 7, 9]
+[2, 1]             ->   []   | 1 | [2]
+[5, 7, 9]          -> [5, 7] | 9 | []
+[5, 7]             ->  [5]   | 7 | []
+Result:                [1, 2, 3, 5, 7, 9]
+```
+
+Recurse on the two sides. Skip the pivot. A partition guarantees that every
+item to its left is smaller and every item to its right is at least as large.
+
+**Predict:** With last-element pivots, which one of these four calls compares
+the pivot to the most values?
+
+::: {.handout-only}
+
+The first call makes five comparisons. The `[5, 7, 9]` call makes two and
+both two-item calls make one.
+
 :::
+
+## The pivot determines the cost
+
+- **Balanced sides:** about $\log n$ levels, with $O(n)$ work per level.
+- **One empty side each time:** $n-1, n-2, \ldots, 1$ comparisons, or $O(n^2)$.
+- Random pivots on distinct keys give **expected** $O(n \log n)$. The
+  course's two-way partition can still struggle when many keys are equal.
+
+The **partition** rearranges the array in place. Recursive calls use stack
+space. Swapping across the boundary can reorder equal keys.
+
+# Heap Sort
+
+## Read the array as a tree
+
+```text
+Index:     0
+         /   \
+        1     2         left child: 2i + 1
+       / \   /          right child: 2i + 2
+      3   4 5
+```
+
+A **max-heap** keeps every parent at least as large as its children. The
+largest item is therefore at index 0. In a **sift down**, compare with the
+larger child and swap when that child is larger than the parent.
+
+## Heap sort, the whole run
+
+Build bottom-up. Then swap the root with the last heap item, shrink the heap,
+and sift the new root down.
+
+| After | Active heap | Sorted suffix |
+|---|---|---|
+| Build | `[9, 7, 5, 1, 2, 3]` | `[]` |
+| Move 9 | `[7, 3, 5, 1, 2]` | `[9]` |
+| Move 7 | `[5, 3, 2, 1]` | `[7, 9]` |
+| Move 5 | `[3, 1, 2]` | `[5, 7, 9]` |
+| Move 3 | `[2, 1]` | `[3, 5, 7, 9]` |
+| Move 2 | `[1]` | `[2, 3, 5, 7, 9]` |
+
+## The heap boundary matters
+
+**Predict:** After moving 9 to the end, does 9 still take part in the next sift?
+
+Build-heap costs **$O(n)$**. Each of the $n-1$ extractions sifts down at most
+one path of length $O(\log n)$. The total is **$O(n \log n)$** in the worst
+case, with **$O(1)$** extra space for the in-place iterative sort. The root
+swaps can reorder equal keys.
+
+::: {.handout-only}
+
+The answer is no. After the first extraction, only indices 0 through 4 are in
+the heap. Allowing the sift to reach the sorted suffix can move 9 back to the
+root and breaks the invariant.
+
+:::
+
+# Compare and Choose
+
+## What each sort trades away
+
+| Sort | Worst time | Extra space in the lab algorithm | Stable? |
+|---|---:|---:|---|
+| Merge | $O(n \log n)$ | $O(n)$ | Yes |
+| Quick | $O(n^2)$ | $O(\log n)$ stack with smaller-side recursion | No |
+| Heap | $O(n \log n)$ | $O(1)$ | No |
+
+Extra space here describes the sorting algorithm on its working array.
+The course wrappers can also copy inputs and produce animation frames.
+
+## Watch it run: the Advanced Sorting Lab
+
+- Start with the same six values and step through all three sorts.
+- Predict the next merged value, the final pivot position, or the first
+  extracted maximum before you reveal the answer.
+- Compare what has become final after each step.
+
+[Open the Advanced Sorting Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10)
+
+# What Python Actually Uses
+
+## `sorted()` and `list.sort()`: Timsort with Powersort
+
+*Enrichment — not examinable.*
+
+1. Find the **runs** already in the data (reversing descending ones).
+2. Extend short runs with **binary insertion sort**.
+3. **Merge** adjacent runs, stably, using $O(n)$ extra space. Since CPython
+   3.11, **Powersort** chooses the merge order.
+
+Sorted input: one run, **n – 1 comparisons**. Worst case: $O(n \log n)$.
+
+::: {.handout-only}
+
+Tim Peters's **Timsort** is a stable, adaptive merge sort. It finds **natural
+runs** by scanning for stretches that already have an order. It turns descending
+runs around, preserving the order of equal keys, and uses binary insertion sort
+to extend short runs. During a merge, when values keep coming from the same run,
+it can switch to **galloping**: an exponential search (Lecture 08) for how much
+of that run can be copied at once. On already sorted input, CPython finds a
+single run in $n-1$ comparisons and has nothing to merge.
+
+**What changed in CPython 3.11?** CPython adopted Munro and Wild's **Powersort**
+to choose which adjacent runs to merge first. Run detection, binary insertion
+sort, stable merging, and galloping are still part of the sort. For a list with many natural runs, merge order determines how often
+each part of the input has to pass through a merge.
+
+**Why does order matter?** Suppose the three runs are `A(96) | B(32) | C(32)`.
+Use the sum of the two run lengths as the cost of a merge.
+
+| Merge order | First merge | Final merge | Total cost |
+|---|---:|---:|---:|
+| `(A + B) + C` | 128 | 160 | 288 |
+| `A + (B + C)` | 64 | 160 | 224 |
+
+Merging the two short runs first lets the 96 items of `A` take part in only
+one merge. The table counts run lengths as a model of work. Actual comparison
+counts also depend on the values and on shortcuts such as galloping.
+
+**How does Powersort choose?** Each boundary between two runs gets a *node
+power*. On a scale from 0 to 1, look at the two run midpoints and find the
+first binary digit where they differ. That digit's position, counting from 1,
+is the power. In the example, the midpoints are 0.30, 0.70, and 0.90. The
+`A | B` boundary has power 1 because the midpoints straddle $1/2$. The
+`B | C` boundary has power 2 because both midpoints are in the right half
+but straddle $3/4$. Higher powers sit deeper in the merge tree and are merged
+first here, so `B + C` comes before the final merge with `A`. This rule gives
+near-optimal merge cost for the distribution of run lengths.
+
+The [CPython 3.11 changelog](https://docs.python.org/3.11/whatsnew/changelog.html#python-3-11-0-alpha-1)
+records the change, and the [CPython design notes](https://github.com/python/cpython/blob/main/Objects/listsort.txt)
+explain how the run stack uses the powers.
+
+Java uses Timsort for object arrays and dual-pivot quicksort for primitive
+arrays. In 2015, de Gouw and colleagues found a bug in OpenJDK's Timsort while
+formally verifying its run-stack invariant.
+
+What this means for you: in your own programs, use `sorted()` or
+`list.sort()`, and `key=` for anything but plain values. In `dsa/sorting.py`,
+the point is that you can write the algorithms it is made of.
+
+:::
+
+# Implementation Notes and Deeper Analysis
+
+## Where the lab code starts
+
+- The handout gives the implementation with `Array`, a shared merge buffer,
+  Lomuto partitioning and the heap's active size.
+- Use the notes on generators and snapshots when Lab 10 asks for the
+  `_steps` forms. The plain sorts reuse those implementations.
+- The measured comparisons and the proofs are at the end of these notes.
+
+::: {.handout-only}
+
+## Merge sort implementation
+
+### `_merge`: the code
+
 
 ```python
 def _merge(a, lo, mid, hi, scratch):
@@ -170,7 +348,6 @@ def _merge(a, lo, mid, hi, scratch):
         a[k] = scratch[k]
 ```
 
-::: {.handout-only}
 
 This is `_merge` from the reference solution, exactly (without its
 docstring). The runs are `a[lo:mid]` and `a[mid:hi]` — half-open ranges, as in
@@ -185,17 +362,9 @@ takes from the **left** run — the element that came first in the input. Write
 `<` and the sort is still correct, and every test that compares numbers still
 passes; but equal keys come out in the wrong order. See "Stability" below.
 
-:::
 
-## `merge_sort_steps`: divide, conquer, combine
+### `merge_sort_steps`: divide, conquer, combine
 
-::: {.slides-only}
-
-```{=latex}
-\footnotesize
-```
-
-:::
 
 ```python
 a = _copy(values)
@@ -215,7 +384,6 @@ yield from sort(0, len(a))
 yield snapshot(a), ()
 ```
 
-::: {.handout-only}
 
 The body of `merge_sort_steps` in the reference. `sort(lo, hi)` sorts
 `a[lo:hi]`; ranges of 0 or 1 elements are the base case. The three steps of
@@ -239,16 +407,14 @@ $\log_2 n$ frames deep because the ranges halve.
 The plain form, `merge_sort(values)`, runs this generator to the end and
 returns the last state — one implementation for the tests and the animation.
 
-:::
 
-## How much work? $T(n) = 2T(n/2) + n$
+### How much work? $T(n) = 2T(n/2) + n$
 
 ![](figures/recursion-tree.png){width=94%}
 
 $\log_2 n$ levels, $n$ work per level: **$O(n \log n)$** — best, average and
 worst case alike.
 
-::: {.handout-only}
 
 A **recurrence** (Lecture 03) states the cost of a recursive function in terms
 of its own cost on smaller inputs. For merge sort on n elements: two sorts of
@@ -273,16 +439,14 @@ $n$ — measured: 5,120 comparisons for 1,024 sorted values against 8,935 for
 random ones. The **moves** are the same either way: every level copies all n
 elements to `scratch` and back.
 
-:::
 
-## The price: $O(n)$ extra space
+### The price: $O(n)$ extra space
 
 - Merge sort is **not in place**: `scratch` holds n slots.
 - The call stack adds $O(\log n)$.
 - Fine for n = 10^6^ numbers; a real cost on a small device, or for data
   that barely fits in memory.
 
-::: {.handout-only}
 
 Merging two runs in place, without a second array, is possible but
 complicated and slower in practice; nobody teaches it in a first course, and
@@ -295,38 +459,12 @@ that fit, write each sorted run to disk, then merge the runs, reading each one
 front to back. That is *external sorting*, and it is still merge sort — only
 the runs live in files.
 
-:::
+## Quicksort implementation
 
-# Quicksort
-
-## Partition, then recurse
-
-Pick a **pivot**. Rearrange so that
-
-$$\underbrace{\;< \text{pivot}\;}_{\text{left part}} \quad \text{pivot} \quad \underbrace{\;\geq \text{pivot}\;}_{\text{right part}}$$
-
-The pivot is now in its **final place**. Sort the two parts; nothing to
-combine.
-
-::: {.handout-only}
-
-C. A. R. Hoare invented quicksort in 1959 and published it in 1961 ("Algorithm
-64: Quicksort", *Communications of the ACM* 4(7)). *Pivot* in Arabic: المحور.
-*Partition*: التقسيم.
-
-After a partition, the pivot never moves again: everything smaller is to its
-left and everything larger or equal is to its right, and sorting those two
-parts cannot change that. So each partition fixes **one** element for good and
-splits the rest into two smaller, independent problems. How much smaller
-depends entirely on the pivot — and that is the story of quicksort.
-
-:::
-
-## Lomuto's partition
+### Lomuto's partition
 
 ![](figures/partition.png){width=62%}
 
-::: {.handout-only}
 
 There are two classic partition schemes. Hoare's original moves two indices
 towards each other; the one in `dsa/sorting.py` is **Lomuto's**, popularised by
@@ -349,9 +487,8 @@ The figure traces `Q = [6, 3, 9, 1, 8, 2, 7, 4]`. The pivot is 4; the values
 3, 1 and 2 are smaller and end up in `a[0:3]`; the pivot lands at index 3. The
 partition made 7 comparisons, one per non-pivot element: $n - 1$, always.
 
-:::
 
-## `_partition`: the code
+### `_partition`: the code
 
 ```python
 def _partition(a, lo, hi):
@@ -367,7 +504,6 @@ def _partition(a, lo, hi):
 
 **Invariant:** `a[lo:boundary] < pivot <= a[boundary:j]`.
 
-::: {.handout-only}
 
 Note the ranges: `lo` and `hi` here are **inclusive**, `a[lo..hi]`, with the
 pivot at `hi` — unlike `_merge`, whose `hi` is excluded. Both are fine; what is
@@ -382,17 +518,9 @@ equal values that is a weakness — a list of a thousand equal values partitions
 into 0 and 999, the worst case again. Industrial quicksorts use a three-way
 partition (< , =, >) for this reason; it is not required here.
 
-:::
 
-## Choosing the pivot
+### Choosing the pivot
 
-::: {.slides-only}
-
-```{=latex}
-\footnotesize
-```
-
-:::
 
 ```python
 def _choose_pivot(a, lo, hi, strategy, rng):
@@ -415,7 +543,6 @@ def _choose_pivot(a, lo, hi, strategy, rng):
 
 The chosen pivot is swapped to `a[hi]`; then `_partition` runs as before.
 
-::: {.handout-only}
 
 `quick_sort(values, pivot="median3")` takes the strategy by name, and the
 reference passes it to this function (its `raise` line is shortened here). The
@@ -441,16 +568,14 @@ q = _partition(a, lo, hi)
 The median-of-three is written with comparisons, not with `sorted()`:
 `dsa/sorting.py` does not call the library's sort to write its own.
 
-:::
 
-## The worst case, measured
+### The worst case, measured
 
 ![](figures/pivot-shapes.png){width=90%}
 
 Sorted input, `pivot="first"`: every partition peels off **one** element.
 $(n-1) + (n-2) + \dots + 1 = n(n-1)/2$ comparisons: **$O(n^2)$**.
 
-::: {.handout-only}
 
 On `[0, 1, ..., 14]` with `pivot="first"`, the pivot is the smallest value in
 its range every time. The "small" part is empty, the "large" part has all the
@@ -472,9 +597,8 @@ data it sees most. That is the single best argument for randomisation in this
 course: a random pivot makes the running time depend on the coin, not on the
 input.
 
-:::
 
-## Why the average is $O(n \log n)$
+### Why the average is $O(n \log n)$
 
 - A pivot anywhere in the **middle half** splits no worse than 1/4 : 3/4.
 - Then the largest part shrinks by 3/4 per level: about $\log_{4/3} n$ levels
@@ -482,7 +606,6 @@ input.
 - Half of all pivots are in the middle half. **Random pivots: expected
   $O(n \log n)$**, about $1.39\, n \log_2 n$ comparisons.
 
-::: {.handout-only}
 
 The intuition, not the proof. Call a pivot *good* if it lands in the middle half
 of its range, so that neither part holds more than three quarters of it. After a
@@ -500,17 +623,9 @@ is one comparison and at most one swap, it works in place, and it scans memory
 in order, which caches love. That is why it is called quick, despite a worst
 case that is worse than merge sort's.
 
-:::
 
-## Stack depth: recurse on the smaller side
+### Stack depth: recurse on the smaller side
 
-::: {.slides-only}
-
-```{=latex}
-\footnotesize
-```
-
-:::
 
 ```python
 def sort(lo, hi):
@@ -530,7 +645,6 @@ def sort(lo, hi):
 The **smaller** part is a call; the **larger** part is the next turn of the
 loop. Stack depth: **$O(\log n)$**, even in the worst case.
 
-::: {.handout-only}
 
 The inner function of `quick_sort_steps`, exactly. The obvious version —
 partition, then two recursive calls — has a hidden cost. On sorted input with
@@ -553,16 +667,14 @@ the space is fixed.
 **Extra space**, then: $O(\log n)$ for the stack, nothing else. Quicksort is in
 place.
 
-:::
 
-## Quicksort is not stable
+### Quicksort is not stable
 
 The partition swaps across long distances: an element can jump over its equal.
 
 `quick_sort` on `[3a, 1b, 3c, 2d, 1e, 2f]` (sorted by number) gives
 `[1b, 1e, 2d, 2f, 3c, 3a]` — **3c before 3a**.
 
-::: {.handout-only}
 
 The letters are there only to tell equal numbers apart: the sort compares the
 numbers alone. The first partition picks the median of 3a, 3c and 2f, which
@@ -572,17 +684,14 @@ and the final swap puts the pivot 3c at index 4 — and 3a at index 5, behind it
 equal. Nothing in the rest of the algorithm puts them back. The stability figure
 below shows the whole comparison.
 
-:::
+## Heap sort implementation
 
-# Heap Sort
-
-## The array is the tree
+### The array is the tree
 
 ![](figures/heap.png){width=92%}
 
 A **max-heap**: every parent $\geq$ its children. So the maximum is at `a[0]`.
 
-::: {.handout-only}
 
 This is Week 12 arriving early; there it becomes a priority queue. Any array
 can be **read** as a complete binary tree: `a[0]` is the root, and the children
@@ -599,17 +708,9 @@ The tree is **complete**: every level full except possibly the last, which
 fills from the left. So its height is $\lfloor \log_2 n \rfloor$, and anything
 that walks from the root to a leaf costs $O(\log n)$.
 
-:::
 
-## Sift down: repair one parent
+### Sift down: repair one parent
 
-::: {.slides-only}
-
-```{=latex}
-\footnotesize
-```
-
-:::
 
 ```python
 def _sift_down(a, index, size):
@@ -626,7 +727,6 @@ def _sift_down(a, index, size):
         index = largest
 ```
 
-::: {.handout-only}
 
 `_sift_down(a, index, size)` assumes that both subtrees of `index` are already
 heaps, and only `a[index]` may be too small. It swaps `a[index]` with its
@@ -636,17 +736,9 @@ up could be smaller than its new sibling. `size` says where the heap ends, so
 that the sorted part at the back of the array is never touched. Each swap goes
 one level down: at most $\log_2 n$ swaps, $O(\log n)$.
 
-:::
 
-## Build-heap in $O(n)$, then sort
+### Build-heap in $O(n)$, then sort
 
-::: {.slides-only}
-
-```{=latex}
-\footnotesize
-```
-
-:::
 
 ```python
 for index in range(n // 2 - 1, -1, -1):        # build the heap: O(n)
@@ -659,11 +751,10 @@ for end in range(n - 1, 0, -1):
 1. **Build** a max-heap: sift down every parent, last to first.
 2. **Sort**: swap the max to the back; the heap shrinks by one; sift down.
 
-## Heap sort, traced
+### Heap sort, traced
 
 ![](figures/heap-sort.png){width=66%}
 
-::: {.handout-only}
 
 The two loops of `heap_sort_steps` (the reference also yields a snapshot after
 the first loop and after each turn of the second).
@@ -690,16 +781,14 @@ n – 1 times: $O(n \log n)$. The sorted part grows from the back, like
 selection sort's — heap sort **is** selection sort, with a heap to find the
 maximum in $O(\log n)$ instead of $O(n)$.
 
-:::
 
-## Heap sort: the trade-offs
+### Heap sort: the trade-offs
 
 - **$O(n \log n)$ always** — no bad input, like merge sort.
 - **$O(1)$ extra space** — in place, like quicksort; no recursion at all.
 - **Not stable**: the swap to the back jumps over equals.
 - Slower in practice: it jumps around memory ($i \to 2i + 1$).
 
-::: {.handout-only}
 
 On paper heap sort has the best of both: merge sort's guarantee and quicksort's
 memory. In practice it is usually the slowest of the three, because its sift
@@ -710,15 +799,12 @@ caches help it little; and it makes more comparisons (measured below: about
 sort when its recursion gets suspiciously deep, so the worst case stays
 $O(n \log n)$.
 
-:::
+## Measured
 
-# Measured
-
-## Six sorts, one picture
+### Six sorts, one picture
 
 ![](figures/measured.png){width=96%}
 
-::: {.handout-only}
 
 Each point is a **count** of comparisons, made by the reference
 `dsa/sorting.py` on values wrapped in a small class that adds 1 to a counter
@@ -757,9 +843,8 @@ time includes the interpreter and whatever else the machine is doing; Lab 10,
 Part 8, has you measure both versions. (Python's `sorted()`, written in C,
 sorts 4,000 values in under a millisecond.)
 
-:::
 
-## Can anything beat $n \log n$?
+### Can anything beat $n \log n$?
 
 A comparison sort must tell apart all **n!** orders of its input.
 Each comparison has two outcomes, so it needs at least
@@ -767,7 +852,6 @@ $\log_2(n!) \approx n \log_2 n - 1.44\,n$ comparisons in the worst case.
 
 **Merge sort and heap sort are optimal** — up to a constant.
 
-::: {.handout-only}
 
 Think of any comparison sort as a game of twenty questions: each comparison is
 a yes/no question about the input, and the sort must ask enough to know which of
@@ -781,81 +865,14 @@ The bound is about **comparison** sorts only. Counting sort (Week 9) never
 compares two elements — it uses the values as indices — and runs in
 $O(n + k)$. That is not a contradiction; it is a different game.
 
-:::
+## Stability
 
-# What Python Actually Uses
-
-## `sorted()` and `list.sort()`: Timsort with Powersort
-
-*Enrichment — not examinable.*
-
-1. Find the **runs** already in the data (reversing descending ones).
-2. Extend short runs with **binary insertion sort**.
-3. **Merge** adjacent runs, stably, using $O(n)$ extra space. Since CPython
-   3.11, **Powersort** chooses the merge order.
-
-Sorted input: one run, **n – 1 comparisons**. Worst case: $O(n \log n)$.
-
-::: {.handout-only}
-
-Tim Peters's **Timsort** is a stable, adaptive merge sort. It finds **natural
-runs** by scanning for stretches that already have an order. It turns descending
-runs around, preserving the order of equal keys, and uses binary insertion sort
-to extend short runs. During a merge, when values keep coming from the same run,
-it can switch to **galloping**: an exponential search (Lecture 08) for how much
-of that run can be copied at once. On already sorted input, CPython finds a
-single run in $n-1$ comparisons and has nothing to merge.
-
-**What changed in CPython 3.11?** CPython adopted Munro and Wild's **Powersort**
-to choose which adjacent runs to merge first. Run detection, binary insertion
-sort, stable merging, and galloping are still part of the sort. The change is
-in the order of the merges.
-
-**Why does order matter?** Suppose the three runs are `A(96) | B(32) | C(32)`.
-Use the sum of the two run lengths as the cost of a merge.
-
-| Merge order | First merge | Final merge | Total cost |
-|---|---:|---:|---:|
-| `(A + B) + C` | 128 | 160 | 288 |
-| `A + (B + C)` | 64 | 160 | 224 |
-
-Merging the two short runs first lets the 96 items of `A` take part in only
-one merge. The table counts run lengths as a model of work. Actual comparison
-counts also depend on the values and on shortcuts such as galloping.
-
-**How does Powersort choose?** Each boundary between two runs gets a *node
-power*. On a scale from 0 to 1, look at the two run midpoints and find the
-first binary digit where they differ. That digit's position, counting from 1,
-is the power. In the example, the midpoints are 0.30, 0.70, and 0.90. The
-`A | B` boundary has power 1 because the midpoints straddle $1/2$. The
-`B | C` boundary has power 2 because both midpoints are in the right half
-but straddle $3/4$. Higher powers sit deeper in the merge tree and are merged
-first here, so `B + C` comes before the final merge with `A`. This rule gives
-near-optimal merge cost for the distribution of run lengths.
-
-The [CPython 3.11 changelog](https://docs.python.org/3.11/whatsnew/changelog.html#python-3-11-0-alpha-1)
-records the change, and the [CPython design notes](https://github.com/python/cpython/blob/main/Objects/listsort.txt)
-explain how the run stack uses the powers.
-
-Java uses Timsort for object arrays and dual-pivot quicksort for primitive
-arrays. In 2015, de Gouw and colleagues found a bug in OpenJDK's Timsort while
-formally verifying its run-stack invariant.
-
-What this means for you: in your own programs, use `sorted()` or
-`list.sort()`, and `key=` for anything but plain values. In `dsa/sorting.py`,
-the point is that you can write the algorithms it is made of.
-
-:::
-
-# Stability
-
-## Equal keys, input order
+### Equal keys, input order
 
 ![](figures/stability.png){width=86%}
 
 A sort is **stable** if equal keys keep their input order.
 
-::: {.handout-only}
 
 *Stable* in Arabic: مستقر. Stability matters as soon as you sort **records by
 one field**. Sort students by name, then **stably** by grade: within each grade
@@ -875,9 +892,8 @@ compare by the key alone: a small class whose `__lt__`, `__le__`, `__gt__` and
 `__ge__` look only at the key, as in `tools/figures_l10.py` (`Card`), in
 `test_insertion_sort_is_stable`, and in Lab 10.
 
-:::
 
-## The table to remember
+### The table to remember
 
 | Sort | Best | Average | Worst | Extra space | Stable |
 |--------------|-----------|-----------|-----------|--------------|-----|
@@ -890,7 +906,6 @@ compare by the key alone: a small class whose `__lt__`, `__le__`, `__gt__` and
 | counting | $n + k$ | $n + k$ | $n + k$ | $O(n + k)$ | — |
 | Timsort | $n$ | $n \log n$ | $n \log n$ | $O(n)$ | yes |
 
-::: {.handout-only}
 
 Times are in comparisons (counting sort: steps), all $O(\cdot)$. Notes on the
 rows:
@@ -970,6 +985,7 @@ values that are equal **but distinguishable**?)
 
 ## Practise online
 
+- [**Advanced Sorting Lab**](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10): step through a merge, a partition, and the shrinking heap
 - [**Week 10 quiz**](https://helghareeb.github.io/en/quizzes/dsa27/week-10/): 22 multiple-choice questions, every answer explained
 - **Written practice** on the same page: 5 questions. Write, then mark yourself against the marking points
 - In Arabic: [week 10](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/)

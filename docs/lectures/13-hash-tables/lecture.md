@@ -821,6 +821,13 @@ dates", "the next appointment after 10:00", "the smallest": sorted array or tree
 
 :::
 
+## Watch it run: the Hash Table Lab
+
+- Trace one collision using chaining and another using linear probing.
+- Predict what lookup does at a deleted slot and at a never-used slot.
+
+[Open the Hash Table Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-13)
+
 # This Week
 
 ## Exercises: `dsa/hashmap.py`

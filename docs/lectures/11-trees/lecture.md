@@ -849,6 +849,13 @@ or answer "all values between 20 and 40".
 
 :::
 
+## Watch it run: the Tree Lab
+
+- Trace the deletion of a node with two children and compare in-order with level-order traversal.
+- Predict the successor before following the right subtree.
+
+[Open the Tree Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-11)
+
 # This Week
 
 ## Exercises: `dsa/tree.py`
