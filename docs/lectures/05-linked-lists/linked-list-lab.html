@@ -2056,11 +2056,11 @@ function refsOf(s) {
 }
 function picSetup() {
   const T = state.T, dbl = !!KINDS[state.sc.kind].dbl, g = dbl ? GEO.d : GEO.s;
-  let minX = 0, maxX = 0, row1 = false, stack = 1, arcUp = false, arcDown = false;
+  let minX = 0, maxX = 0, row1 = false, stack = 1, arcUp = false, arcDown = false, hasNone = false;
   for (const s of T.steps) {
     for (const id in s.pos) { const p = s.pos[id]; minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); if (p.row) row1 = true; }
     const r = refsOf(s);
-    if ([...r.above, ...r.below].some(t => t.id === null)) maxX = Math.max(maxX, s.chain.length);
+    if ([...r.above, ...r.below].some(t => t.id === null)) hasNone = true;
     const per = {}; r.below.forEach(t => { per[t.id] = (per[t.id] || 0) + 1; stack = Math.max(stack, per[t.id]); });
     for (const nd of s.heap) {
       const a = s.pos[nd.id]; if (!a) continue;
@@ -2069,6 +2069,9 @@ function picSetup() {
       if (dbl && p && p.row === a.row && p.x >= a.x) arcDown = true;
     }
   }
+  // The chain can shrink while detached or reversed nodes keep their positions.
+  const noneX = maxX + 1;
+  if (hasNone) maxX = noneX;
   const BELOW = stack * (TAGH + 2) + 10 + (arcDown ? 30 : 0);
   const PAD = 18, TOP = 32 + (arcUp ? 34 : 0);
   const row1Y = TOP + g.H + BELOW + 30;
@@ -2080,7 +2083,7 @@ function picSetup() {
     <g class="lyr-a"></g><g class="lyr-n"></g><g class="lyr-t"></g></svg>`;
   const svg = box.querySelector('svg');
   svg.style.minWidth = Math.round(W * 0.6) + 'px';      /* narrow screens scroll the picture, not the page */
-  state.pic = { g, dbl, minX, PAD, TOP, row1Y, svg, la: svg.querySelector('.lyr-a'), ln: svg.querySelector('.lyr-n'), lt: svg.querySelector('.lyr-t'), els: new Map() };
+  state.pic = { g, dbl, minX, noneX, PAD, TOP, row1Y, svg, la: svg.querySelector('.lyr-a'), ln: svg.querySelector('.lyr-n'), lt: svg.querySelector('.lyr-t'), els: new Map() };
 }
 function renderPic(s) {
   const P = state.pic, g = P.g, dbl = P.dbl;
@@ -2099,7 +2102,6 @@ function renderPic(s) {
   const refd = new Set();
   const { above, below } = refsOf(s);
   below.forEach(t => { if (t.id !== null) refd.add(t.id); });
-  const noneX = s.chain.length;
 
   /* nodes */
   for (const nd of s.heap) {
@@ -2160,7 +2162,7 @@ function renderPic(s) {
   for (const nd of s.heap) { arrow(nd.id, 'n'); if (dbl) arrow(nd.id, 'p'); }
 
   /* references: head/tail above their node, variables below */
-  const anchor = id => (id === null ? { x: X(noneX), y: Y(0), none: true } : { x: X(s.pos[id].x), y: Y(s.pos[id].row) });
+  const anchor = id => (id === null ? { x: X(P.noneX), y: Y(0) } : { x: X(s.pos[id].x), y: Y(s.pos[id].row) });
   const tagW = t => t.label.length * 7.9 + 14;
   const groupsA = new Map(), groupsB = new Map();
   above.forEach(t => { const k = String(t.id); (groupsA.get(k) || groupsA.set(k, []).get(k)).push(t); });
@@ -2179,19 +2181,19 @@ function renderPic(s) {
     });
   };
   for (const [k, ts] of groupsA) {
-    const a = anchor(ts[0].id), cx = a.x + (a.none ? 22 : g.W / 2);
+    const a = anchor(ts[0].id), cx = a.x + g.W / 2;
     const total = ts.reduce((s2, t) => s2 + tagW(t) + 6, -6);
     let x = cx - total / 2;
     ts.forEach(t => { const w = tagW(t); drawTag(t, x + w / 2, a.y - TAGH - 7, true); x += w + 6; });
   }
   for (const [k, ts] of groupsB) {
-    const a = anchor(ts[0].id), cx = a.x + (a.none ? 22 : g.W / 2);
+    const a = anchor(ts[0].id), cx = a.x + g.W / 2;
     ts.forEach((t, i) => drawTag(t, cx, a.y + g.H + 7 + i * (TAGH + 2), false, i === 0));
   }
   put(P.lt, 'NONE', 'g', el => {
     el.setAttribute('class', 'nonemark');
     el.style.display = needNone ? '' : 'none';
-    el.innerHTML = `<text x="${X(noneX) + 22}" y="${Y(0) + g.H / 2 + 5}" text-anchor="middle">None</text>`;
+    el.innerHTML = `<text x="${X(P.noneX) + g.W / 2}" y="${Y(0) + g.H / 2 + 5}" text-anchor="middle">None</text>`;
   });
 
   for (const [k, el] of P.els) if (!seen.has(k)) { el.remove(); P.els.delete(k); }
