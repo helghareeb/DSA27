@@ -258,6 +258,11 @@ level up; stop at the root at the latest.
 
 ## 3.2 Draw it
 
+First, append 1 to the lecture's min-heap `[2, 5, 4, 9, 8, 7]`.
+Write the parent indices it will visit. Then check each swap in
+**Sift up after push** in the
+[Heap and Priority Queue Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-12).
+
 Push 4, 9, 2, 7, 1, 5 into an empty min-heap. After **each** push, draw the tree,
 write the array under it, and mark each swap with an arrow.
 
@@ -331,6 +336,14 @@ both it and its sibling, and continue below. Stop when no child beats it or it
 has no children.
 
 ## 4.2 Draw it
+
+Continue from the heap you just saw after pushing 1. Predict the root
+replacement, which child wins the first comparison, and the array after
+the pop. Check **Sift down after pop**. Does the original six-value heap
+come back? Apply the sift rules to **W12-M06**, **W12-M07** and
+**W12-E2** in the
+[Week 12 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-12/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-12/)).
 
 Start from the min-heap `[1, 4, 2, 7, 5, 3, 6]`. Draw it. Pop three times,
 drawing the tree after each pop: first the last item moved to the root, then
@@ -415,6 +428,11 @@ sifted down, both of its subtrees are already heaps, which is exactly the
 situation sift-down repairs.
 
 ## 5.2 Draw it
+
+Starting with `[9, 8, 7, 5, 2, 4]`, mark the leaves and predict the
+parent indices in the order you will sift them. Check **Build the
+six-value heap bottom-up**. It produces the heap from Part 3.2.
+Use **W12-M09 through W12-M11** to check the build rule.
 
 Heapify `[8, 7, 6, 5, 4, 3, 2, 1]` on paper. Draw the tree once; then, for each
 index from the last parent back to 0, sift it down and redraw.
@@ -512,6 +530,11 @@ itself is **never** compared. `dequeue` and `peek` return only the item: index 2
 of the triple.
 
 ## 7.2 Checkpoint
+
+Use the lecture arrivals A, C, K and L with priorities 2, 1, 3 and 1.
+Write the triples for C and L, predict which is served first, and check
+**Serve equal priorities in arrival order**. Apply that tie rule in
+**W12-M16**, **W12-M17** and **W12-E5**.
 
 > **Checkpoint 7.** `enqueue("b", 2)`, `enqueue("a", 2)`, `enqueue("c", 1)`.
 >

@@ -95,6 +95,26 @@ computed with comparisons. Not allowed in `dsa/sorting.py`: `sorted()`,
 `TypeError: Array does not support slicing` anyway). Python lists appear only
 as the snapshots you yield and the list you return.
 
+## 0.5 Trace all three sorts on the lecture input
+
+Use `[5, 2, 9, 1, 7, 3]` for the three traces in the
+[Advanced Sorting Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-10).
+Before stepping, record a prediction for each trace.
+
+- **Merge sort.** The two sorted runs are `[2, 5, 9]` and `[1, 3, 7]`.
+  Write the first three values placed in the final run. Which side supplies
+  each one? Use **W10-M03, W10-M04 and W10-E1** after Part 1.
+- **Quicksort.** With last pivot 3, mark the boundary after each scan step.
+  Which value will the pivot swap with? Use **W10-M08 through W10-M10**
+  after Part 3.
+- **Heap sort.** Predict the first value placed in the final suffix, then
+  circle the active positions before the next sift. Use **W10-M15 through
+  W10-M18** after Part 5.
+
+Step through each trace to check your predictions. The checkpoints
+below give you new inputs. [Week 10 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-10/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-10/)).
+
 ---
 
 # Part 1 — `_merge`: two sorted runs become one
@@ -275,6 +295,13 @@ pivot at the end and never needs to know how it was chosen.
 
 ## 4.2 Draw it: two ways to recurse
 
+First replay **Compare pivots on the sorted result**. On
+`[1, 2, 3, 5, 7, 9]`, draw the first split for `"first"` and for
+`"median3"`. Predict both partition-comparison totals by writing one
+term per nontrivial call. Use **W10-M11, W10-M12 and W10-E3** to extend
+the explanation. Checkpoint 4 transfers the first-pivot trace to eight
+values and adds a stack-depth question.
+
 > **Checkpoint 4.** Run in your head `quick_sort(list(range(8)), pivot="first")`
 > — sorted input, the first element as pivot.
 >
@@ -430,6 +457,11 @@ def comparisons(sort, values, *args):
 writing yours.)
 
 ## 6.2 The pivot experiment
+
+Run the counter on the six sorted lecture values with `"first"` and with
+`"median3"`. Explain why the partition-only counts from Part 4.2 are
+15 and 8, and why `Counted` also records the comparisons made while
+choosing a median. Then scale up.
 
 > **Checkpoint 6.** Predict, **then** run:
 >

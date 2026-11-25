@@ -99,6 +99,22 @@ week:
 - **Write each algorithm once.** The plain form must reuse the `_steps` form,
   not copy its loops (Part 1).
 
+## 0.5 Trace a pass before working with frames
+
+Open the [Sorting Lab](https://helghareeb.github.io/DSA27/lectures/09-sorting-basic/sorting-lab.html)
+and choose **A**, the lecture's `[5, 2, 9, 1, 7, 3]`.
+Reset between algorithms. On paper, predict the array after bubble sort's
+first pass and selection sort's first round. For insertion sort, predict the
+array after inserting the value at index 2. Step to each of those points
+and mark the final suffix or sorted prefix.
+
+Switch to **Cards**. Write down the order of Omar and Laila before running
+each comparison sort. Which sorts preserve it? Apply the same reasoning
+in **W9-M03**, **W9-M06 through W9-M08**, and **W9-E1** in the
+[Week 9 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-09/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-09/)).
+Parts 2–4 give you a new array to trace without the animation.
+
 ---
 
 # Part 1 — The pattern: one generator, two uses
@@ -366,14 +382,17 @@ times as it was counted. No two values are ever compared.
 Draw three rows: the values, the `counts` array with its indices 0 .. k - 1
 above it, and the output.
 
-> **Checkpoint 5.** (a) For `counting_sort([3, 0, 2, 3, 0, 3])`: what is k, what
-> is `counts`, and what is the output?
+> **Checkpoint 5.** (a) For `counting_sort([3, 1, 4, 1, 5, 0, 3])`, predict
+> k, `counts`, and the output. Use the **Counting example** preset, step
+> through the count phase, and check which counters stay at zero.
 >
 > (b) `counting_sort([2, 1_000_000])` sorts two numbers. How many counters does
 > it make, and how much work does the write-out loop do? What does that say about
 > when counting sort is a good idea?
 >
 > (c) Why can counting sort not sort `[2.5, 1.0]` or `['b', 'a']` as written?
+
+Apply the count-array and range rules in **W9-M14 through W9-M16**.
 
 ## 5.2 Write it
 
@@ -480,6 +499,13 @@ Yours should match exactly — the three algorithms are fully determined. If you
 `swapped` in Part 2.4, use `[2, 1, 3, 4, 5]`: the correct algorithm makes
 7 comparisons, whereas the faulty version makes 10. If your `insertion_sort` shows more than 999 on
 sorted input, its walk does not stop at the first value that is not greater.
+
+Now put `[2, 3, 4, 5, 6, 1]` into the lab as a custom list. Predict the
+swaps in bubble sort and the shifts in insertion sort. Use the comparison
+counter above to check the totals for each algorithm, then explain why
+the same five inversions allow 15 bubble comparisons and 9 insertion
+comparisons. Compare counts in **W9-E2** and explain insertion sort's
+cases in **W9-E3**.
 
 ---
 
@@ -726,8 +752,8 @@ The course `Array` raises
 `IndexError: Array index -1 out of range ... no negative indices` on that line.
 
 **Checkpoint 5.**
-(a) k = 4; `counts` = `[2, 0, 1, 3]` (two 0s, no 1, one 2, three 3s); output
-`[0, 0, 2, 3, 3, 3]`.
+(a) k = 6; `counts` = `[1, 2, 0, 2, 1, 1]`; output
+`[0, 1, 1, 3, 3, 4, 5]`. Index 2 stays at zero.
 (b) **1,000,001** counters, and the write-out loop visits every one of them to
 write two values. $O(n + k)$ with n = 2 and k a million: counting sort is a good
 idea only when k, the range of the values, is not much larger than n.

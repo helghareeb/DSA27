@@ -19,7 +19,7 @@ lang: en
 |---|---|
 | **Duration** | One 2-hour lab session, plus about 3 hours at home |
 | **You will write** | `dsa/hashmap.py` — `ChainingHashMap.get`, `put`, `delete`, `_resize`; `OpenAddressingHashMap._probe`, `put`, `get`, `delete`, `_resize` |
-| **Graded by** | `tests/test_hashmap.py` (17 tests) |
+| **Graded by** | `tests/test_hashmap.py` (19 tests) |
 | **Connects to** | Lecture 13 — Hash tables; Week 5 (the `Entry` chain is a linked list); Week 4 (resizing is amortised); Week 14, whose `Graph` is built on your `ChainingHashMap` |
 
 ## What you will be able to do
@@ -32,7 +32,7 @@ lang: en
 4. write `_resize` so that every key is **rehashed**, and show what goes wrong
    when buckets are copied across instead;
 5. write linear probing as a generator, and `put`/`get`/`delete` that stop at
-   `None` but not at a tombstone;
+   an unused slot and continue past a tombstone;
 6. explain, with the failing test in front of you, why an open-addressing
    delete must leave a tombstone;
 7. count probes against the load factor, and make a hash table slow on purpose
@@ -50,10 +50,10 @@ with `(.venv)`):
 ```powershell
 git pull
 pytest -m "not challenge" -q      # environment check: must pass
-pytest tests/test_hashmap.py -q   # 17 failures: nothing written
+pytest tests/test_hashmap.py -q   # 19 failures: nothing written
 ```
 
-The 17 failures are all `NotImplementedError` — that is the starting point.
+The 19 failures are all `NotImplementedError` — that is the starting point.
 
 What you need from earlier weeks:
 
@@ -73,6 +73,7 @@ Open `dsa/hashmap.py` and read it from the top. Given to you:
 | Name | What it is |
 |---|---|
 | `_MISSING` | a private object meaning "no default was passed to `get`" |
+| `_EMPTY` | the private marker that fills unused slots in the open-addressing key array |
 | `TOMBSTONE` | the marker an open-addressing delete leaves behind |
 | `Entry` | a chain node: `key`, `value`, `next` |
 | both `__init__`s | the `Array`s, `_size`, `max_load` (and `_tombstones` for open addressing) |
@@ -98,17 +99,17 @@ in node objects, or in another `dsa/` structure. So:
 
 ## 0.4 The tests, and a `-k` note
 
-Eight tests are **parametrised** over both classes, so each runs twice; the
+Nine tests are **parametrised** over both classes, so each runs twice; the
 class name is in the test id. One more test is only for open addressing:
 
 ```powershell
-# 8 tests, then 9 tests:
+# 9 tests, then 10 tests:
 pytest tests/test_hashmap.py -v -k Chaining
 pytest tests/test_hashmap.py -v -k "OpenAddressing or open_addressing"
 ```
 
 `-k` matches case-insensitively, but not across the underscore:
-`-k OpenAddressing` selects 8 tests, and misses
+`-k OpenAddressing` selects 9 tests, and misses
 `test_open_addressing_delete_preserves_probe_chain` — the one that matters
 most. Use the second filter above.
 
@@ -175,6 +176,14 @@ front.
 
 ## 2.2 Draw it
 
+On paper, insert 5, 13 and 21 into eight buckets. Predict the chain at
+bucket 5 and the keys compared in a lookup for 29. Check **Chaining keeps
+colliding keys in one bucket** in the
+[Hash Table Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-13).
+Then work **W13-M09** and **W13-M10** in the
+[Week 13 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-13/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-13/)).
+
 Draw 8 boxes in a row, numbered 0 to 7. Put the keys in, one at a time, each at
 the **front** of its chain (the value does not matter; write only the key):
 
@@ -217,7 +226,7 @@ table passes 6 keys, it never runs.
 ## 2.5 Test it
 
 ```powershell
-pytest tests/test_hashmap.py -v -k Chaining
+pytest tests/test_hashmap.py -v -k "Chaining and not none_key"
 ```
 
 With `get` and `put` written, you should see **4 passed** and 4 failed:
@@ -226,6 +235,7 @@ With `get` and `put` written, you should see **4 passed** and 4 failed:
 fail with `NotImplementedError` from `delete` (Part 3), and
 `test_survives_many_keys_and_resizes` and `test_load_factor_stays_bounded`
 fail with `NotImplementedError` from `_resize` (Part 4).
+The separate `none_key` case also needs deletion and resizing.
 
 ## 2.6 When it fails
 
@@ -258,7 +268,7 @@ Then `self._size -= 1` and return. If the walk ends: `raise KeyError(key)`.
 ## 3.2 Write it, then test it
 
 ```powershell
-pytest tests/test_hashmap.py -v -k "Chaining and delete"
+pytest tests/test_hashmap.py -v -k "Chaining and delete and not none_key"
 ```
 
 Two tests: `test_delete` and `test_delete_missing_key_raises`.
@@ -331,8 +341,9 @@ entry of the old one into it. Each entry must go to its **new** index,
 pytest tests/test_hashmap.py -v -k Chaining
 ```
 
-All 8 must pass. `test_survives_many_keys_and_resizes` puts 500 **string**
-keys (`"key0"` to `"key499"`), so the table resizes seven times, from 8 to 1,024
+All 9 must pass, including the `None` key case.
+`test_survives_many_keys_and_resizes` puts 500 **string** keys
+(`"key0"` to `"key499"`), so the table resizes seven times, from 8 to 1,024
 buckets; `test_load_factor_stays_bounded` puts 500 integers and checks the load
 factor is at most `max_load + 0.05` at the end.
 
@@ -357,13 +368,25 @@ Lecture 13, "Linear probing: one key per slot".
 
 ## 5.1 The idea
 
-No chains: `_keys[i]` holds a key, `None` (never used) or `TOMBSTONE` (a
-deleted key was here); `_values[i]` holds the value that goes with `_keys[i]`.
+Each `_keys[i]` holds a live key, `_EMPTY` for an unused slot, or
+`TOMBSTONE` for a deleted slot. `_values[i]` holds the corresponding
+value for a live key. Both the key and its value can be `None`.
+Use identity checks for the markers and equality for live keys.
+If your starter predates `_EMPTY`, add `_EMPTY = object()` alongside
+`_MISSING`, fill the first key array with it, and make `__iter__` skip both markers.
+An empty chaining bucket still holds `None`. A caller can also pass
+`None` as a lookup fallback. When the quiz labels an unused
+open-addressing slot `None`, read that slot as `_EMPTY` here.
 A key tries slots in the order its **probe sequence** gives:
 
 $$h,\; h+1,\; h+2,\; \dots \pmod{\text{capacity}}, \qquad h = \text{hash}(\text{key}) \bmod \text{capacity}$$
 
 ## 5.2 Draw it
+
+Use the same keys 5, 13 and 21, this time in the open-addressing table.
+Predict the three occupied slots, then replay **Linear probing after a
+deletion**. Transfer the slot rule to Checkpoint 5 and **W13-M13** and
+**W13-M14**.
 
 > **Checkpoint 5.** An `OpenAddressingHashMap()` (capacity 8, `max_load` 0.66)
 > receives `put` for 3, 11, 19, 4.
@@ -386,12 +409,12 @@ A generator: compute `start = hash(key) % capacity` once, then
 
 Loop `for i in self._probe(key):`
 
-- `self._keys[i] is None` $\to$ a never-used slot: the key is **not** in the table.
+- `self._keys[i] is _EMPTY` $\to$ a never-used slot: the key is **not** in the table.
   Stop.
 - `self._keys[i] is TOMBSTONE` $\to$ **skip it**: keep probing.
 - `self._keys[i] == key` $\to$ found: return `self._values[i]`.
 
-If the loop ends, or stops at `None`: `default`, or `KeyError`, exactly as in
+If the loop ends, or stops at `_EMPTY`: `default`, or `KeyError`, exactly as in
 the chaining `get`. `delete` will need the same search, so it is sensible to
 write it once as a helper — say `_find(key)`, returning the slot index or -1 —
 and call it from both.
@@ -404,9 +427,9 @@ and call it from both.
    capacity (which just sweeps away the tombstones). Tombstones must be counted:
    Lecture 13, "Delete: why not just empty the slot?", last paragraph.
 2. Probe. Remember the **first** tombstone you pass. If you meet the key,
-   overwrite its value and `return`. If you meet `None`, stop.
+   overwrite its value and `return`. If you meet `_EMPTY`, stop.
 3. Insert at the first tombstone you passed if there was one, otherwise at the
-   `None` where you stopped. If you reused a tombstone, `_tombstones -= 1`.
+   `_EMPTY` slot where you stopped. If you reused a tombstone, `_tombstones -= 1`.
    Then `_size += 1`.
 
 Until Part 7, `_resize` raises `NotImplementedError`; with the load check first,
@@ -436,6 +459,10 @@ Find the key's slot with the same search as `get`. Not there: `KeyError`.
 There: set `_keys[i] = TOMBSTONE` and `_values[i] = None` (so the old value can
 be freed), `_size -= 1`, `_tombstones += 1`.
 
+In the demo's table, delete 13 and predict why the lookup for 21
+continues past slot 6. Reuse that rule in Checkpoint 6 and in
+**W13-M15**, **W13-M16** and **W13-E4**.
+
 > **Checkpoint 6.** Continue the table of Checkpoint 5 (`3, 11, 19, 4` in slots
 > 3, 4, 5, 6).
 >
@@ -444,7 +471,7 @@ be freed), `_size -= 1`, `_tombstones += 1`.
 > (b) Now `put(12)`. Does the load check trigger a resize? List the probes and
 > say where 12 goes.
 >
-> (c) Go back to (a), but suppose `delete` had written `None` instead of
+> (c) Go back to (a), but suppose `delete` had written `_EMPTY` instead of
 > `TOMBSTONE`. What do `get(19)` and `get(4)` do now?
 
 ## 6.2 Test it
@@ -458,14 +485,14 @@ pytest tests/test_hashmap.py -v -k "OpenAddressing or open_addressing"
 
 ## 6.3 Break it
 
-Change one word in your `delete`: `self._keys[i] = None` instead of
-`self._keys[i] = TOMBSTONE`.
+After Part 7 passes, come back here. Temporarily change
+`self._keys[i] = TOMBSTONE` to `self._keys[i] = _EMPTY` in `delete`.
 
-> **Checkpoint 7.** Before you run the tests: of the 17, which fail? Write down
+> **Checkpoint 7.** Before you run the tests: of the 19, which fail? Write down
 > their names. Why do the other open-addressing tests that delete keys still
 > pass?
 
-Run all 17 and compare:
+Run all 19 and compare:
 
 ```powershell
 pytest tests/test_hashmap.py -v
@@ -479,10 +506,10 @@ you had, `git diff dsa/hashmap.py` shows every line you changed.
 
 | Bug | What you see | Fix |
 |---|---|---|
-| `delete` writes `None` | `KeyError: 8` in `test_open_addressing_delete_preserves_probe_chain` | `TOMBSTONE` |
-| `get` stops at a tombstone as if it were `None` | the same `KeyError: 8` | a tombstone means "keep going" |
+| `delete` writes `_EMPTY` | `KeyError: 8` in `test_open_addressing_delete_preserves_probe_chain` | `TOMBSTONE` |
+| `get` stops at a tombstone as if it were `_EMPTY` | the same `KeyError: 8` | a tombstone means "keep going" |
 | `_probe` yields `start + step` with no `% capacity` | `IndexError: Array index 8 out of range for length 8` — or 16, 64, 128, 1024, **in a different test on a different run** | wrap: `(start + step) % capacity` |
-| `put` inserts at the first tombstone without probing on | no test fails; the table can hold the **same key twice** | keep probing to `None` before inserting |
+| `put` inserts at the first tombstone without probing on | the table can hold the **same key twice** | keep probing to the key or `_EMPTY` before inserting |
 
 The third row deserves a minute. Which test fails, and with which length,
 depends on **where the string keys land** — and string hashes change every run.
@@ -513,30 +540,54 @@ print(len(m), m.get(8))          # must print: 1 B
 
 ## 7.1 Write it
 
-1. Keep the old `_keys` and `_values`; make two new `Array(capacity)`s.
+Before rebuilding, predict the home indices of 5, 13 and 21 with
+capacity 16. Check **Recompute home indices after growth**, then explain
+why copying old slot positions fails in **W13-M12**.
+
+1. Keep the old arrays. Set `_keys = Array(capacity, fill=_EMPTY)` and
+   `_values = Array(capacity)` on the table.
 2. Reset `_size` **and** `_tombstones` to 0 — you are about to rebuild both
    counts.
-3. For every old slot whose key is neither `None` nor `TOMBSTONE`, insert it:
-   probe the new table and put it in the first `None`, then `_size += 1`. The
-   new table has no tombstones and no duplicates, so the first `None` is always
+3. For every old slot whose key is neither `_EMPTY` nor `TOMBSTONE`, insert it:
+   probe the new table and put it in the first `_EMPTY` slot, then `_size += 1`. The
+   new table has no tombstones and no duplicates, so the first unused slot is
    right. (Calling `self.put` would also work, but it re-runs the load check and
    the duplicate search for nothing.)
 
 ## 7.2 Test it
 
+Predict the lookup and membership results before insertion, after
+`put(None, None)`, and after `delete(None)`. Check **Store a real None key**
+in the demo, then run the same sequence against your own table:
+
+```python
+from dsa.hashmap import OpenAddressingHashMap
+
+table = OpenAddressingHashMap()
+assert table.get(None, "missing") == "missing"
+table.put(None, None)
+assert None in table and list(table) == [None]
+assert table.get(None, "missing") is None
+table.delete(None)
+assert None not in table and table.get(None, "missing") == "missing"
+```
+
+The `none_key` tests also overwrite the entry, grow the table, and reinsert
+the key. Run the entire file, then return to Part 6.3.
+
 ```powershell
 pytest tests/test_hashmap.py -v
 ```
 
-All 17 must pass.
+All 19 must pass.
 
 ## 7.3 When it fails
 
 | Bug | What you see | Fix |
 |---|---|---|
 | `_size` not reset before re-inserting | `assert 1175 == 500` (the number varies) in `test_survives_many_keys_and_resizes` | reset, then count up again |
-| the load check always resizes to the **same** capacity | `TypeError: 'NoneType' object cannot be interpreted as an integer` in two tests — the table filled up, no `None` was left, and the insert index was never set | double when the live keys alone exceed `max_load` |
-| tombstones copied into the new table | no test fails, but the table never gets rid of them | skip `TOMBSTONE` as well as `None` |
+| the load check always resizes to the **same** capacity | the table fills up and the probe finds neither a free slot nor the key | double when the live keys alone exceed `max_load` |
+| tombstones copied into the new table | the rebuild keeps obsolete slots occupied | skip `TOMBSTONE` and `_EMPTY` |
 
 > **Checkpoint 8.** In a fresh `OpenAddressingHashMap()` (capacity 8), run
 > `put(k, k)` then `delete(k)` for k = 0, 1, 2, …, 7.
@@ -546,7 +597,7 @@ All 17 must pass.
 >
 > (b) Now imagine a load check that counts only **live** keys. What does the
 > table look like after the last delete? How many slots does `get(100)` probe?
-> What would a `while self._keys[i] is not None:` loop do?
+> What would a `while self._keys[i] is not _EMPTY:` loop do?
 
 ---
 
@@ -636,37 +687,43 @@ down (Lecture 13, "Python's `dict` and `set`").
 
 # Part 9 — Check against `dict`, the oracle
 
-Only now, with all 17 tests passing, bring in Python's `dict` — as a **second
-opinion** in a test script of your own, never inside `dsa/`. Random operations,
-the same on both, with small integer keys so that collisions, deletes and
-re-inserts happen constantly:
+Only now, with all 19 tests passing, bring in Python's `dict` — as a **second
+opinion** in a test script of your own, never inside `dsa/`. Mix small
+integer keys with a `None` key and occasional `None` values. The same
+sequence runs on both tables:
 
 ```python
 import random
 from dsa.hashmap import ChainingHashMap, OpenAddressingHashMap
 
+keys = [*range(64), None]
+missing = object()
+
 for cls in (ChainingHashMap, OpenAddressingHashMap):
     rng = random.Random(1)
     mine, oracle = cls(), {}
     for step in range(20_000):
-        key = rng.randrange(64)
+        key = rng.choice(keys)
         op = rng.random()
         if op < 0.5:
-            mine.put(key, step)
-            oracle[key] = step
+            value = None if step % 7 == 0 else step
+            mine.put(key, value)
+            oracle[key] = value
         elif op < 0.8 and key in oracle:
             mine.delete(key)
             del oracle[key]
         else:
-            assert mine.get(key, None) == oracle.get(key), (cls.__name__, step, key)
+            assert mine.get(key, missing) == oracle.get(key, missing), (
+                cls.__name__, step, key)
         assert len(mine) == len(oracle), (cls.__name__, step)
-    assert sorted(mine) == sorted(oracle)
+    assert set(mine) == set(oracle)
     print(cls.__name__, "agrees with dict on 20,000 random operations")
 ```
 
-This exercises exactly what the graded tests do not: deleting from the middle
-of a chain (Part 3.3), re-inserting over tombstones (Part 6.4), and tables that
-fill with tombstones and are swept (Checkpoint 8). If an assertion fails, the
+This mixes the operations you tested separately, including deletion from
+the middle of a chain, reusing tombstones, and storing `None` while other
+keys come and go. The distinct fallback lets you catch a missed lookup
+even when a stored value is `None`. If an assertion fails, the
 message gives the step and the key; replay the operations up to that step and
 draw the table.
 
@@ -679,19 +736,19 @@ make `put` amortised O(1).
 
 | Class | Method | The trap | `-k` filter |
 |--------------|-------------|-----------------------------------------|--------------------|
-| Chaining | `get` | `==` not `is`; `KeyError` only when `default is _MISSING` | `Chaining` (8) |
+| Chaining | `get` | `==` not `is`; `KeyError` only when `default is _MISSING` | `Chaining` (9) |
 | Chaining | `put` | overwrite, never duplicate; resize when the load passes `max_load` | `Chaining` |
-| Chaining | `delete` | the head of a chain; `size -= 1`; the middle of a chain (untested) | `Chaining and delete` (2) |
+| Chaining | `delete` | the head of a chain; `size -= 1`; the middle of a chain (untested) | `Chaining and delete` (3) |
 | Chaining | `_resize` | **rehash** every key; save `next` before relinking | `Chaining` |
-| Open addr. | `_probe` | `% capacity`; exactly `capacity` indices | see below (9) |
-| Open addr. | `get` | stop at `None`, **skip** `TOMBSTONE` | see below |
+| Open addr. | `_probe` | `% capacity`; exactly `capacity` indices | see below (10) |
+| Open addr. | `get` | stop at `_EMPTY`, **skip** `TOMBSTONE` | see below |
 | Open addr. | `put` | count tombstones in the load check; probe on past a tombstone before inserting | see below |
 | Open addr. | `delete` | leave `TOMBSTONE`; update both counts | see below |
-| Open addr. | `_resize` | reset `_size` and `_tombstones`; skip `None` **and** `TOMBSTONE` | see below |
+| Open addr. | `_resize` | reset `_size` and `_tombstones`; skip `_EMPTY` and `TOMBSTONE` | see below |
 
 For open addressing the filter is `-k "OpenAddressing or open_addressing"`.
 
-All 17 at once:
+All 19 at once:
 
 ```powershell
 pytest tests/test_hashmap.py -v
@@ -777,7 +834,7 @@ Two questions to bring to Lecture 14:
 | Chaining | A linked list of `Entry` nodes per bucket; push on the front after checking for the key. |
 | Chaining delete | `prev` and `entry`; the head of a chain is the bucket slot itself. |
 | Resize | A new `Array`, and **every key rehashed**; save `next` before relinking. |
-| Linear probing | `(h + step) % capacity`; stop at `None`. |
+| Linear probing | `(h + step) % capacity`; stop at `_EMPTY`. |
 | Tombstones | Delete leaves `TOMBSTONE`; `get` skips it; `put` may reuse it, after probing on. |
 | Load factor | Count tombstones as used; double when the live keys pass `max_load`, else sweep. |
 | Measuring | Hits and misses stay a few probes below about 0.7, then climb steeply. |
@@ -830,12 +887,12 @@ all still in the table — just not where anyone will look for them.
 (a) 3 $\to$ slot 3 (1 probe). 11 $\to$ home 3 is taken, slot 4 (2 probes). 19 $\to$ 3 and
 4 taken, slot 5 (3 probes). 4 $\to$ home 4 is taken by 11, 5 by 19, slot 6 (3
 probes). Slots: `_ _ _ 3 11 19 4 _`.
-(b) 12 % 8 = 4: probes **4** (11), **5** (19), **6** (4), **7** (`None`) —
+(b) 12 % 8 = 4: probes **4** (11), **5** (19), **6** (4), **7** (`_EMPTY`) —
 4 probes, stops at the never-used slot 7, and `get(12)` raises `KeyError`
 (`get(12, None)` returns `None`).
 (c) A key is not necessarily in its home slot, so `get(4)` cannot look in slot
 4 and give up: it must follow the same probe sequence as `put` did, until it
-finds 4 or reaches `None`. Keys from **different** homes (3 and 4) have merged
+finds 4 or reaches `_EMPTY`. Keys from **different** homes (3 and 4) have merged
 into one run of four: primary clustering.
 
 **Checkpoint 6.**
@@ -843,9 +900,9 @@ into one run of four: primary clustering.
 (tombstone: skip), **5** (19: found) — 3 probes.
 (b) The load check: (3 live + 1 tombstone + 1) / 8 = 0.625, not above 0.66 —
 no resize. Probes: **4** (tombstone: remember it, go on), **5** (19), **6** (4),
-**7** (`None`: stop). 12 goes into the remembered tombstone, slot **4**:
+**7** (`_EMPTY`: stop). 12 goes into the remembered tombstone, slot **4**:
 `_ _ _ 3 12 19 4 _`, and the tombstone count is back to 0.
-(c) With `None` in slot 4, `get(19)` probes 3, then 4: `None` — it stops and
+(c) With `_EMPTY` in slot 4, `get(19)` probes 3, then 4: it stops and
 raises `KeyError: 19`. `get(4)` is even worse off: its home slot is 4, so it
 stops at the very first probe. Both keys are still in the table, in slots 5 and
 6; the path to them has been cut.
@@ -856,7 +913,7 @@ stops at the very first probe. Both keys are still in the table, in slots 5 and
 past**: 0 and 8 both hash to 0, 8 sits in slot 1, and emptying slot 0 hides it.
 `test_delete[OpenAddressingHashMap]` deletes the only key in the table, so there
 is no probe chain to cut; `test_delete_missing_key_raises` deletes nothing. The
-other 16 pass.
+other 18 pass.
 
 **Checkpoint 8.**
 (a) **3 tombstones**, in slots 5, 6 and 7. The fifth put's check counted
@@ -865,7 +922,7 @@ tombstones. The sixth put, of 5, counted (0 + 5 + 1) / 8 = 0.75 > 0.66 while
 the live keys alone, 1/8, were fine: so the table was **rebuilt at capacity 8**,
 sweeping all five tombstones, and 5 went into its home slot. Then 5, 6 and 7
 were each deleted: tombstones in 5, 6, 7. The capacity never grew.
-(b) Every one of the 8 slots holds a tombstone, and there is no `None` left.
+(b) Every one of the 8 slots holds a tombstone, and there is no `_EMPTY` slot left.
 `get(100)` probes **all 8 slots** before its `for` loop over `_probe` runs out:
-every miss is now $O(\text{capacity})$. A `while self._keys[i] is not None:`
-loop never finds a `None` and **never ends** — the test run hangs.
+every miss is now $O(\text{capacity})$. A `while self._keys[i] is not _EMPTY:`
+loop never finds an unused slot and **never ends**.

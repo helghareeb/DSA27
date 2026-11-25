@@ -375,18 +375,19 @@ checkpoints use it, so your drawing is their answer key.
 4. **The main event.** Draw 8 slots and put 3, 11, 19 (all home 3): slots 3, 4,
    5. Delete 11 by **erasing** it, and ask the room to run `get(19)`: 3, then 4
    is empty — "not here". Then redraw slot 4 as †, and run it again: skip, 5,
-   found. Write the three-row rule on the board: `None` stops a search; a
-   tombstone does not; `put` may reuse a tombstone only after probing on to
-   `None`.
+   found. An `_EMPTY` slot ends the search. A tombstone keeps it going.
+   `put` can reuse the first tombstone after probing for the key.
+   Replay **Store a real None key** from the Hash Table Lab to show why
+   `None` must be available as live data.
 5. **Write one method live, wrongly, and fix it: `OpenAddressingHashMap.delete`
-   with `self._keys[i] = None`.** With a working table projected, make the
-   change and ask the room which of the 17 tests will fail. Collect guesses,
+   with `self._keys[i] = _EMPTY`.** With a working table projected, make the
+   change and ask the room which of the 19 tests will fail. Collect guesses,
    then run `pytest tests/test_hashmap.py -v`: exactly **one** fails,
    `test_open_addressing_delete_preserves_probe_chain`, with `KeyError: 8`. Ask
    why `test_delete[OpenAddressingHashMap]` still passes (it deletes the only
    key: no probe chain runs through the slot). Put `TOMBSTONE` back.
-6. Show the `-k` trap: `-k OpenAddressing` collects 8 tests and **misses** the
-   tombstone test; `-k "OpenAddressing or open_addressing"` collects all 9.
+6. Show the `-k` trap: `-k OpenAddressing` collects 9 tests and **misses** the
+   tombstone test. `-k "OpenAddressing or open_addressing"` collects all 10.
 
 ## Lab 14 — Week 14
 
@@ -844,8 +845,8 @@ Graded hints for `heapify`:
 | `ChainingHashMap.delete` | Week 5's unlink, head as the special case | forgetting `size -= 1` (`assert 1 == 0`); `self._buckets[i] = entry.next` for every match — **passes every test** and silently drops the entries in front of a mid-chain match |
 | `ChainingHashMap._resize` | rehashing; order of pointer updates | copying `old[i]` to `new[i]` (`KeyError: 'key0'` — the key varies); `entry = entry.next` after relinking (same `KeyError`: the rest of the chain is lost); computing indices before swapping in the new `Array` |
 | `OpenAddressingHashMap._probe` | a generator; the wrap | no `% capacity` (`IndexError: Array index 8 out of range for length 8` — or 16, 64, 128, 1024, in a **different test each run**, because the string keys move); `while True:` with no bound |
-| `OpenAddressingHashMap.put` / `get` | `None` stops, `TOMBSTONE` does not | `get` treating † as `None` (`KeyError: 8` in the tombstone test); `put` inserting at the first † without probing on — no test fails, duplicates appear; forgetting to count tombstones in the load check; not decrementing `_tombstones` on reuse |
-| `OpenAddressingHashMap.delete` | the tombstone | writing `None` (`KeyError: 8`); forgetting `_values[i] = None` or the two counters |
+| `OpenAddressingHashMap.put` / `get` | Stop at `_EMPTY`. Probe past a tombstone. | Treating † as `_EMPTY` gives `KeyError: 8`. Reusing † before checking for the key can create duplicates. Count tombstones and decrement the count on reuse. |
+| `OpenAddressingHashMap.delete` | the tombstone | writing `_EMPTY` (`KeyError: 8`); forgetting `_values[i] = None` or the two counters |
 | `OpenAddressingHashMap._resize` | rebuilding the counts | not resetting `_size` (`assert 1175 == 500`, the number varies); copying tombstones across (no test fails); always resizing to the same capacity (`TypeError: 'NoneType' object cannot be interpreted as an integer` in two tests: the table filled up) |
 
 **`OpenAddressingHashMap.delete` — and what `get` does with its result — is the
@@ -1525,20 +1526,20 @@ down), and say why it saves a sift-up. `heapq.heapreplace` is that method.
   `self._size + self._tombstones + 1`; if that is over the limit, it doubles only
   when `(self._size + 1) / capacity` is too, and otherwise calls
   `self._resize(capacity)` at the same size to sweep tombstones. The probe loop
-  records `first_free` at the first tombstone **or** at the terminating `None`,
-  overwrites and returns if it meets the key, and `break`s at `None`. After the
+  records `first_free` at the first tombstone **or** at the terminating `_EMPTY`,
+  overwrites and returns if it meets the key, and `break`s at `_EMPTY`. After the
   loop, `if self._keys[first_free] is TOMBSTONE: self._tombstones -= 1` keeps
   the count right when a tombstone is reused. Because the load check keeps at
-  least one `None` in the table, the loop always sets `first_free`.
+  least one unused slot in the table, an insertion always sets `first_free`.
 - **`_find`** (a helper, not in the skeleton): shared by `get` and `delete`;
-  returns -1 at the first `None`, skips `TOMBSTONE` with
+  returns -1 at the first `_EMPTY`, skips `TOMBSTONE` with
   `slot is not TOMBSTONE and slot == key`, and returns -1 if every slot was
   probed.
 - **`OpenAddressingHashMap.delete`**: `self._keys[i] = TOMBSTONE`,
   `self._values[i] = None` (so the value can be freed), `_size -= 1`,
   `_tombstones += 1`.
 - **`OpenAddressingHashMap._resize`**: resets both counters, then re-inserts
-  each live key at the **first `None`** of its probe sequence in the new
+  each live key at the first `_EMPTY` slot of its probe sequence in the new
   table — safe because the new table has no tombstones and no duplicates — and
   counts `_size` back up.
 - **The skeleton change** this week: the given `ChainingHashMap.__contains__`
@@ -1546,7 +1547,9 @@ down), and say why it saves a sift-up. `heapq.heapreplace` is that method.
   value `None` as absent (W13-B1). It now calls `get(key)` and catches
   `KeyError`. `OpenAddressingHashMap` gained the same `__contains__`, an
   `__iter__`, a `_tombstones` counter in `__init__`, and docstrings for `put`
-  and `get`. Week 14's `Graph` relies on `in` and iteration over a
+  and `get`. Its starter fills key slots with the private `_EMPTY` marker
+  and skips both markers in `__iter__` so `None` remains a valid key.
+  Week 14's `Graph` relies on `in` and iteration over a
   `ChainingHashMap`.
 
 ## Lab 14 — worked solution notes

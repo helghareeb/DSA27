@@ -162,6 +162,10 @@ first character that is neither a digit nor `.`. The token is `text[0:2]`.
 > Which of them will the **parser** later reject, although the lexer accepts
 > them?
 
+Apply the same token-boundary rule in **W15-M02** in the
+[Week 15 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-15/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-15/)).
+
 ## 1.3 Write it
 
 1. Start with an empty result list and `i = 0`; loop while `i < len(text)`.
@@ -228,6 +232,14 @@ Each split becomes a node of the tree, with the **last** operator of a chain at
 the top — so the first one is deepest and is evaluated first.
 
 ## 2.2 Draw it
+
+Start with `2 + 3 * 4` and `(2 + 3) * 4`. For each, write the tokens,
+predict the root operator, and label the first operation evaluated.
+Check your drawings using **From source text to a value** and
+**Parentheses change the syntax tree** in the
+[Language Translation Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-15).
+Checkpoint 2 changes the operands and their order. Use **W15-M05**,
+**W15-M07**, **W15-M08** and **W15-E2** to explain the grammar rule.
 
 For `10 - 4 - 3`: the `expr` splits into the terms `10`, `4`, `3` with `-`
 between them. Left to right: `10 - 4` first, then that result `- 3`. The tree,
@@ -371,6 +383,12 @@ form of the grammar straight into code.
 
 ## 4.1 Right recursion
 
+Replay **Subtraction groups from the left** on `1 - 2 - 3`.
+Before revealing the second minus, draw which subtree should go on
+the left. Then predict what changes if `expr` reads the entire rest
+of the expression as its right operand. Explain the difference in
+**W15-M09**, **W15-M10** and **W15-E3**.
+
 Replace the body of `expr` with the right-recursive version from the lecture:
 parse a `term`; **if** the next token is `+` or `-`, return a `BinOp` whose
 right child is a recursive call to `self.expr()`.
@@ -459,6 +477,12 @@ operator `^`), then ten end-to-end: nine `calculate` cases and
 
 The first and last rows are why end-to-end tests exist: each stage's own tests
 passed, and the calculator was still wrong.
+
+**Find the first stage that fails.** Give the earliest failing stage and
+the expected exception for `2 @ 3`, `3 + * 4` and `8 / (3 - 3)`.
+Check the demo, then call `tokenize`, `Parser(...).parse()`, and
+`evaluate` in order until each case fails. Identify the one input that
+produces a valid tree and use the distinction in **W15-M03**.
 
 When all 55 pass, run the stages you did not write by hand against each other:
 

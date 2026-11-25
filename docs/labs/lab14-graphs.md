@@ -233,6 +233,26 @@ pseudocode; turning it into Python with your structures is the exercise.
 On paper: three columns — **take**, **add**, **queue afterwards** — one row per
 dequeue, as in the lecture's trace.
 
+Start with the lecture's directed graph. Add the edges in this order so
+that A considers B before C:
+
+```python
+from dsa.graph import Graph
+
+lecture_graph = Graph(directed=True)
+edges = [("A", "B"), ("A", "C"), ("B", "D"), ("C", "E"), ("D", "E")]
+for source, target in edges:
+    lecture_graph.add_edge(source, target)
+```
+
+Predict which vertex discovers E and whether E enters the queue twice.
+Check **BFS finds a fewest-edge path** in the
+[Graph Search Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-14).
+When your implementation works, compare its output on `lecture_graph`
+with the last frame. Use the same queue rule in **W14-M04** and **W14-M05**
+in the [Week 14 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-14/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-14/)).
+
 > **Checkpoint 3.** (a) Trace `bfs` from A on the sample graph of Part 1.
 > (b) On the graph A–B, B–C, A–D (the test that tells the searches apart), what
 > does `bfs` return from A?
@@ -277,6 +297,11 @@ which needs `dfs` too.)
 Lecture 14, "Shortest paths, by edge count".
 
 ## 4.1 Draw it
+
+On `lecture_graph`, predict the parent chain from E back to A and
+reverse it. Use the demo to check your result and compare it with
+`shortest_path_unweighted(lecture_graph, "A", "E")`. Then try
+**W14-M07** and **W14-E2** on other inputs.
 
 `test_shortest_path_is_shortest_not_merely_a_path` builds A–B, B–Z, A–X, X–Y,
 Y–Z: a short route A–B–Z and a long one A–X–Y–Z.
@@ -332,6 +357,11 @@ creates the map and the list, calls the helper on `start`, and returns the list.
 That is all: the call stack remembers where each vertex's loop had got to.
 
 ## 5.2 Draw the iterative one
+
+First trace recursive DFS on `lecture_graph` using the same neighbour
+order as BFS. Predict the first path to E. Replay **DFS follows a branch
+before returning**, then compare the discovered order with
+`dfs(lecture_graph, "A")` and apply the rule in **W14-M06**.
 
 > **Checkpoint 5.** (a) Trace `dfs_iterative` from A on the sample graph: after
 > each pop, the action and the stack (bottom $\rightarrow$ top). Which vertex is pushed
@@ -406,6 +436,12 @@ Two helpers, both recursive like `dfs`:
 `has_cycle` picks by `graph.directed`, and runs its helper from every node not
 yet visited (white), because a cycle can be in any component.
 
+In **Tell a second route from a directed cycle**, compare the original
+`lecture_graph` with a copy that adds `E → B`. Before stepping, mark
+which vertices are active at `C → E` in the original and at `E → B`
+in the copy. Run `has_cycle` on both after writing it. Apply the colour
+rule in **W14-M18** and **W14-E4**.
+
 > **Checkpoint 6.** (a) Without the parent check, what does the undirected
 > `has_cycle` return for the tree A–B, A–C, B–D, B–E — and for the single edge
 > A–B? (b) With "visited" (grey or black) instead of "grey" in the directed
@@ -429,6 +465,10 @@ Eight tests.
 # Part 7 — `topological_sort`: Kahn's algorithm
 
 Lecture 14, "Kahn's algorithm: take what nothing waits on".
+
+On the original `lecture_graph`, record E's remaining in-degree after
+C and after D leave the ready queue. Check **Topological order with a
+ready queue**, then try **W14-M16** and **W14-M20**.
 
 1. Undirected graph: `raise ValueError`.
 2. A `ChainingHashMap` of in-degrees: 0 for every node, then +1 for every edge's

@@ -121,10 +121,10 @@ instead:
 | `-k "order or traversals"` | the 8 traversal tests |
 | `-k delete` | the 6 delete tests |
 
-The tree used by most tests is drawn in a comment at the top of
-`tests/test_tree.py`. It is the lecture's tree, built from
-`[8, 3, 10, 1, 6, 14, 4, 7, 13]`. This lab uses a **different** tree, so that
-your drawings are your own work.
+The tree used by most tests is drawn at the top of `tests/test_tree.py`
+and is built from `[8, 3, 10, 1, 6, 14, 4, 7, 13]`. Start with the
+lecture's seven-node tree in the demo, then apply the same rules to
+the larger lab tree T in the checkpoints.
 
 ---
 
@@ -142,7 +142,12 @@ always a leaf.
 
 ## 1.2 Draw it
 
-Take a sheet of paper. This is **the lab tree**, used in every part:
+Start with `[4, 2, 6, 1, 3, 5, 7]`. Draw the path to 5 and the path to
+the missing 0. Predict which link changes when you insert 0. Check the
+paths in **Search and turn a miss into an insertion** in the
+[Tree Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-11).
+
+Now draw **the lab tree T** for the checkpoints:
 
 ```text
 T = [15, 6, 20, 3, 9, 18, 24, 7, 12, 22]
@@ -429,6 +434,10 @@ value does not have any.
 Draw the queue as a row of boxes, front on the left, after every dequeue — the
 format of the lecture's figure.
 
+Use the original seven-node tree in **Compare all four traversals**. Before
+stepping, predict who is next after the queue serves 2. Explain why the
+child 1 waits, then apply the rule in **W11-M15** and **W11-M16**.
+
 > **Checkpoint 6.** (a) Trace `level_order` on the lab tree T: after each
 > dequeue, which values are in the queue? What is the largest number of nodes
 > in the queue at any one time?
@@ -486,7 +495,16 @@ until there was no left child, so it has no left child.
 
 ## 7.2 Draw it
 
-Start again from a fresh drawing of T.
+On the original seven-node lecture tree, predict the parent links
+that change when you delete 1 and then 2. Check **Delete a leaf, then a
+one-child node** and verify the final order with `in_order()` once
+your code works. Reset to the original seven nodes before replaying
+**Delete a node with two children**. Predict the new root after deleting 4.
+Use **W11-M17 through W11-M19** and **W11-E3** in the
+[Week 11 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-11/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-11/)).
+
+For the next two checkpoints, use a fresh drawing of T.
 
 > **Checkpoint 7.** Delete, in this order, redrawing the tree after each:
 > **3**, then **6**, then **15**, then **20**. For each delete, name the case

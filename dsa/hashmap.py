@@ -17,6 +17,7 @@ from __future__ import annotations
 from dsa.array import Array
 
 _MISSING = object()
+_EMPTY = object()  # Marks an unused open-addressing key slot.
 #: Marks a slot whose key was deleted but which a probe chain still runs through.
 TOMBSTONE = object()
 
@@ -100,7 +101,7 @@ class OpenAddressingHashMap:
     """
 
     def __init__(self, capacity=8, max_load=0.66):
-        self._keys = Array(capacity)         # None marks a never-used slot
+        self._keys = Array(capacity, fill=_EMPTY)  # None can be a live key
         self._values = Array(capacity)
         self._size = 0
         self._tombstones = 0                 # slots holding TOMBSTONE
@@ -116,17 +117,17 @@ class OpenAddressingHashMap:
 
     def put(self, key, value):
         """Insert or overwrite. Count tombstones as used when you check the
-        load, or a table full of tombstones leaves no None to stop a probe."""
+        load, or tombstones can occupy all the unused slots."""
         raise NotImplementedError
 
     def get(self, key, default=_MISSING):
         """Return the value, or `default`. Raises KeyError when neither exists.
 
-        A None slot ends the search; a TOMBSTONE does not."""
+        An _EMPTY slot ends the search. Skip TOMBSTONE and keep probing."""
         raise NotImplementedError
 
     def delete(self, key):
-        """Remove `key`, leaving TOMBSTONE behind rather than None."""
+        """Remove `key` and leave TOMBSTONE so probes can continue."""
         raise NotImplementedError
 
     def _resize(self, capacity):
@@ -149,5 +150,5 @@ class OpenAddressingHashMap:
 
     def __iter__(self):
         for key in self._keys:
-            if key is not None and key is not TOMBSTONE:
+            if key is not _EMPTY and key is not TOMBSTONE:
                 yield key

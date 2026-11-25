@@ -100,6 +100,11 @@ Lecture 08, "Linear Search". Look at every element in order; return the index
 of the **first** one equal to `target`; if the loop ends, return −1. It is the
 only function this week that must work on unsorted data.
 
+**Trace before coding.** Find 1 in `[5, 2, 7, 2, 1, 2]` on paper. List the
+indices read, then check **Scan an unsorted list** in the
+[Searching Lab](https://helghareeb.github.io/DSA27/lectures/trace-lab.html#week-08).
+Search the same array for 2. Mark the match where the scan must stop.
+
 **Write it.** A `for i in range(len(values))` loop, one comparison, and the
 `return -1` **after** the loop. Read each element as `values[i]`: every search
 this week touches its input only through `len(values)` and `values[i]`, and
@@ -147,20 +152,29 @@ the loop, and a last row showing `lo > hi` for a miss:
 lo   hi   mid   values[mid]   decision
 ```
 
-You can also draw each step. `highlight` marks `mid`; `done` marks what has
-been discarded (paste into the notebook `notebooks/08-searching.ipynb`):
+Start with the lecture's `A = [1, 2, 2, 2, 5, 7]` and target 4. Predict
+each middle index, including the last candidate, before stepping through
+**Binary search for a missing key**. Then trace target 7 with both
+`lo <= hi` and `lo < hi`. Use **Check the last candidate and the first
+match** to explain where the results diverge. You can also draw the first
+two rows in `notebooks/08-searching.ipynb`. Here `done` marks indices
+that have been discarded.
 
 ```python
 from viz.draw import draw_array
-A = [4, 9, 13, 20, 26, 31, 37, 44]
-draw_array(A, highlight=3, title="lo=0 hi=7 mid=3")
-draw_array(A, highlight=5, done=[0, 1, 2, 3], title="lo=4 hi=7 mid=5")
+A = [1, 2, 2, 2, 5, 7]
+draw_array(A, highlight=2, title="lo=0 hi=5 mid=2")
+draw_array(A, highlight=4, done=[0, 1, 2], title="lo=3 hi=5 mid=4")
 ```
 
-> **Checkpoint 1.** With `A = [4, 9, 13, 20, 26, 31, 37, 44]`, trace
-> `binary_search(A, 37)` and `binary_search(A, 10)` as tables of `lo`, `hi`,
-> `mid` and `values[mid]`. How many comparisons does each make? For the miss,
-> what is `lo` when the loop ends, and what does that number mean?
+> **Checkpoint 1.** Transfer the trace to `V = [4, 9, 13, 20, 26, 31, 37, 44]`.
+> Search for 37 and 10, recording `lo`, `hi`, `mid` and `values[mid]`.
+> How many middle positions does each search inspect? For the miss, what
+> is `lo` when the loop ends, and what does it mean?
+
+Try **W8-M05 through W8-M07** and **W8-E1** in the
+[Week 8 quiz and written practice](https://helghareeb.github.io/en/quizzes/dsa27/week-08/)
+([Arabic](https://helghareeb.github.io/ar/quizzes/dsa27/week-08/)).
 
 ## 2.2 Test sizes 0, 1 and 2 by hand
 
@@ -369,18 +383,20 @@ For `upper_bound`, replace `< target` by `<= target` and `>= target` by
 
 ## 5.2 Draw it
 
-Take `v = [1, 2, 2, 2, 5]` and target 2. Mark each element **L** ("goes left
+Take the lecture's `A = [1, 2, 2, 2, 5, 7]` and target 2. Mark each element **L** ("goes left
 of the answer") or **R**, for each function:
 
 ```text
-index            0  1  2  3  4
-v                1  2  2  2  5
-lower_bound: v[i] < 2 ?   L  R  R  R  R    -> first R at 1
-upper_bound: v[i] <= 2 ?  L  L  L  L  R    -> first R at 4
+index                     0  1  2  3  4  5
+A                         1  2  2  2  5  7
+lower_bound: A[i] < 2 ?   L  R  R  R  R  R    -> first R at 1
+upper_bound: A[i] <= 2 ?  L  L  L  L  R  R    -> first R at 4
 ```
 
 Both functions are the same binary search for the **first R**. Only the test
-that decides L or R differs.
+that decides L or R differs. Predict the slice containing all the 2s,
+then check **Find all copies with lower and upper bounds**. Apply the
+same rule in **W8-M12 through W8-M16** and **W8-E3**.
 
 > **Checkpoint 5.** `v = [3, 3, 5, 8, 8, 8, 9]`. Give:
 >
@@ -437,6 +453,13 @@ idea and two or three edge cases. The same ten tests run on each of them, so
 a working `binary_search` is your model for what "correct" looks like.
 
 ## 6.1 Draw it
+
+Replay the odd-number array in **Jump by blocks and then scan** and
+**Double a bound before bisecting**. For 37 and 23 respectively, separate
+the indices that locate the candidate range from those that finish the
+search. Then compare the first guesses on evenly spaced and skewed
+values in **Guess a position by value**. Apply these rules to the
+different inputs in Checkpoint 6 and **W8-M17 through W8-M22**.
 
 Use one list for all three: `B = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45]`
 (n = 10), target 30, which is at index 6.
@@ -820,7 +843,7 @@ surprise: O(n²) in general, but O(n) when the input is nearly sorted.
 **Checkpoint 1.**
 
 ```text
-binary_search(A, 37)                 binary_search(A, 10)
+binary_search(V, 37)                 binary_search(V, 10)
 lo  hi  mid  values[mid]             lo  hi  mid  values[mid]
  0   7   3   20   20 < 37: lo = 4     0   7   3   20   20 > 10: hi = 2
  4   7   5   31   31 < 37: lo = 6     0   2   1    9    9 < 10: lo = 2
@@ -828,8 +851,8 @@ lo  hi  mid  values[mid]             lo  hi  mid  values[mid]
                                       2   1            lo > hi: return -1
 ```
 
-Three comparisons each. The miss ends with `lo = 2`: the index where 10 would be
-inserted, between 9 and 13 — which is exactly `lower_bound(A, 10)`.
+Three middle positions each. The miss ends with `lo = 2`: the index where 10
+would be inserted, between 9 and 13, which is `lower_bound(V, 10)`.
 
 **Checkpoint 2.**
 (a) −1, 0 turns — `hi` starts at −1, so the loop never runs.
